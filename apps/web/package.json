@@ -1,0 +1,46 @@
+{
+    "name": "web",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "prisma generate --schema=../../packages/db/prisma/schema.prisma && next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.22.0",
+        "@radix-ui/react-popover": "^1.1.15",
+        "@radix-ui/react-slot": "^1.2.4",
+        "@radix-ui/react-tabs": "^1.1.13",
+        "@react-pdf/renderer": "^4.3.1",
+        "@stripe/stripe-js": "^8.5.3",
+        "@types/react-big-calendar": "^1.16.3",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^1.2.1",
+        "cmdk": "^1.1.1",
+        "date-fns": "^4.1.0",
+        "lucide-react": "latest",
+        "next": "latest",
+        "react": "latest",
+        "react-big-calendar": "^1.19.4",
+        "react-day-picker": "^9.11.3",
+        "react-dom": "latest",
+        "resend": "^6.5.2",
+        "sonner": "^2.0.7",
+        "stripe": "^20.0.0",
+        "tailwind-merge": "^3.4.0"
+    },
+    "devDependencies": {
+        "@repo/eslint-config": "*",
+        "@repo/tsconfig": "*",
+        "@types/node": "latest",
+        "@types/react": "latest",
+        "@types/react-dom": "latest",
+        "autoprefixer": "^10.4.19",
+        "postcss": "^8.4.38",
+        "prisma": "^5.22.0",
+        "tailwindcss": "^3.4.1",
+        "typescript": "latest"
+    }
+}

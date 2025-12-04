@@ -1,0 +1,91 @@
+prisma:engines binaries to download libquery-engine, schema-engine +240ms
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +929ms
+prisma:loadEnv project root found at C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\package.json +2ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\package.json"
+} +1ms
+prisma:tryLoadEnv Environment variables loaded from C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\.env +1ms
+prisma:getConfig Using getConfig Wasm +1ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +11ms
+prisma:loadEnv project root found at C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\package.json +1ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\package.json"
+} +1ms
+prisma:tryLoadEnv Environment variables loaded from C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\.env +0ms
+Environment variables loaded from .env
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +1ms
+Prisma schema loaded from packages\db\prisma\schema.prisma
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +0ms
+prisma:getConfig Using getConfig Wasm +1ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +2ms
+Datasource "db": PostgreSQL database "postgres", schema "public" at "aws-1-ca-central-1.pooler.supabase.com:5432"
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +1ms
+prisma:getConfig Using getConfig Wasm +1ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +1ms
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +232ms
+prisma:schemaEngine:rpc starting Schema engine with binary: C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\@prisma\engines\schema-engine-windows.exe +2ms
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +0ms
+prisma:getConfig Using getConfig Wasm +0ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +2ms
+prisma:schemaEngine:rpc SENDING RPC CALL {"id":1,"jsonrpc":"2.0","method":"schemaPush","params":{"force":false,"schema":{"files":[{"path":"C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\packages\\db\\prisma\\schema.prisma","content":"// This is your Prisma schema file,\r\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\r\n\r\ngenerator client {\r\n  provider = \"prisma-client-js\"\r\n}\r\n\r\ndatasource db {\r\n  provider  = \"postgresql\"\r\n  url       = env(\"DATABASE_URL\")\r\n  directUrl = env(\"DIRECT_URL\")\r\n}\r\n\r\nenum Role {\r\n  ADMIN\r\n  OFFICE\r\n  TECHNICIAN\r\n}\r\n\r\nenum JobStatus {\r\n  PENDING\r\n  SCHEDULED\r\n  IN_PROGRESS\r\n  COMPLETED\r\n  CANCELLED\r\n}\r\n\r\nenum PropertyType {\r\n  RESIDENTIAL\r\n  COMMERCIAL\r\n}\r\n\r\nmodel User {\r\n  id        String   @id @default(uuid())\r\n  email     String   @unique\r\n  password  String?  // Nullable for now to support existing users, or we can set a default\r\n  name      String?\r\n  role      Role     @default(TECHNICIAN)\r\n  createdAt DateTime @default(now())\r\n  updatedAt DateTime @updatedAt\r\n\r\n  jobs      Job[]\r\n}\r\n\r\nmodel Client {\r\n  id             String     @id @default(uuid())\r\n  name           String\r\n  email          String?\r\n  phone          String?\r\n  billingAddress String?\r\n  createdAt      DateTime   @default(now())\r\n  updatedAt      DateTime   @updatedAt\r\n\r\n  properties     Property[]\r\n  notes          ClientNote[]\r\n  quotes         Quote[]\r\n  invoices       Invoice[]\r\n}\r\n\r\nmodel Property {\r\n  id         String       @id @default(uuid())\r\n  clientId   String\r\n  client     Client       @relation(fields: [clientId], references: [id])\r\n  address    String\r\n  latitude   Float?\r\n  longitude  Float?\r\n  type       PropertyType @default(RESIDENTIAL)\r\n  accessInfo String?      // Gate codes, key location, etc.\r\n  createdAt  DateTime     @default(now())\r\n  updatedAt  DateTime     @updatedAt\r\n\r\n  jobs       Job[]\r\n  quotes     Quote[]\r\n}\r\n\r\nmodel Job {\r\n  id          String    @id @default(uuid())\r\n  propertyId  String\r\n  property    Property  @relation(fields: [propertyId], references: [id])\r\n  \r\n  technicians User[]\r\n  \r\n  scheduledAt DateTime\r\n  scheduledEndAt DateTime?\r\n  status      JobStatus @default(PENDING)\r\n  description String?\r\n  \r\n  startedAt   DateTime?\r\n  completedAt DateTime?\r\n  \r\n  notes       JobNote[]\r\n  photos      JobPhoto[]\r\n  products    UsedProduct[]\r\n  \r\n  createdAt   DateTime  @default(now())\r\n  updatedAt   DateTime  @updatedAt\r\n\r\n  invoices    Invoice[]\r\n}\r\n\r\nmodel JobNote {\r\n  id        String   @id @default(uuid())\r\n  jobId     String\r\n  job       Job      @relation(fields: [jobId], references: [id])\r\n  content   String\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nmodel JobPhoto {\r\n  id        String   @id @default(uuid())\r\n  jobId     String\r\n  job       Job      @relation(fields: [jobId], references: [id])\r\n  url       String\r\n  caption   String?\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nmodel Product {\r\n  id          String   @id @default(uuid())\r\n  name        String\r\n  description String?\r\n  unit        String   // e.g., \"liters\", \"traps\"\r\n  price       Float    @default(0)\r\n  stock       Int      @default(0)\r\n  createdAt   DateTime @default(now())\r\n  updatedAt   DateTime @updatedAt\r\n\r\n  usedIn      UsedProduct[]\r\n  invoiceItems InvoiceItem[]\r\n  quoteItems   QuoteItem[]\r\n}\r\n\r\n\r\n\r\nmodel UsedProduct {\r\n  id        String   @id @default(uuid())\r\n  jobId     String\r\n  job       Job      @relation(fields: [jobId], references: [id])\r\n  productId String\r\n  product   Product  @relation(fields: [productId], references: [id])\r\n  quantity  Float\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nmodel ClientNote {\r\n  id        String   @id @default(uuid())\r\n  clientId  String\r\n  client    Client   @relation(fields: [clientId], references: [id])\r\n  content   String\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nenum QuoteStatus {\r\n  DRAFT\r\n  SENT\r\n  ACCEPTED\r\n  REJECTED\r\n}\r\n\r\nmodel Quote {\r\n  id          String      @id @default(uuid())\r\n  clientId    String\r\n  client      Client      @relation(fields: [clientId], references: [id])\r\n  propertyId  String?\r\n  property    Property?   @relation(fields: [propertyId], references: [id])\r\n  status      QuoteStatus @default(DRAFT)\r\n  total       Float       @default(0)\r\n  description String?\r\n  createdAt   DateTime    @default(now())\r\n  updatedAt   DateTime    @updatedAt\r\n\r\n  items       QuoteItem[]\r\n}\r\n\r\nmodel QuoteItem {\r\n  id        String   @id @default(uuid())\r\n  quoteId   String\r\n  quote     Quote    @relation(fields: [quoteId], references: [id])\r\n  productId String\r\n  product   Product  @relation(fields: [productId], references: [id])\r\n  quantity  Float\r\n  price     Float\r\n  createdAt DateTime @default(now())\r\n}\r\n\r\nenum InvoiceStatus {\r\n  DRAFT\r\n  SENT\r\n  PAID\r\n  OVERDUE\r\n  CANCELLED\r\n}\r\n\r\nmodel Invoice {\r\n  id          String        @id @default(uuid())\r\n  clientId    String\r\n  client      Client        @relation(fields: [clientId], references: [id])\r\n  jobId       String?\r\n  job         Job?          @relation(fields: [jobId], references: [id])\r\n  status      InvoiceStatus @default(DRAFT)\r\n  total       Float         @default(0)\r\n  description String?\r\n  createdAt   DateTime      @default(now())\r\n  updatedAt   DateTime      @updatedAt\r\n\r\n  items       InvoiceItem[]\r\n}\r\n\r\nmodel InvoiceItem {\r\n  id        String   @id @default(uuid())\r\n  invoiceId String\r\n  invoice   Invoice  @relation(fields: [invoiceId], references: [id])\r\n  productId String\r\n  product   Product  @relation(fields: [productId], references: [id])\r\n  quantity  Float\r\n  price     Float\r\n  createdAt DateTime @default(now())\r\n}\r\n"}]}}} +9ms
+prisma:schemaEngine:stderr {"timestamp":"2025-12-02T15:11:42.0996379Z","level":"INFO","fields":{"message":"Starting schema engine RPC server","git_hash":"605197351a3c8bdd595af2d2a9bc3025bca48ea2"},"target":"schema_engine"} +9ms
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +685ms
+prisma:getConfig Using getConfig Wasm +71ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +1ms
+prisma:getDMMF Using getDmmf Wasm +1ms
+prisma:getDMMF Using given datamodel +0ms
+prisma:getDMMF dmmf data retrieved without errors in getDmmf Wasm +55ms
+prisma:generator prismaCLIDir C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\prisma +5ms
+prisma:generator prismaClientDir C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\@prisma\client +0ms
+prisma:generator baseDir C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma +1ms
+prisma:generator typescriptPath C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\typescript +3ms
+prisma:GeneratorProcess prisma:client:generator requiredEngine: libqueryEngine +27ms +97ms
+prisma:mergeSchemas Using mergeSchemas Wasm +0ms
+prisma:loadEnv project root found at C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\@prisma\client\package.json +5ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\package.json"
+} +0ms
+prisma:getGenerators neededVersions {
+  "605197351a3c8bdd595af2d2a9bc3025bca48ea2": {
+    "engines": [
+      "libqueryEngine"
+    ],
+    "binaryTargets": [
+      {
+        "fromEnvVar": null,
+        "value": "windows",
+        "native": true
+      }
+    ]
+  }
+} +1ms
+prisma:getGenerators {
+  "generatorBinaryPaths": {
+    "libqueryEngine": {
+      "windows": "C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\node_modules\\prisma\\query_engine-windows.dll.node"
+    }
+  }
+} +54ms
+[2K[1A[2K[GRunning generate... - Prisma Client
+[2K[1A[2K[G✔ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 115ms
+prisma:cli:bin Execution time for executing "await cli.parse(commandArray)": 2058.2855 ms +117ms
+
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\packages\db\prisma\schema.prisma +1ms
+prisma:getSchema prismaConfig {
+  "packagePath": "C:\\Users\\samue\\OneDrive\\Desktop\\Antigravity - Folder\\package.json"
+} +0ms
+prisma:getSchema Checking existence of C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\schema.prisma +1ms
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\schema.prisma +0ms
+prisma:getSchema Checking existence of C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\prisma\schema.prisma +0ms
+prisma:getSchema Reading schema from single file C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\prisma\schema.prisma +1ms
+prisma:getConfig Using getConfig Wasm +0ms
+prisma:getConfig config data retrieved without errors in getConfig Wasm +1ms
+prisma:getSchema Checking existence of C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\prisma\schema +0ms
+prisma:getSchema Reading schema from multiple files C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\prisma\schema +0ms
+prisma:cli:checkpoint Error from runCheckpointClientCheck() +1ms
+prisma:cli:checkpoint {} +0ms
+prisma:GeneratorProcess child exited with code null on signal SIGTERM +3ms

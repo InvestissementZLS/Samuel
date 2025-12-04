@@ -1,0 +1,378 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                              String       @id @default(uuid())
+  email                           String       @unique
+  name                            String?
+  role                            Role         @default(TECHNICIAN)
+  createdAt                       DateTime     @default(now())
+  updatedAt                       DateTime     @updatedAt
+  password                        String?
+  commissionPercentageSales       Float        @default(0)
+  commissionPercentageSupervision Float        @default(0)
+  internalHourlyRate              Float        @default(0)
+  canManageCommissions            Boolean      @default(false)
+  divisions                       Division[]   @default([EXTERMINATION])
+  resetToken                      String?
+  resetTokenExpiry                DateTime?
+  commissions                     Commission[]
+  salesJobs                       Job[]        @relation("JobSalesRep")
+  supervisedJobs                  Job[]        @relation("JobSupervisor")
+  jobs                            Job[]        @relation("JobToUser")
+  activities      JobActivity[]
+  inventory       InventoryItem[]
+  audits          InventoryAudit[]
+}
+
+model Client {
+  id             String       @id @default(uuid())
+  name           String
+  email          String?
+  phone          String?
+  billingAddress String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  divisions      Division[]   @default([EXTERMINATION])
+  language       Language     @default(FR)
+  notes          ClientNote[]
+  invoices       Invoice[]
+  properties     Property[]
+  quotes         Quote[]
+}
+
+model Property {
+  id         String       @id @default(uuid())
+  clientId   String
+  address    String
+  type       PropertyType @default(RESIDENTIAL)
+  accessInfo String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  latitude   Float?
+  longitude  Float?
+  jobs       Job[]
+  client     Client       @relation(fields: [clientId], references: [id])
+  quotes     Quote[]
+}
+
+model Job {
+  id                    String        @id @default(uuid())
+  propertyId            String
+  scheduledAt           DateTime
+  scheduledEndAt        DateTime?
+  status                JobStatus     @default(PENDING)
+  description           String?
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  division              Division      @default(EXTERMINATION)
+  grossMarginPercentage Float         @default(0)
+  netSellingPrice       Float         @default(0)
+  otherDirectCosts      Float         @default(0)
+  salesRepId            String?
+  supervisorId          String?
+  totalJobCost          Float         @default(0)
+  totalLaborCost        Float         @default(0)
+  totalMaterialCost     Float         @default(0)
+  totalProfit           Float         @default(0)
+  commissions           Commission[]
+  invoices              Invoice[]
+  property              Property      @relation(fields: [propertyId], references: [id])
+  salesRep              User?         @relation("JobSalesRep", fields: [salesRepId], references: [id])
+  supervisor            User?         @relation("JobSupervisor", fields: [supervisorId], references: [id])
+  notes                 JobNote[]
+  photos                JobPhoto[]
+  products              UsedProduct[]
+  technicians           User[]        @relation("JobToUser")
+  activities            JobActivity[]
+}
+
+model JobNote {
+  id        String   @id @default(uuid())
+  jobId     String
+  content   String
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+}
+
+model JobPhoto {
+  id        String   @id @default(uuid())
+  jobId     String
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+}
+
+model UsedProduct {
+  id        String   @id @default(uuid())
+  jobId     String
+  productId String
+  quantity  Float
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  locations TreatmentLocation[]
+  pests     TargetPest[]
+  methods   ApplicationMethod[]
+}
+
+model TreatmentLocation {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  usedProducts UsedProduct[]
+}
+
+model TargetPest {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  usedProducts UsedProduct[]
+}
+
+model ApplicationMethod {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  usedProducts UsedProduct[]
+}
+
+model ClientNote {
+  id        String   @id @default(uuid())
+  clientId  String
+  content   String
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id])
+}
+
+model Quote {
+  id          String      @id @default(uuid())
+  clientId    String
+  propertyId  String?
+  status      QuoteStatus @default(DRAFT)
+  total       Float       @default(0)
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  discount    Float       @default(0)
+  dueDate     DateTime?
+  issuedDate  DateTime    @default(now())
+  notes       String?
+  poNumber    String?
+  tax         Float       @default(0)
+  terms       String?
+  division    Division    @default(EXTERMINATION)
+  number      String?     @unique
+  client      Client      @relation(fields: [clientId], references: [id])
+  property    Property?   @relation(fields: [propertyId], references: [id])
+  items       QuoteItem[]
+}
+
+model QuoteItem {
+  id          String   @id @default(uuid())
+  quoteId     String
+  productId   String
+  quantity    Float
+  price       Float
+  createdAt   DateTime @default(now())
+  description String?
+  taxRate     Float    @default(0)
+  unitCost    Float    @default(0)
+  product     Product  @relation(fields: [productId], references: [id])
+  quote       Quote    @relation(fields: [quoteId], references: [id])
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  clientId    String
+  jobId       String?
+  status      InvoiceStatus @default(DRAFT)
+  total       Float         @default(0)
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  discount    Float         @default(0)
+  dueDate     DateTime?
+  issuedDate  DateTime      @default(now())
+  notes       String?
+  poNumber    String?
+  tax         Float         @default(0)
+  terms       String?
+  division    Division      @default(EXTERMINATION)
+  number      String?       @unique
+  client      Client        @relation(fields: [clientId], references: [id])
+  job         Job?          @relation(fields: [jobId], references: [id])
+  items       InvoiceItem[]
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  productId   String
+  quantity    Float
+  price       Float
+  createdAt   DateTime @default(now())
+  description String?
+  taxRate     Float    @default(0)
+  unitCost    Float    @default(0)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Commission {
+  id         String           @id @default(uuid())
+  jobId      String
+  userId     String
+  role       CommissionRole
+  baseAmount Float
+  percentage Float
+  amount     Float
+  status     CommissionStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  job        Job              @relation(fields: [jobId], references: [id])
+  user       User             @relation(fields: [userId], references: [id])
+}
+
+model JobActivity {
+  id        String   @id @default(uuid())
+  jobId     String
+  userId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  unit         String
+  stock        Int           @default(0) // Kept for legacy/global view, but InventoryItem is source of truth
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  price        Float         @default(0)
+  division     Division      @default(EXTERMINATION)
+  cost         Float         @default(0)
+  type         ProductType   @default(CONSUMABLE)
+  invoiceItems InvoiceItem[]
+  quoteItems   QuoteItem[]
+  usedIn       UsedProduct[]
+  inventory    InventoryItem[]
+  auditItems   InventoryAuditItem[]
+}
+
+model InventoryItem {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String?  // If null, belongs to Warehouse
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId]) // One record per product per user (or warehouse)
+}
+
+model InventoryAudit {
+  id           String               @id @default(uuid())
+  technicianId String
+  date         DateTime             @default(now())
+  status       AuditStatus          @default(PENDING)
+  notes        String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  
+  technician   User                 @relation(fields: [technicianId], references: [id])
+  items        InventoryAuditItem[]
+}
+
+model InventoryAuditItem {
+  id               String         @id @default(uuid())
+  auditId          String
+  productId        String
+  expectedQuantity Int
+  actualQuantity   Int
+  notes            String?
+
+  audit            InventoryAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  product          Product        @relation(fields: [productId], references: [id])
+}
+
+enum ProductType {
+  CONSUMABLE
+  EQUIPMENT
+}
+
+enum AuditStatus {
+  PENDING
+  REVIEWED
+  APPROVED
+  REJECTED
+}
+
+// ... (Existing enums)
+enum Role {
+  ADMIN
+  OFFICE
+  TECHNICIAN
+}
+
+enum JobStatus {
+  PENDING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum Division {
+  EXTERMINATION
+  ENTREPRISES
+}
+
+enum Language {
+  EN
+  FR
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum CommissionRole {
+  SALES
+  SUPERVISION
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
