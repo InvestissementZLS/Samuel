@@ -73,7 +73,7 @@ export default async function DashboardPage() {
                         <Link href="/jobs/new" className="block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
                             Create New Job
                         </Link>
-                        <Link href="/clients" className="block w-full rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        <Link href="/clients" className="block w-full rounded-md bg-secondary px-3 py-2 text-center text-sm font-semibold text-secondary-foreground shadow-sm hover:bg-secondary/80">
                             Manage Clients
                         </Link>
                     </div>
