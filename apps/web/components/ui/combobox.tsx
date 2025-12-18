@@ -26,6 +26,8 @@ interface ComboboxProps {
     placeholder?: string
     searchPlaceholder?: string
     emptyText?: string
+    className?: string
+    popoverClassName?: string
 }
 
 export function Combobox({
@@ -35,6 +37,8 @@ export function Combobox({
     placeholder = "Select item...",
     searchPlaceholder = "Search...",
     emptyText = "No item found.",
+    className,
+    popoverClassName
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false)
 
@@ -45,7 +49,7 @@ export function Combobox({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between"
+                    className={cn("w-full justify-between", className)}
                 >
                     {value
                         ? items.find((item) => item.value === value)?.label
@@ -53,7 +57,7 @@ export function Combobox({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
+            <PopoverContent className={cn("w-[200px] p-0", popoverClassName)}>
                 <Command>
                     <CommandInput placeholder={searchPlaceholder} />
                     <CommandList>

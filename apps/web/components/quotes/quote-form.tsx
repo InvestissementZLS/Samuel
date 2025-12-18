@@ -195,6 +195,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                                     value={selectedClientId}
                                     onSelect={setSelectedClientId}
                                     placeholder="Select Client..."
+                                    className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 hover:text-white justify-between w-full"
+                                    popoverClassName="bg-gray-800 border-gray-700 text-white"
                                 />
                                 <Button
                                     variant="outline"
@@ -326,6 +328,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                                                 value={item.productId}
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
                                                 placeholder="Select Item"
+                                                className="bg-transparent border-none text-white hover:bg-gray-800 justify-between w-full p-0 h-auto"
+                                                popoverClassName="bg-gray-800 border-gray-700 text-white"
                                             />
                                             <input
                                                 type="text"
