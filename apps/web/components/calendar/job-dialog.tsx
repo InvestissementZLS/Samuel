@@ -166,7 +166,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                 <div className={`grid gap-3 ${isCreatingClient ? 'grid-cols-1' : 'grid-cols-2'}`}>
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium">Client</label>
+                            <label className="block text-sm font-medium text-gray-900">Client</label>
                             <div className="flex gap-2">
                                 {clientId && !isCreatingClient && (
                                     <a
@@ -246,7 +246,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                     </div>
 
                     <div className={isCreatingClient ? "hidden" : "block"}>
-                        <label className="block text-sm font-medium mb-1">Property</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Property</label>
                         <select
                             value={propertyId}
                             onChange={(e) => setPropertyId(e.target.value)}
@@ -266,7 +266,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Date</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Date</label>
                         <input
                             type="date"
                             value={date}
@@ -276,7 +276,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Time</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Time</label>
                         <input
                             type="time"
                             value={time}
@@ -289,8 +289,8 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Technicians</label>
-                        <div className="border rounded-md p-1.5 max-h-24 overflow-y-auto bg-background">
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Technicians</label>
+                        <div className="border rounded-md p-1.5 max-h-24 overflow-y-auto bg-white">
                             {technicians.map((tech) => (
                                 <label key={tech.id} className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
                                     <input
@@ -305,7 +305,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                         }}
                                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-3 w-3"
                                     />
-                                    <span className="text-xs">{tech.name || tech.email}</span>
+                                    <span className="text-xs text-gray-900">{tech.name || tech.email}</span>
                                 </label>
                             ))}
                             {technicians.length === 0 && (
@@ -314,7 +314,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Status</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Status</label>
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value as JobStatus)}
@@ -330,7 +330,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Description</label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}

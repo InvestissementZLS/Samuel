@@ -68,7 +68,7 @@ export function Sidebar() {
                             href={item.href}
                             className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${isActive
                                 ? 'bg-gray-800 text-white'
-                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                : 'text-gray-100 hover:bg-gray-700 hover:text-white'
                                 } ${isCollapsed ? 'justify-center' : ''}`}
                             title={isCollapsed ? item.name : undefined}
                         >

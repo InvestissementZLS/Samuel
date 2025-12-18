@@ -76,19 +76,19 @@ export function InventoryDashboard() {
 
             <div className="flex space-x-4 border-b">
                 <button
-                    className={`pb-2 px-4 ${activeTab === 'WAREHOUSE' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                    className={`pb-2 px-4 ${activeTab === 'WAREHOUSE' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
                     onClick={() => setActiveTab('WAREHOUSE')}
                 >
                     Warehouse
                 </button>
                 <button
-                    className={`pb-2 px-4 ${activeTab === 'TECHNICIANS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                    className={`pb-2 px-4 ${activeTab === 'TECHNICIANS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
                     onClick={() => setActiveTab('TECHNICIANS')}
                 >
                     Technicians
                 </button>
                 <button
-                    className={`pb-2 px-4 ${activeTab === 'AUDITS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-500'}`}
+                    className={`pb-2 px-4 ${activeTab === 'AUDITS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
                     onClick={() => setActiveTab('AUDITS')}
                 >
                     Audits & Discrepancies

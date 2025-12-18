@@ -45,7 +45,7 @@ export function ClientTabs({ client, jobs, notes, quotes, invoices, products }: 
                                 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
                                 ${activeTab === tab.id
                                     ? "border-indigo-500 text-indigo-600"
-                                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}
+                                    : "border-transparent text-gray-700 hover:text-gray-900 hover:border-gray-300"}
                             `}
                         >
                             {tab.label}
