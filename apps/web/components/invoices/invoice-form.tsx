@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -102,6 +103,27 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     };
 
     const handleSave = async () => {
+        if (!selectedClientId) {
+            toast.error("Please select a client");
+            return;
+        }
+
+        const validItems = items.filter(item => item.productId);
+        if (validItems.length === 0 && items.length > 0) {
+            toast.error("Please select products for all items or remove empty rows");
+            return;
+        }
+
+        // Check if there are any items with empty product IDs that weren't filtered out (e.g. if we want to enforce all rows to be valid)
+        // For now, let's just filter out invalid rows or error if any row is invalid?
+        // Better UX: Error if any row has missing product but has other data, or just check existence.
+
+        const hasInvalidItems = items.some(item => !item.productId);
+        if (hasInvalidItems) {
+            toast.error("Please select a product for all items");
+            return;
+        }
+
         setLoading(true);
         try {
             await onSave({
