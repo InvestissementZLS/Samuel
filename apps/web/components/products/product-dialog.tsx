@@ -15,7 +15,10 @@ interface ProductDialogProps {
 export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
-    const [unit, setUnit] = useState("");
+    const [usageDescription, setUsageDescription] = useState("");
+    const [activeIngredient, setActiveIngredient] = useState("");
+    const [recommendedConcentration, setRecommendedConcentration] = useState("");
+    const [unit, setUnit] = useState("ml");
     const [stock, setStock] = useState(0);
     const [price, setPrice] = useState(0);
     const [cost, setCost] = useState(0);
@@ -28,6 +31,12 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
             if (product) {
                 setName(product.name);
                 setDescription(product.description || "");
+                // @ts-ignore
+                setUsageDescription(product.usageDescription || "");
+                // @ts-ignore
+                setActiveIngredient(product.activeIngredient || "");
+                // @ts-ignore
+                setRecommendedConcentration(product.recommendedConcentration || "");
                 setUnit(product.unit);
                 setStock(product.stock);
                 setPrice(product.price);
@@ -40,7 +49,10 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
             } else {
                 setName("");
                 setDescription("");
-                setUnit("");
+                setUsageDescription("");
+                setActiveIngredient("");
+                setRecommendedConcentration("");
+                setUnit("ml");
                 setStock(0);
                 setPrice(0);
                 setCost(0);
@@ -60,6 +72,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     name,
                     description,
                     unit,
+                    usageDescription,
                     stock: Number(stock),
                     price: Number(price),
                     cost: Number(cost),
@@ -72,6 +85,9 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     name,
                     description,
                     unit,
+                    usageDescription,
+                    activeIngredient,
+                    recommendedConcentration,
                     stock: Number(stock),
                     price: Number(price),
                     cost: Number(cost),
@@ -157,18 +173,29 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">Unit</label>
-                        <input
-                            type="text"
+                        <select
                             value={unit}
                             onChange={(e) => setUnit(e.target.value)}
                             className="w-full rounded-md border p-2 bg-background"
-                            required
-                            placeholder="e.g. pcs"
-                        />
+                        >
+                            <option value="" disabled>Select Unit</option>
+                            <option value="ml">ml</option>
+                            <option value="L">L</option>
+                            <option value="Gallon">Gallon</option>
+                            <option value="Block">Block</option>
+                            <option value="Pcs">Pcs</option>
+                            <option value="Kg">Kg</option>
+                            <option value="g">g</option>
+                            <option value="oz">oz</option>
+                            <option value="lb">lb</option>
+                        </select>
                     </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">Stock</label>
                         <input
@@ -204,6 +231,39 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                             step="0.01"
                         />
                     </div>
+                </div>
+
+                <div className="pt-2">
+                    <label className="block text-sm font-medium mb-1">Usage Description</label>
+                    <textarea
+                        value={usageDescription}
+                        onChange={(e) => setUsageDescription(e.target.value)}
+                        className="w-full rounded-md border p-2 bg-background"
+                        rows={2}
+                        placeholder="How to use this product..."
+                    />
+                </div>
+
+                <div className="pt-2">
+                    <label className="block text-sm font-medium mb-1">Active Ingredient</label>
+                    <input
+                        type="text"
+                        value={activeIngredient}
+                        onChange={(e) => setActiveIngredient(e.target.value)}
+                        className="w-full rounded-md border p-2 bg-background"
+                        placeholder="e.g. Permethrin 5%"
+                    />
+                </div>
+
+                <div className="pt-2">
+                    <label className="block text-sm font-medium mb-1">Recommended Concentration</label>
+                    <input
+                        type="text"
+                        value={recommendedConcentration}
+                        onChange={(e) => setRecommendedConcentration(e.target.value)}
+                        className="w-full rounded-md border p-2 bg-background"
+                        placeholder="e.g. 1% - 3%"
+                    />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">

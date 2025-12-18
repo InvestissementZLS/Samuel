@@ -31,7 +31,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <Tabs value={division} onValueChange={(v) => setDivision(v as any)} className="w-[400px]">
+                <Tabs value={division} onValueChange={(v) => setDivision(v as any)} className="w-full md:w-[400px]">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="EXTERMINATION">Extermination ZLS</TabsTrigger>
                         <TabsTrigger value="ENTREPRISES">Les Entreprises ZLS</TabsTrigger>

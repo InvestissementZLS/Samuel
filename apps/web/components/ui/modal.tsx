@@ -39,7 +39,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-lg" 
                 className="absolute inset-0"
                 onClick={onClose}
             />
-            <div className={`relative z-10 w-full ${maxWidth} rounded-lg bg-background p-6 shadow-lg border animate-in fade-in zoom-in duration-200`}>
+            <div className={`relative z-10 w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-lg bg-background p-6 shadow-lg border animate-in fade-in zoom-in duration-200`}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-semibold">{title}</h2>
                     <button

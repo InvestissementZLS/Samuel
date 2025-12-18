@@ -29,3 +29,5 @@ yarn-error.log*
 
 # Turbo
 .turbo
+.vercel
+.env*.local

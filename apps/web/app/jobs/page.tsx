@@ -16,12 +16,12 @@ export default async function JobsPage() {
     });
 
     return (
-        <div className="p-8">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Work Orders / Jobs</h1>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold">Work Orders / Jobs</h1>
                 <Link
                     href="/jobs/new"
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-center"
                 >
                     + New Job
                 </Link>

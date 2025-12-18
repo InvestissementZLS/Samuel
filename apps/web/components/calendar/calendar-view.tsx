@@ -42,6 +42,14 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     // Filters
     const [selectedTechId, setSelectedTechId] = useState<string>("all");
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const filteredJobs = jobs.filter((job) => {
         const techMatch = selectedTechId === "all" || job.technicians.some(t => t.id === selectedTechId) || (selectedTechId === "" && job.technicians.length === 0);
@@ -137,36 +145,37 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     return (
         <div className="h-screen flex flex-col bg-background">
             {/* Toolbar */}
-            <div className="p-4 border-b flex justify-between items-center bg-white">
-                <div className="flex items-center gap-4">
+            {/* Toolbar */}
+            <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
                     <h2 className="text-2xl font-bold text-gray-800">Calendar</h2>
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg w-full sm:w-auto justify-center">
                         <button
                             onClick={() => setView(Views.MONTH)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
                         >
                             Month
                         </button>
                         <button
                             onClick={() => setView(Views.WEEK)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
                         >
                             Week
                         </button>
                         <button
                             onClick={() => setView(Views.DAY)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
                         >
                             Day
                         </button>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
                     <select
                         value={selectedTechId}
                         onChange={(e) => setSelectedTechId(e.target.value)}
-                        className="border rounded-md px-3 py-1.5 text-sm bg-white"
+                        className="border rounded-md px-3 py-1.5 text-sm bg-white w-full sm:w-auto"
                     >
                         <option value="all">All Technicians</option>
                         {technicians.map(tech => (
@@ -174,23 +183,25 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                         ))}
                     </select>
 
-                    <button
-                        onClick={handleOptimize}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
-                    >
-                        Optimize Route
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleOptimize}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                        >
+                            Optimize
+                        </button>
 
-                    <button
-                        onClick={() => {
-                            setSelectedJob(null);
-                            setInitialDate(new Date());
-                            setIsDialogOpen(true);
-                        }}
-                        className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors"
-                    >
-                        + New Job
-                    </button>
+                        <button
+                            onClick={() => {
+                                setSelectedJob(null);
+                                setInitialDate(new Date());
+                                setIsDialogOpen(true);
+                            }}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+                        >
+                            + New Job
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -213,7 +224,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                         onEventDrop={handleEventDrop}
                         resizable
                         draggableAccessor={() => true}
-                        resources={view === Views.DAY ? [
+                        resources={!isMobile && view === Views.DAY ? [
                             { id: "unassigned", title: "Unassigned" },
                             ...technicians.map(t => ({ id: t.id, title: t.name }))
                         ] : undefined}

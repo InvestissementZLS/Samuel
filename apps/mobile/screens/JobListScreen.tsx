@@ -7,6 +7,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { format } from 'date-fns';
+import * as Location from 'expo-location';
 
 type JobListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'JobList'>;
 type JobListScreenRouteProp = RouteProp<RootStackParamList, 'JobList'>;
@@ -30,6 +31,8 @@ export default function JobListScreen() {
     const { userId } = route.params;
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
+    const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
+    const [punchLoading, setPunchLoading] = useState(false);
 
     const fetchJobs = async () => {
         try {
@@ -45,7 +48,48 @@ export default function JobListScreen() {
 
     useEffect(() => {
         fetchJobs();
+        checkPunchStatus();
     }, [userId]);
+
+    const checkPunchStatus = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/technician/time?userId=${userId}`);
+            setPunchStatus(response.data ? 'OPEN' : 'CLOSED');
+        } catch (error) {
+            console.error('Failed to check punch status:', error);
+            setPunchStatus('CLOSED'); // Default safely
+        }
+    };
+
+    const handlePunch = async () => {
+        setPunchLoading(true);
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission denied', 'Allow location access to punch in/out.');
+                setPunchLoading(false);
+                return;
+            }
+
+            const location = await Location.getCurrentPositionAsync({});
+            const action = punchStatus === 'OPEN' ? 'PUNCH_OUT' : 'PUNCH_IN';
+
+            await axios.post(`${API_URL}/api/technician/time`, {
+                userId,
+                action,
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+
+            setPunchStatus(action === 'PUNCH_IN' ? 'OPEN' : 'CLOSED');
+            Alert.alert('Success', `Successfully ${action === 'PUNCH_IN' ? 'Punched In' : 'Punched Out'}`);
+        } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'Failed to update timesheet');
+        } finally {
+            setPunchLoading(false);
+        }
+    };
 
     const renderItem = ({ item }: { item: Job }) => (
         <TouchableOpacity
@@ -80,7 +124,22 @@ export default function JobListScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>My Schedule</Text>
+                <View style={styles.headerTop}>
+                    <Text style={styles.headerTitle}>My Schedule</Text>
+                    <TouchableOpacity
+                        style={[styles.punchBtn, punchStatus === 'OPEN' ? styles.punchOut : styles.punchIn]}
+                        onPress={handlePunch}
+                        disabled={punchLoading || punchStatus === 'LOADING'}
+                    >
+                        {punchLoading ? (
+                            <ActivityIndicator color="white" size="small" />
+                        ) : (
+                            <Text style={styles.punchBtnText}>
+                                {punchStatus === 'OPEN' ? 'Punch OUT' : 'Punch IN'}
+                            </Text>
+                        )}
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.date}>{format(new Date(), 'EEEE, MMM d')}</Text>
             </View>
 
@@ -123,6 +182,28 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         color: '#333',
+    },
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    punchBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        elevation: 2,
+    },
+    punchIn: {
+        backgroundColor: '#16a34a', // Green
+    },
+    punchOut: {
+        backgroundColor: '#dc2626', // Red
+    },
+    punchBtnText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     date: {
         fontSize: 16,

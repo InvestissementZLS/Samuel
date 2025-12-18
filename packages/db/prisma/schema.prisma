@@ -30,6 +30,7 @@ model User {
   activities      JobActivity[]
   inventory       InventoryItem[]
   audits          InventoryAudit[]
+  timesheets      TimesheetEntry[]
 }
 
 model Client {
@@ -258,6 +259,9 @@ model Product {
   name         String
   description  String?
   unit         String
+  usageDescription String?
+  activeIngredient String?
+  recommendedConcentration String?
   stock        Int           @default(0) // Kept for legacy/global view, but InventoryItem is source of truth
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -375,4 +379,27 @@ enum CommissionRole {
 enum CommissionStatus {
   PENDING
   PAID
+}
+
+model TimesheetEntry {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  startTime DateTime
+  endTime   DateTime?
+  startLat  Float?
+  startLng  Float?
+  endLat    Float?
+  endLng    Float?
+  status    TimesheetStatus @default(OPEN)
+  duration  Int?            // Duration in minutes
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+enum TimesheetStatus {
+  OPEN
+  SUBMITTED
+  APPROVED
+  REJECTED
 }

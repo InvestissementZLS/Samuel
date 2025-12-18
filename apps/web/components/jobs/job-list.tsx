@@ -31,7 +31,66 @@ export function JobList({ jobs }: JobListProps) {
                     {division === "EXTERMINATION" ? "Extermination" : "Entreprises"} Jobs ({filteredJobs.length})
                 </h2>
             </div>
-            <table className="min-w-full divide-y divide-gray-200">
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-200">
+                {filteredJobs.map((job) => (
+                    <div key={job.id} className="p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <div className="font-medium text-gray-900">{job.property.client.name}</div>
+                                <div className="text-sm text-gray-500">{job.property.address}</div>
+                            </div>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full 
+                                ${job.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                                    job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-gray-100 text-gray-800'}`}>
+                                {job.status}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between text-sm text-gray-600">
+                            <div>
+                                <div className="font-medium">{new Date(job.scheduledAt).toLocaleDateString()}</div>
+                                <div>{new Date(job.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="font-medium">Technician</div>
+                                <div>
+                                    {job.technicians.length > 0
+                                        ? job.technicians.map(t => t.name).join(", ")
+                                        : <span className="italic text-gray-400">Unassigned</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-2 flex justify-end gap-3">
+                            <Link
+                                href={`/jobs/${job.id}`}
+                                className="text-sm font-medium text-indigo-600 hover:text-indigo-900"
+                            >
+                                View Details
+                            </Link>
+                            {job.status === 'COMPLETED' && (
+                                <button
+                                    onClick={async () => {
+                                        if (confirm("Create an invoice from this job?")) {
+                                            const { convertJobToInvoice } = await import("@/app/actions/workflow-actions");
+                                            await convertJobToInvoice(job.id);
+                                        }
+                                    }}
+                                    className="text-sm font-medium text-green-600 hover:text-green-900"
+                                >
+                                    Convert to Invoice
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <table className="min-w-full divide-y divide-gray-200 hidden md:table">
                 <thead className="bg-gray-50">
                     <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

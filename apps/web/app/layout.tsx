@@ -18,6 +18,8 @@ import { CommandMenu } from "@/components/command-menu";
 
 import { DivisionProvider } from "@/components/providers/division-provider";
 
+import { MobileNav } from "@/components/MobileNav";
+
 export default function RootLayout({
     children,
 }: {
@@ -27,9 +29,10 @@ export default function RootLayout({
         <html lang="en">
             <body className={inter.className}>
                 <DivisionProvider>
-                    <div className="flex h-screen overflow-hidden bg-gray-100">
+                    <div className="flex h-screen overflow-hidden bg-gray-100 flex-col md:flex-row">
                         <Sidebar />
-                        <main className="flex-1 overflow-y-auto p-8 relative">
+                        <MobileNav />
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
                             <CommandMenu />
                             {children}
                         </main>

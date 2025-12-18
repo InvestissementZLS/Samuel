@@ -7,6 +7,9 @@ export async function createProduct(data: {
     name: string;
     description?: string;
     unit: string;
+    usageDescription?: string;
+    activeIngredient?: string;
+    recommendedConcentration?: string;
     stock: number;
     price: number;
     cost: number;
@@ -18,6 +21,9 @@ export async function createProduct(data: {
             name: data.name,
             description: data.description,
             unit: data.unit,
+            usageDescription: data.usageDescription,
+            activeIngredient: data.activeIngredient,
+            recommendedConcentration: data.recommendedConcentration,
             stock: data.stock,
             price: data.price,
             cost: data.cost,
@@ -32,6 +38,9 @@ export async function updateProduct(id: string, data: {
     name?: string;
     description?: string;
     unit?: string;
+    usageDescription?: string;
+    activeIngredient?: string;
+    recommendedConcentration?: string;
     stock?: number;
     price?: number;
     cost?: number;

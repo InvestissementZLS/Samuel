@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 
-const navigation = [
+export const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Calendar', href: '/calendar', icon: Calendar },
     { name: 'Jobs', href: '/jobs', icon: Truck },
@@ -17,6 +17,7 @@ const navigation = [
     { name: 'Products', href: '/products', icon: Package },
     { name: 'Commissions', href: '/commissions', icon: DollarSign },
     { name: 'Reports', href: '/reports', icon: BarChart },
+    { name: 'Timesheets', href: '/timesheets', icon: Calendar }, // Using Calendar icon for now, could use Clock if available
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -28,7 +29,7 @@ export function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
-        <div className={`flex h-full flex-col bg-gray-900 text-white z-50 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+        <div className={`hidden md:flex h-full flex-col bg-gray-900 text-white z-50 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
             <div className={`flex flex-col h-auto items-center justify-center border-b border-gray-800 p-4 gap-4 relative ${isCollapsed ? 'pt-12' : ''}`}>
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}

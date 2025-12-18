@@ -52,7 +52,6 @@ export function ProductList({ products }: ProductListProps) {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Division</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
@@ -62,16 +61,17 @@ export function ProductList({ products }: ProductListProps) {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {filteredProducts.map((product) => (
-                            <tr key={product.id} className="hover:bg-gray-50">
+                            <tr
+                                key={product.id}
+                                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                                onClick={() => handleEdit(product)}
+                            >
                                 <td className="px-6 py-4 whitespace-nowrap text-xs font-semibold text-gray-500">
                                     {/* @ts-ignore */}
                                     {product.division === "EXTERMINATION" ? "EXO" : "ENT"}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {product.name}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {product.description || '-'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {product.unit}
@@ -88,7 +88,10 @@ export function ProductList({ products }: ProductListProps) {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
-                                        onClick={() => handleEdit(product)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(product);
+                                        }}
                                         className="text-indigo-600 hover:text-indigo-900"
                                     >
                                         <Pencil className="h-4 w-4" />
