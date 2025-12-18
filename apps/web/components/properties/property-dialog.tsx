@@ -77,18 +77,18 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1">Address</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Address</label>
                     <input
                         type="text"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Type</label>
                     <select
                         value={type}
                         onChange={(e) => setType(e.target.value as PropertyType)}
@@ -100,11 +100,11 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Access Info</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Access Info</label>
                     <textarea
                         value={accessInfo}
                         onChange={(e) => setAccessInfo(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         rows={3}
                         placeholder="Gate codes, key location, etc."
                     />

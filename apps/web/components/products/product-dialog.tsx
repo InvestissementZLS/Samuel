@@ -129,7 +129,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Division</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Division</label>
                         <select
                             value={division}
                             onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
@@ -140,7 +140,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Type</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Type</label>
                         <select
                             value={type}
                             onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT")}
@@ -153,33 +153,33 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Product Name</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Product Name</label>
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Description</label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         rows={3}
                     />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Unit</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Unit</label>
                         <select
                             value={unit}
                             onChange={(e) => setUnit(e.target.value)}
-                            className="w-full rounded-md border p-2 bg-background text-gray-900"
+                            className="w-full rounded-md border p-2 bg-white text-gray-900"
                         >
                             <option value="" disabled>Select Unit</option>
                             <option value="ml">ml</option>
@@ -197,35 +197,35 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
 
                 <div className="grid grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">Stock</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Stock</label>
                         <input
                             type="number"
                             value={stock}
                             onChange={(e) => setStock(Number(e.target.value))}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-white text-gray-900"
                             required
                             min="0"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Price ($)</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Price ($)</label>
                         <input
                             type="number"
                             value={price}
                             onChange={(e) => setPrice(Number(e.target.value))}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-white text-gray-900"
                             required
                             min="0"
                             step="0.01"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">Cost ($)</label>
+                        <label className="block text-sm font-medium mb-1 text-gray-900">Cost ($)</label>
                         <input
                             type="number"
                             value={cost}
                             onChange={(e) => setCost(Number(e.target.value))}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-white text-gray-900"
                             required
                             min="0"
                             step="0.01"
@@ -234,34 +234,34 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                 </div>
 
                 <div className="pt-2">
-                    <label className="block text-sm font-medium mb-1">Usage Description</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Usage Description</label>
                     <textarea
                         value={usageDescription}
                         onChange={(e) => setUsageDescription(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         rows={2}
                         placeholder="How to use this product..."
                     />
                 </div>
 
                 <div className="pt-2">
-                    <label className="block text-sm font-medium mb-1">Active Ingredient</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Active Ingredient</label>
                     <input
                         type="text"
                         value={activeIngredient}
                         onChange={(e) => setActiveIngredient(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         placeholder="e.g. Permethrin 5%"
                     />
                 </div>
 
                 <div className="pt-2">
-                    <label className="block text-sm font-medium mb-1">Recommended Concentration</label>
+                    <label className="block text-sm font-medium mb-1 text-gray-900">Recommended Concentration</label>
                     <input
                         type="text"
                         value={recommendedConcentration}
                         onChange={(e) => setRecommendedConcentration(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                         placeholder="e.g. 1% - 3%"
                     />
                 </div>
