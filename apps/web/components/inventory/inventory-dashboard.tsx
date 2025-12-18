@@ -163,7 +163,7 @@ export function InventoryDashboard() {
             {!loading && activeTab === 'TECHNICIANS' && (
                 <div className="space-y-4">
                     <select
-                        className="w-full md:w-64 rounded-md border p-2 text-gray-900"
+                        className="w-full md:w-64 rounded-md border p-2 bg-white text-gray-900"
                         value={selectedTech}
                         onChange={(e) => setSelectedTech(e.target.value)}
                     >

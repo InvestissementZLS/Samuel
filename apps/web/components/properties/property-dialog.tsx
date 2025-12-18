@@ -92,7 +92,7 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
                     <select
                         value={type}
                         onChange={(e) => setType(e.target.value as PropertyType)}
-                        className="w-full rounded-md border p-2 bg-background text-gray-900"
+                        className="w-full rounded-md border p-2 bg-white text-gray-900"
                     >
                         <option value="RESIDENTIAL">Residential</option>
                         <option value="COMMERCIAL">Commercial</option>
