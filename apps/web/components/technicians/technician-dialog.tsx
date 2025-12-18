@@ -21,6 +21,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
     const [canManageCommissions, setCanManageCommissions] = useState(false);
     const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES")[]>([]);
     const [password, setPassword] = useState("");
+    const [isActive, setIsActive] = useState(true);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -35,10 +36,11 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                 // @ts-ignore
                 setCommissionPercentageSupervision(technician.commissionPercentageSupervision || 0);
                 // @ts-ignore
-                // @ts-ignore
                 setCanManageCommissions(technician.canManageCommissions || false);
                 // @ts-ignore
                 setDivisions(technician.divisions || ["EXTERMINATION"]);
+                // @ts-ignore
+                setIsActive(technician.isActive ?? true);
             } else {
                 setName("");
                 setEmail("");
@@ -47,6 +49,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                 setCommissionPercentageSupervision(0);
                 setCanManageCommissions(false);
                 setDivisions(["EXTERMINATION"]);
+                setIsActive(true);
             }
         }
     }, [isOpen, technician]);
@@ -66,6 +69,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     canManageCommissions,
                     password: password || undefined,
                     divisions,
+                    isActive,
                 });
                 toast.success("Technician updated successfully");
             } else {
@@ -77,7 +81,8 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     commissionPercentageSales,
                     commissionPercentageSupervision,
                     canManageCommissions,
-                    divisions
+                    divisions,
+                    isActive
                 });
                 toast.success("Technician created successfully");
             }
@@ -194,6 +199,19 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     />
                     <label htmlFor="canManageCommissions" className="text-sm font-medium text-foreground">
                         Can Manage Commissions (Pay & View All)
+                    </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="isActive"
+                        checked={isActive}
+                        onChange={(e) => setIsActive(e.target.checked)}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="isActive" className="text-sm font-medium text-foreground">
+                        Active (Visible to everyone)
                     </label>
                 </div>
 

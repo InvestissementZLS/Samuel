@@ -5,7 +5,7 @@ import { Quote, Product, Client } from "@prisma/client";
 import { createQuote, updateQuoteStatus, updateQuote } from "@/app/actions/client-portal-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { FileText, Filter } from "lucide-react";
+import { FileText, Filter, Link as LinkIcon, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuoteForm } from "@/components/quotes/quote-form";
 import { useDivision } from "@/components/providers/division-provider";
@@ -138,6 +138,17 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                                 </>
                                             )}
                                         </div>
+                                        <button
+                                            onClick={() => {
+                                                const url = `${window.location.origin}/portal/quotes/${quote.id}`;
+                                                navigator.clipboard.writeText(url);
+                                                toast.success("Portal link copied to clipboard");
+                                            }}
+                                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 hover:underline"
+                                        >
+                                            <LinkIcon className="w-3 h-3" />
+                                            Copy Link
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">

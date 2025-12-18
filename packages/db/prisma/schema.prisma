@@ -20,6 +20,7 @@ model User {
   commissionPercentageSupervision Float        @default(0)
   internalHourlyRate              Float        @default(0)
   canManageCommissions            Boolean      @default(false)
+  isActive                        Boolean      @default(true)
   divisions                       Division[]   @default([EXTERMINATION])
   resetToken                      String?
   resetTokenExpiry                DateTime?
@@ -175,6 +176,8 @@ model Quote {
   client      Client      @relation(fields: [clientId], references: [id])
   property    Property?   @relation(fields: [propertyId], references: [id])
   items       QuoteItem[]
+  signature   String?     // Base64 signature image
+  signedAt    DateTime?
 }
 
 model QuoteItem {
@@ -212,6 +215,20 @@ model Invoice {
   client      Client        @relation(fields: [clientId], references: [id])
   job         Job?          @relation(fields: [jobId], references: [id])
   items       InvoiceItem[]
+  transactions Transaction[]
+  amountPaid  Float         @default(0)
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  invoiceId String
+  amount    Float
+  date      DateTime        @default(now())
+  method    PaymentMethod
+  type      TransactionType
+  note      String?
+  createdAt DateTime        @default(now())
+  invoice   Invoice         @relation(fields: [invoiceId], references: [id])
 }
 
 model InvoiceItem {
@@ -369,6 +386,20 @@ enum InvoiceStatus {
   PAID
   OVERDUE
   CANCELLED
+  PARTIALLY_PAID
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  TRANSFER
+  CHECK
+  OTHER
+}
+
+enum TransactionType {
+  PAYMENT
+  REFUND
 }
 
 enum CommissionRole {

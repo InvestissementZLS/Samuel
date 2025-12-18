@@ -38,7 +38,8 @@ export default async function CalendarPage() {
         }),
         prisma.user.findMany({
             where: {
-                role: 'TECHNICIAN', // Assuming 'TECHNICIAN' is the enum value
+                role: 'TECHNICIAN',
+                isActive: true,
             },
             orderBy: {
                 name: 'asc',

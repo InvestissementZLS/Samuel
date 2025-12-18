@@ -183,38 +183,46 @@ export async function createInvoice(data: {
     terms?: string;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    const division = data.division || "EXTERMINATION";
-    const number = await generateNextNumber(division, "INVOICE");
+    console.log("createInvoice called with:", JSON.stringify(data, null, 2));
+    try {
+        const division = data.division || "EXTERMINATION";
+        const number = await generateNextNumber(division, "INVOICE");
+        console.log("Generated invoice number:", number);
 
-    await prisma.invoice.create({
-        data: {
-            clientId: data.clientId,
-            jobId: data.jobId,
-            total: data.total,
-            description: data.description,
-            status: 'DRAFT',
-            poNumber: data.poNumber,
-            issuedDate: data.issuedDate,
-            dueDate: data.dueDate,
-            discount: data.discount,
-            tax: data.tax,
-            notes: data.notes,
-            terms: data.terms,
-            division: division,
-            number: number,
-            items: {
-                create: data.items?.map((item: any) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.price,
-                    description: item.description,
-                    unitCost: item.unitCost,
-                    taxRate: item.taxRate
-                }))
-            }
-        },
-    });
-    revalidatePath(`/clients/${data.clientId}`);
+        const invoice = await prisma.invoice.create({
+            data: {
+                clientId: data.clientId,
+                jobId: data.jobId,
+                total: data.total,
+                description: data.description,
+                status: 'DRAFT',
+                poNumber: data.poNumber,
+                issuedDate: data.issuedDate,
+                dueDate: data.dueDate,
+                discount: data.discount,
+                tax: data.tax,
+                notes: data.notes,
+                terms: data.terms,
+                division: division,
+                number: number,
+                items: {
+                    create: data.items?.map((item: any) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price,
+                        description: item.description,
+                        unitCost: item.unitCost,
+                        taxRate: item.taxRate
+                    }))
+                }
+            },
+        });
+        console.log("Invoice created successfully:", invoice.id);
+        revalidatePath(`/clients/${data.clientId}`);
+    } catch (error) {
+        console.error("Error creating invoice:", error);
+        throw error;
+    }
 }
 
 export async function updateInvoice(data: {
@@ -351,7 +359,35 @@ export async function removeQuoteItem(itemId: string, quoteId: string) {
         data: { total },
     });
 
+
     // Revalidate
     const quote = await prisma.quote.findUnique({ where: { id: quoteId } });
     if (quote) revalidatePath(`/clients/${quote.clientId}`);
 }
+
+export async function deleteInvoice(id: string) {
+    const invoice = await prisma.invoice.findUnique({
+        where: { id },
+    });
+
+    if (!invoice) {
+        throw new Error("Invoice not found");
+    }
+
+    if (invoice.status === 'PAID') {
+        throw new Error("Cannot delete a paid invoice");
+    }
+
+    // Delete invoice items first (if cascade is not set up, though usually it is helpful to be explicit)
+    await prisma.invoiceItem.deleteMany({
+        where: { invoiceId: id },
+    });
+
+    await prisma.invoice.delete({
+        where: { id },
+    });
+
+    revalidatePath(`/clients/${invoice.clientId}`);
+    revalidatePath('/invoices');
+}
+

@@ -7,9 +7,10 @@ import { Plus, Pencil } from "lucide-react";
 
 interface TechnicianListProps {
     technicians: User[];
+    canCreate?: boolean;
 }
 
-export function TechnicianList({ technicians }: TechnicianListProps) {
+export function TechnicianList({ technicians, canCreate = false }: TechnicianListProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null);
 
@@ -27,13 +28,15 @@ export function TechnicianList({ technicians }: TechnicianListProps) {
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-900">Technicians</h1>
-                <button
-                    onClick={handleAdd}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                >
-                    <Plus className="h-4 w-4" />
-                    Add Technician
-                </button>
+                {canCreate && (
+                    <button
+                        onClick={handleAdd}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add Technician
+                    </button>
+                )}
             </div>
 
             <div className="bg-white shadow rounded-lg overflow-hidden border">
@@ -65,9 +68,15 @@ export function TechnicianList({ technicians }: TechnicianListProps) {
                                         <div className="text-sm text-gray-500">{tech.email}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
+                                        {tech.isActive ? (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Active
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                Inactive (Hidden)
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button

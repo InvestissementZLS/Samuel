@@ -12,6 +12,7 @@ export async function createTechnician(data: {
     commissionPercentageSupervision?: number;
     canManageCommissions?: boolean;
     divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    isActive?: boolean;
 }) {
     await prisma.user.create({
         data: {
@@ -24,6 +25,7 @@ export async function createTechnician(data: {
             commissionPercentageSupervision: data.commissionPercentageSupervision,
             canManageCommissions: data.canManageCommissions,
             divisions: data.divisions || ["EXTERMINATION"],
+            isActive: data.isActive,
         },
     });
     revalidatePath('/technicians');
@@ -38,6 +40,7 @@ export async function updateTechnician(id: string, data: {
     canManageCommissions?: boolean;
     password?: string;
     divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    isActive?: boolean;
 }) {
     const updateData: any = {
         name: data.name,
@@ -47,6 +50,7 @@ export async function updateTechnician(id: string, data: {
         commissionPercentageSupervision: data.commissionPercentageSupervision,
         canManageCommissions: data.canManageCommissions,
         divisions: data.divisions,
+        isActive: data.isActive,
     };
 
     if (data.password) {

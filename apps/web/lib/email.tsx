@@ -4,7 +4,11 @@ import { InvoicePDF } from '@/components/pdf/invoice-pdf';
 import { QuotePDF } from '@/components/pdf/quote-pdf';
 import { Invoice, Quote, Client, Product } from '@prisma/client';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is present
+const resend = process.env.RESEND_API_KEY
+    ? new Resend(process.env.RESEND_API_KEY)
+    : { emails: { send: async () => ({ id: 'mock_id' }) } } as unknown as Resend;
+
 
 type InvoiceWithDetails = Invoice & {
     client: Client;
@@ -23,27 +27,51 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     }
 
     try {
-        const pdfBuffer = await renderToBuffer(<InvoicePDF invoice={invoice} language={(invoice.client as any).language || "FR"} />);
-
         const subject = (invoice.client as any).language === 'EN'
             ? `Invoice #${invoice.number} from Les Entreprises ZLS`
             : `Facture #${invoice.number} de Les Entreprises ZLS`;
 
+        const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/invoices/${invoice.id}`;
+
         const html = (invoice.client as any).language === 'EN'
-            ? `<p>Hello ${invoice.client.name},</p><p>Please find attached your invoice #${invoice.number}.</p><p>Thank you!</p>`
-            : `<p>Bonjour ${invoice.client.name},</p><p>Veuillez trouver ci-joint votre facture #${invoice.number}.</p><p>Merci !</p>`;
+            ? `
+                <div style="font-family: sans-serif;">
+                    <h2>Hello ${invoice.client.name},</h2>
+                    <p>You have received a new invoice from Les Entreprises ZLS.</p>
+                    <p><strong>Invoice #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
+                    <p>Total: $${invoice.total.toFixed(2)}</p>
+                    <br/>
+                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        View Invoice
+                    </a>
+                    <br/><br/>
+                    <p>Or copy this link: <a href="${portalUrl}">${portalUrl}</a></p>
+                    <br/>
+                    <p>Thank you!</p>
+                </div>
+            `
+            : `
+                <div style="font-family: sans-serif;">
+                    <h2>Bonjour ${invoice.client.name},</h2>
+                    <p>Vous avez reçu une nouvelle facture de Les Entreprises ZLS.</p>
+                    <p><strong>Facture #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
+                    <p>Total: $${invoice.total.toFixed(2)}</p>
+                    <br/>
+                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        Voir la Facture
+                    </a>
+                    <br/><br/>
+                    <p>Ou copiez ce lien: <a href="${portalUrl}">${portalUrl}</a></p>
+                    <br/>
+                    <p>Merci !</p>
+                </div>
+            `;
 
         const data = await resend.emails.send({
             from: 'Les Entreprises ZLS <billing@zls.com>',
             to: [invoice.client.email || ''],
             subject: subject,
             html: html,
-            attachments: [
-                {
-                    filename: `Invoice-${invoice.number}.pdf`,
-                    content: pdfBuffer,
-                },
-            ],
         });
 
         return { success: true, data };
@@ -60,27 +88,51 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
     }
 
     try {
-        const pdfBuffer = await renderToBuffer(<QuotePDF quote={quote} language={(quote.client as any).language || "FR"} />);
-
         const subject = (quote.client as any).language === 'EN'
             ? `Quote #${quote.number} from Les Entreprises ZLS`
             : `Soumission #${quote.number} de Les Entreprises ZLS`;
 
+        const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/quotes/${quote.id}`;
+
         const html = (quote.client as any).language === 'EN'
-            ? `<p>Hello ${quote.client.name},</p><p>Please find attached your quote #${quote.number}.</p><p>Thank you!</p>`
-            : `<p>Bonjour ${quote.client.name},</p><p>Veuillez trouver ci-joint votre soumission #${quote.number}.</p><p>Merci !</p>`;
+            ? `
+                <div style="font-family: sans-serif;">
+                    <h2>Hello ${quote.client.name},</h2>
+                    <p>You have received a new quote from Les Entreprises ZLS.</p>
+                    <p><strong>Quote #${quote.number || quote.id.slice(0, 8)}</strong></p>
+                    <p>Total: $${quote.total.toFixed(2)}</p>
+                    <br/>
+                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        View & Sign Quote
+                    </a>
+                    <br/><br/>
+                    <p>Or copy this link: <a href="${portalUrl}">${portalUrl}</a></p>
+                    <br/>
+                    <p>Thank you!</p>
+                </div>
+            `
+            : `
+                <div style="font-family: sans-serif;">
+                    <h2>Bonjour ${quote.client.name},</h2>
+                    <p>Vous avez reçu une nouvelle soumission de Les Entreprises ZLS.</p>
+                    <p><strong>Soumission #${quote.number || quote.id.slice(0, 8)}</strong></p>
+                    <p>Total: $${quote.total.toFixed(2)}</p>
+                    <br/>
+                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        Voir & Signer la Soumission
+                    </a>
+                    <br/><br/>
+                    <p>Ou copiez ce lien: <a href="${portalUrl}">${portalUrl}</a></p>
+                    <br/>
+                    <p>Merci !</p>
+                </div>
+            `;
 
         const data = await resend.emails.send({
             from: 'Les Entreprises ZLS <sales@zls.com>',
             to: [quote.client.email || ''],
             subject: subject,
             html: html,
-            attachments: [
-                {
-                    filename: `Quote-${quote.number}.pdf`,
-                    content: pdfBuffer,
-                },
-            ],
         });
 
         return { success: true, data };

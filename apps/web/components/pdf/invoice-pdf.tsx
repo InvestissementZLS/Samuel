@@ -150,8 +150,17 @@ const t = {
 };
 
 export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
-    const labels = t[language];
+    const labels = t[language] || t.FR;
     const dateLocale = language === "FR" ? fr : enUS;
+
+    const safeFormatDate = (date: Date | string | null | undefined) => {
+        if (!date) return '-';
+        try {
+            return format(new Date(date), 'PPP', { locale: dateLocale });
+        } catch (e) {
+            return '-';
+        }
+    };
 
     return (
         <Document>
@@ -160,7 +169,7 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.title}>{labels.invoice}</Text>
-                        <Text style={styles.text}>#{invoice.number || invoice.id.slice(0, 8)}</Text>
+                        <Text style={styles.text}>#{String(invoice.number || invoice.id.slice(0, 8))}</Text>
                     </View>
                     <View style={styles.companyInfo}>
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
@@ -176,22 +185,20 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                 {/* Client Info */}
                 <View style={styles.clientInfo}>
                     <Text style={styles.sectionTitle}>{labels.billTo}:</Text>
-                    <Text style={styles.text}>{invoice.client.name}</Text>
-                    <Text style={styles.text}>{invoice.client.billingAddress || invoice.client.email || ""}</Text>
-                    <Text style={styles.text}>{invoice.client.phone || ""}</Text>
+                    <Text style={styles.text}>{String(invoice.client.name || '')}</Text>
+                    <Text style={styles.text}>{String(invoice.client.billingAddress || invoice.client.email || "")}</Text>
+                    <Text style={styles.text}>{String(invoice.client.phone || "")}</Text>
                 </View>
 
                 {/* Dates */}
                 <View style={{ flexDirection: 'row', marginTop: 20, gap: 50 }}>
                     <View>
                         <Text style={styles.sectionTitle}>{labels.date}:</Text>
-                        <Text style={styles.text}>{format(new Date(invoice.issuedDate), 'PPP', { locale: dateLocale })}</Text>
+                        <Text style={styles.text}>{safeFormatDate(invoice.issuedDate)}</Text>
                     </View>
                     <View>
                         <Text style={styles.sectionTitle}>{labels.dueDate}:</Text>
-                        <Text style={styles.text}>
-                            {invoice.dueDate ? format(new Date(invoice.dueDate), 'PPP', { locale: dateLocale }) : '-'}
-                        </Text>
+                        <Text style={styles.text}>{safeFormatDate(invoice.dueDate)}</Text>
                     </View>
                 </View>
 
@@ -214,16 +221,18 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                     {invoice.items.map((item, index) => (
                         <View style={styles.tableRow} key={index}>
                             <View style={styles.tableColDesc}>
-                                <Text style={styles.tableCell}>{item.product.name} {item.description ? `- ${item.description}` : ''}</Text>
+                                <Text style={styles.tableCell}>
+                                    {`${item.product.name}${item.description ? ` - ${item.description}` : ''}`}
+                                </Text>
                             </View>
                             <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>{item.quantity}</Text>
+                                <Text style={styles.tableCell}>{String(item.quantity)}</Text>
                             </View>
                             <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${item.price.toFixed(2)}</Text>
+                                <Text style={styles.tableCell}>${Number(item.price).toFixed(2)}</Text>
                             </View>
                             <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${(item.quantity * item.price).toFixed(2)}</Text>
+                                <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
                             </View>
                         </View>
                     ))}
@@ -233,16 +242,32 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                 <View style={styles.totals}>
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>{labels.subtotal}:</Text>
-                        <Text style={styles.totalValue}>${(invoice.total - invoice.tax).toFixed(2)}</Text>
+                        <Text style={styles.totalValue}>${Number(invoice.total - (invoice.tax || 0)).toFixed(2)}</Text>
                     </View>
                     <View style={styles.totalRow}>
                         <Text style={styles.totalLabel}>{labels.tax}:</Text>
-                        <Text style={styles.totalValue}>${invoice.tax.toFixed(2)}</Text>
+                        <Text style={styles.totalValue}>${Number(invoice.tax || 0).toFixed(2)}</Text>
                     </View>
                     <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: '#000', paddingTop: 5 }]}>
                         <Text style={[styles.totalLabel, { fontSize: 12 }]}>{labels.grandTotal}:</Text>
-                        <Text style={[styles.totalValue, { fontSize: 12, fontWeight: 'bold' }]}>${invoice.total.toFixed(2)}</Text>
+                        <Text style={[styles.totalValue, { fontSize: 12, fontWeight: 'bold' }]}>${Number(invoice.total).toFixed(2)}</Text>
                     </View>
+
+                    {/* Amount Paid & Balance - Commented out for debugging base render */}
+                    {/* 
+                    {(invoice.amountPaid && Number(invoice.amountPaid) > 0) ? (
+                        <View>
+                            <View style={styles.totalRow}>
+                                <Text style={styles.totalLabel}>{language === 'FR' ? "Payé" : "Amount Paid"}:</Text>
+                                <Text style={[styles.totalValue, { color: 'green' }]}>-${Number(invoice.amountPaid).toFixed(2)}</Text>
+                            </View>
+                            <View style={[styles.totalRow, { marginTop: 5 }]}>
+                                <Text style={[styles.totalLabel, { fontSize: 12 }]}>{language === 'FR' ? "Solde Dû" : "Balance Due"}:</Text>
+                                <Text style={[styles.totalValue, { fontSize: 12, fontWeight: 'bold' }]}>${Math.max(0, invoice.total - Number(invoice.amountPaid)).toFixed(2)}</Text>
+                            </View>
+                        </View>
+                    ) : null}
+                    */}
                 </View>
 
                 {/* Footer */}

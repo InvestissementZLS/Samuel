@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Invoice, Product, Client } from "@prisma/client";
-import { createInvoice, updateInvoiceStatus, updateInvoice } from "@/app/actions/client-portal-actions";
+import { createInvoice, updateInvoiceStatus, updateInvoice, deleteInvoice } from "@/app/actions/client-portal-actions";
 import { createCheckoutSession } from "@/app/actions/payment-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { FileText, Filter } from "lucide-react";
+import { FileText, Filter, Trash2, CheckCircle, DollarSign, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
+import { PaymentDialog } from "@/components/invoices/payment-dialog";
+import { DownloadPdfButton } from "@/components/invoices/download-pdf-button";
 import { useDivision } from "@/components/providers/division-provider";
 import Link from "next/link";
+
 
 interface InvoiceListProps {
     invoices: (Invoice & { items: (any & { product: Product })[], client: Client })[];
@@ -24,6 +27,10 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
     const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentModalType, setPaymentModalType] = useState<"PAYMENT" | "REFUND">("PAYMENT");
+    const [paymentInvoice, setPaymentInvoice] = useState<any>(null);
+
 
     useEffect(() => {
         setDivisionFilter(division);
@@ -55,6 +62,13 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
             console.error(error);
         }
     };
+
+    const openPaymentModal = (invoice: any, type: "PAYMENT" | "REFUND") => {
+        setPaymentInvoice(invoice);
+        setPaymentModalType(type);
+        setPaymentModalOpen(true);
+    };
+
 
     const filteredInvoices = invoices.filter(inv => {
         if (divisionFilter === "ALL") return true;
@@ -144,22 +158,17 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                 <div className="flex items-center gap-4">
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold
                                         ${invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                                            invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                                                invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-gray-100 text-gray-800'}`}>
-                                        {invoice.status}
+                                            invoice.status === 'PARTIALLY_PAID' ? 'bg-orange-100 text-orange-800' :
+                                                invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                                                    invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
+                                                        'bg-gray-100 text-gray-800'}`}>
+                                        {invoice.status === 'PARTIALLY_PAID' ? 'PARTIAL' : invoice.status}
                                     </span>
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(invoice)}>
                                         Edit
                                     </Button>
                                     <div className="flex gap-1">
-                                        <a
-                                            href={`/api/invoices/${invoice.id}/pdf`}
-                                            target="_blank"
-                                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-                                        >
-                                            PDF
-                                        </a>
+                                        <DownloadPdfButton invoice={invoice} />
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -181,27 +190,55 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                             Email
                                         </Button>
                                     </div>
-                                    {(invoice.status === 'SENT' || invoice.status === 'OVERDUE') && (
+
+                                    {invoice.status !== 'PAID' && (
                                         <Button
-                                            onClick={async () => {
-                                                const toastId = toast.loading("Redirecting to checkout...");
-                                                try {
-                                                    const result = await createCheckoutSession(invoice.id);
-                                                    if (result.url) {
-                                                        window.location.href = result.url;
-                                                    } else {
-                                                        toast.error(result.error || "Failed to create checkout session", { id: toastId });
-                                                    }
-                                                } catch (error) {
-                                                    toast.error("An error occurred", { id: toastId });
-                                                }
-                                            }}
-                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                            variant="outline"
                                             size="sm"
+                                            onClick={() => openPaymentModal(invoice, "PAYMENT")}
+                                            className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                                         >
-                                            Pay Now
+                                            <DollarSign className="w-4 h-4 mr-1" />
+                                            Pay
                                         </Button>
                                     )}
+
+                                    {(invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => openPaymentModal(invoice, "REFUND")}
+                                            className="text-gray-500 hover:text-gray-700"
+                                            title="Refund"
+                                        >
+                                            <RefreshCcw className="w-4 h-4" />
+                                        </Button>
+                                    )}
+
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID' || (invoice as any).amountPaid > 0}
+                                        title={invoice.status === 'PAID' || (invoice as any).amountPaid > 0 ? "Cannot delete invoice with payments" : "Delete invoice"}
+                                        onClick={async () => {
+                                            if (confirm("Are you sure you want to delete this invoice?")) {
+                                                const toastId = toast.loading("Deleting invoice...");
+                                                try {
+                                                    await deleteInvoice(invoice.id);
+                                                    toast.success("Invoice deleted", { id: toastId });
+                                                } catch (error) {
+                                                    toast.error("Failed to delete invoice", { id: toastId });
+                                                }
+                                            }
+                                        }}
+                                        className={`
+                                            ${invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID' || (invoice as any).amountPaid > 0
+                                                ? "text-gray-300 cursor-not-allowed"
+                                                : "text-red-500 hover:text-red-700 hover:bg-red-50"}
+                                        `}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -213,6 +250,20 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                     )}
                 </div>
             </div>
+
+            {paymentInvoice && (
+                <PaymentDialog
+                    isOpen={paymentModalOpen}
+                    onClose={() => {
+                        setPaymentModalOpen(false);
+                        setPaymentInvoice(null);
+                    }}
+                    invoiceId={paymentInvoice.id}
+                    total={paymentInvoice.total}
+                    amountPaid={(paymentInvoice as any).amountPaid || 0}
+                    type={paymentModalType}
+                />
+            )}
         </div>
     );
 }

@@ -64,7 +64,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     const taxableAmount = subtotal - discountAmount;
     const taxAmount = taxableAmount * (taxRate / 100);
     const total = taxableAmount + taxAmount;
-    const balanceDue = total; // Assuming no payments yet for this form
+    // @ts-ignore
+    const amountPaid = invoice?.amountPaid || 0;
+    const balanceDue = Math.max(0, total - amountPaid);
 
     const handleAddItem = () => {
         setItems([...items, {
@@ -532,6 +534,31 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         <span>Balance Due</span>
                         <span>${balanceDue.toFixed(2)}</span>
                     </div>
+                    <div className="flex justify-between text-sm text-green-500">
+                        <span>Paid to Date</span>
+                        <span>${amountPaid.toFixed(2)}</span>
+                    </div>
+
+                    {/* Transaction History - View Only */}
+                    {/* @ts-ignore */}
+                    {invoice?.transactions && invoice.transactions.length > 0 && (
+                        <div className="border-t border-gray-700 pt-4 mt-4">
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">History</h4>
+                            <div className="space-y-2">
+                                {/* @ts-ignore */}
+                                {invoice.transactions.map((t: any) => (
+                                    <div key={t.id} className="flex justify-between text-xs">
+                                        <div className="text-gray-400">
+                                            {format(new Date(t.date), "MMM d, yyyy")} - {t.type} ({t.method})
+                                        </div>
+                                        <div className={t.type === 'REFUND' ? "text-red-400" : "text-green-400"}>
+                                            {t.type === 'REFUND' ? '-' : '+'}${t.amount.toFixed(2)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
