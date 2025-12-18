@@ -13,18 +13,18 @@ export default async function NewJobPage() {
 
     return (
         <div className="max-w-2xl mx-auto p-8">
-            <h1 className="text-2xl font-bold mb-6">Create New Work Order</h1>
+            <h1 className="text-2xl font-bold mb-6 text-gray-900">Create New Work Order</h1>
 
             <form action={createJob} className="space-y-6 bg-white p-6 rounded-lg shadow border border-gray-200">
                 <div>
-                    <label htmlFor="propertyId" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="propertyId" className="block text-sm font-medium text-gray-900">
                         Client / Property
                     </label>
                     <select
                         name="propertyId"
                         id="propertyId"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
                     >
                         <option value="">Select a property...</option>
                         {properties.map((prop) => (
@@ -36,7 +36,7 @@ export default async function NewJobPage() {
                 </div>
 
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-900">
                         Job Description / Service Type
                     </label>
                     <input
@@ -44,14 +44,14 @@ export default async function NewJobPage() {
                         name="description"
                         id="description"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
                         placeholder="e.g., Quarterly Pest Control"
                     />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="scheduledDate" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="scheduledDate" className="block text-sm font-medium text-gray-900">
                             Date
                         </label>
                         <input
@@ -59,11 +59,11 @@ export default async function NewJobPage() {
                             name="scheduledDate"
                             id="scheduledDate"
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
                         />
                     </div>
                     <div>
-                        <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-900">
                             Time
                         </label>
                         <input
@@ -71,20 +71,20 @@ export default async function NewJobPage() {
                             name="scheduledTime"
                             id="scheduledTime"
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label htmlFor="techId" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="techId" className="block text-sm font-medium text-gray-900">
                         Assign Technicians (Hold Ctrl/Cmd to select multiple)
                     </label>
                     <select
                         name="techId"
                         id="techId"
                         multiple
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border h-32"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border h-32 bg-white text-gray-900"
                     >
                         {technicians.map((tech) => (
                             <option key={tech.id} value={tech.id}>
