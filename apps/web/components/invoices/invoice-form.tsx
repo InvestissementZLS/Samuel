@@ -179,7 +179,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         {selectedClientId && selectedClient ? (
                             <div className="group relative">
                                 <div className="text-white font-medium">{selectedClient.name}</div>
-                                <div className="text-sm text-gray-400 whitespace-pre-line">{selectedClient.billingAddress || selectedClient.address}</div>
+                                <div className="text-sm text-gray-400 whitespace-pre-line">{selectedClient.billingAddress}</div>
                                 <div className="text-sm text-gray-500">{selectedClient.email}</div>
                                 {!clientId && (
                                     <button
