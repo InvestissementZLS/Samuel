@@ -143,7 +143,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     }, [jobs, events]);
 
     return (
-        <div className="h-screen flex flex-col bg-white">
+        <div className="h-screen flex flex-col bg-white text-gray-900">
             {/* Toolbar */}
             {/* Toolbar */}
             <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white">
