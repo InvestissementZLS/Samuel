@@ -22,7 +22,7 @@ export default async function InvoicesPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">All Invoices</h1>
+            <h1 className="text-3xl font-bold mb-8 text-gray-900">All Invoices</h1>
             <InvoiceList invoices={invoices} products={products} />
         </div>
     );

@@ -26,7 +26,7 @@ export function TechnicianList({ technicians }: TechnicianListProps) {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Technicians</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Technicians</h1>
                 <button
                     onClick={handleAdd}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
