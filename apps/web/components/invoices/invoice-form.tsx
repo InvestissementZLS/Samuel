@@ -199,6 +199,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                     placeholder="Select Client..."
                                     className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 hover:text-white justify-between w-full"
                                     popoverClassName="bg-gray-800 border-gray-700 text-white"
+                                    itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white hover:bg-gray-700 hover:text-white"
                                 />
                                 <Button
                                     variant="outline"
@@ -332,6 +333,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                                 placeholder="Select Item"
                                                 className="bg-transparent border-none text-white hover:bg-gray-800 justify-between w-full p-0 h-auto"
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
+                                                itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white"
                                             />
                                             <input
                                                 type="text"

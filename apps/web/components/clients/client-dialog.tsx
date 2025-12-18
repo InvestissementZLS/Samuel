@@ -95,44 +95,42 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Name</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Email</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Email</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Phone</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Phone</label>
                     <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                     />
                 </div>
 
-
-
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Language</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Language</label>
                     <select
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as "EN" | "FR")}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                     >
                         <option value="FR">Français</option>
                         <option value="EN">English</option>
@@ -140,7 +138,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Divisions</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Divisions</label>
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -155,7 +153,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-gray-900">Extermination</span>
+                            <span className="text-sm text-foreground">Extermination</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -170,17 +168,17 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-gray-900">Entreprises</span>
+                            <span className="text-sm text-foreground">Entreprises</span>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Billing Address</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Billing Address</label>
                     <textarea
                         value={billingAddress}
                         onChange={(e) => setBillingAddress(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         rows={3}
                     />
                 </div>

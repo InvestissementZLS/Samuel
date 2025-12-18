@@ -113,36 +113,36 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Name</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
                     <input
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Email</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Email</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">
+                    <label className="block text-sm font-medium mb-1 text-foreground">
                         {technician ? "New Password (leave blank to keep current)" : "Password"}
                     </label>
                     <input
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         placeholder={technician ? "********" : "Required for login"}
                         required={!technician}
                     />
@@ -150,36 +150,36 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Hourly Rate ($)</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Hourly Rate ($)</label>
                         <input
                             type="number"
                             min="0"
                             step="0.01"
                             value={internalHourlyRate}
                             onChange={(e) => setInternalHourlyRate(parseFloat(e.target.value) || 0)}
-                            className="w-full rounded-md border p-2 bg-white text-gray-900"
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Sales Comm. (%)</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Sales Comm. (%)</label>
                         <input
                             type="number"
                             min="0"
                             step="0.1"
                             value={commissionPercentageSales}
                             onChange={(e) => setCommissionPercentageSales(parseFloat(e.target.value) || 0)}
-                            className="w-full rounded-md border p-2 bg-white text-gray-900"
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Supervision Comm. (%)</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Supervision Comm. (%)</label>
                         <input
                             type="number"
                             min="0"
                             step="0.1"
                             value={commissionPercentageSupervision}
                             onChange={(e) => setCommissionPercentageSupervision(parseFloat(e.target.value) || 0)}
-                            className="w-full rounded-md border p-2 bg-white text-gray-900"
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
                         />
                     </div>
                 </div>
@@ -192,13 +192,13 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                         onChange={(e) => setCanManageCommissions(e.target.checked)}
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <label htmlFor="canManageCommissions" className="text-sm font-medium text-gray-900">
+                    <label htmlFor="canManageCommissions" className="text-sm font-medium text-foreground">
                         Can Manage Commissions (Pay & View All)
                     </label>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Divisions</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Divisions</label>
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -213,7 +213,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-gray-900">Extermination</span>
+                            <span className="text-sm text-foreground">Extermination</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -228,7 +228,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-gray-900">Entreprises</span>
+                            <span className="text-sm text-foreground">Entreprises</span>
                         </label>
                     </div>
                 </div>

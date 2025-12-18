@@ -28,6 +28,7 @@ interface ComboboxProps {
     emptyText?: string
     className?: string
     popoverClassName?: string
+    itemClassName?: string
 }
 
 export function Combobox({
@@ -38,7 +39,8 @@ export function Combobox({
     searchPlaceholder = "Search...",
     emptyText = "No item found.",
     className,
-    popoverClassName
+    popoverClassName,
+    itemClassName
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false)
 
@@ -58,8 +60,8 @@ export function Combobox({
                 </Button>
             </PopoverTrigger>
             <PopoverContent className={cn("w-[200px] p-0", popoverClassName)}>
-                <Command>
-                    <CommandInput placeholder={searchPlaceholder} />
+                <Command className={cn(popoverClassName ? "bg-transparent text-inherit" : "")}>
+                    <CommandInput placeholder={searchPlaceholder} className={cn(popoverClassName ? "text-inherit placeholder:text-gray-400" : "")} />
                     <CommandList>
                         <CommandEmpty>{emptyText}</CommandEmpty>
                         <CommandGroup>
@@ -71,6 +73,7 @@ export function Combobox({
                                         onSelect(item.value === value ? "" : item.value)
                                         setOpen(false)
                                     }}
+                                    className={itemClassName}
                                 >
                                     <Check
                                         className={cn(

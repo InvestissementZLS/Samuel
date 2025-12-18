@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getAllProducts, transferStock } from '@/app/actions/inventory-actions';
+import { Modal } from "@/components/ui/modal";
 import { getTechnicians } from '@/app/actions/technician-actions';
 import { toast } from 'sonner';
 
@@ -68,91 +69,89 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Transfer Stock</h2>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Transfer Stock"
+        >
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block text-sm font-medium text-foreground">Product</label>
+                    <select
+                        required
+                        className="mt-1 block w-full rounded-md border p-2 bg-background text-foreground"
+                        value={productId}
+                        onChange={(e) => setProductId(e.target.value)}
+                    >
+                        <option value="">Select Product</option>
+                        {products.map(p => (
+                            <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>
+                        ))}
+                    </select>
+                </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Product</label>
+                        <label className="block text-sm font-medium text-foreground">From</label>
                         <select
-                            required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 bg-white text-gray-900"
-                            value={productId}
-                            onChange={(e) => setProductId(e.target.value)}
+                            className="mt-1 block w-full rounded-md border p-2 bg-background text-foreground"
+                            value={fromId}
+                            onChange={(e) => setFromId(e.target.value)}
                         >
-                            <option value="">Select Product</option>
-                            {products.map(p => (
-                                <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>
+                            <option value="WAREHOUSE">Warehouse</option>
+                            {technicians.map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
                             ))}
                         </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">From</label>
-                            <select
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 bg-white text-gray-900"
-                                value={fromId}
-                                onChange={(e) => setFromId(e.target.value)}
-                            >
-                                <option value="WAREHOUSE">Warehouse</option>
-                                {technicians.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">To</label>
-                            <select
-                                required
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 bg-white text-gray-900"
-                                value={toId}
-                                onChange={(e) => setToId(e.target.value)}
-                            >
-                                <option value="">Select Destination</option>
-                                <option value="WAREHOUSE">Warehouse</option>
-                                {technicians.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                        <input
-                            type="number"
-                            min="1"
+                        <label className="block text-sm font-medium text-foreground">To</label>
+                        <select
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
-                            value={quantity}
-                            onChange={(e) => setQuantity(parseInt(e.target.value))}
-                        />
+                            className="mt-1 block w-full rounded-md border p-2 bg-background text-foreground"
+                            value={toId}
+                            onChange={(e) => setToId(e.target.value)}
+                        >
+                            <option value="">Select Destination</option>
+                            <option value="WAREHOUSE">Warehouse</option>
+                            {technicians.map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
                     </div>
+                </div>
 
-                    <div className="flex justify-end space-x-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {loading ? 'Transferring...' : 'Transfer'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div>
+                    <label className="block text-sm font-medium text-foreground">Quantity</label>
+                    <input
+                        type="number"
+                        min="1"
+                        required
+                        className="mt-1 block w-full rounded-md border p-2 bg-background text-foreground"
+                        value={quantity}
+                        onChange={(e) => setQuantity(parseInt(e.target.value))}
+                    />
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 text-foreground border rounded-md hover:bg-muted"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+                    >
+                        {loading ? 'Transferring...' : 'Transfer'}
+                    </button>
+                </div>
+            </form>
+        </Modal>
     );
 }

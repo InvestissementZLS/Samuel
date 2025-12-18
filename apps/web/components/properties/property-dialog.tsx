@@ -77,22 +77,22 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Address</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Address</label>
                     <input
                         type="text"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Type</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
                     <select
                         value={type}
                         onChange={(e) => setType(e.target.value as PropertyType)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                     >
                         <option value="RESIDENTIAL">Residential</option>
                         <option value="COMMERCIAL">Commercial</option>
@@ -100,11 +100,11 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Access Info</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Access Info</label>
                     <textarea
                         value={accessInfo}
                         onChange={(e) => setAccessInfo(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-white text-gray-900"
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
                         rows={3}
                         placeholder="Gate codes, key location, etc."
                     />

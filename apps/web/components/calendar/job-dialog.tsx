@@ -166,7 +166,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                 <div className={`grid gap-3 ${isCreatingClient ? 'grid-cols-1' : 'grid-cols-2'}`}>
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium text-gray-900">Client</label>
+                            <label className="block text-sm font-medium text-foreground">Client</label>
                             <div className="flex gap-2">
                                 {clientId && !isCreatingClient && (
                                     <a
@@ -191,13 +191,13 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         </div>
 
                         {isCreatingClient ? (
-                            <div className="space-y-2 p-2 bg-gray-50 rounded-md border">
+                            <div className="space-y-2 p-2 bg-muted/50 rounded-md border">
                                 <input
                                     type="text"
                                     placeholder="Client Name"
                                     value={newClientName}
                                     onChange={(e) => setNewClientName(e.target.value)}
-                                    className="w-full rounded-md border px-2 py-1.5 text-sm bg-white text-gray-900"
+                                    className="w-full rounded-md border px-2 py-1.5 text-sm bg-background text-foreground"
                                 />
                                 <div className="grid grid-cols-2 gap-2">
                                     <input
@@ -205,14 +205,14 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                         placeholder="Email"
                                         value={newClientEmail}
                                         onChange={(e) => setNewClientEmail(e.target.value)}
-                                        className="w-full rounded-md border px-2 py-1.5 text-sm bg-white text-gray-900"
+                                        className="w-full rounded-md border px-2 py-1.5 text-sm bg-background text-foreground"
                                     />
                                     <input
                                         type="text"
                                         placeholder="Address"
                                         value={newClientAddress}
                                         onChange={(e) => setNewClientAddress(e.target.value)}
-                                        className="w-full rounded-md border px-2 py-1.5 text-sm bg-white text-gray-900"
+                                        className="w-full rounded-md border px-2 py-1.5 text-sm bg-background text-foreground"
                                     />
                                 </div>
                                 <button
@@ -231,7 +231,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                     setClientId(e.target.value);
                                     setPropertyId("");
                                 }}
-                                className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm h-9"
+                                className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm h-9"
                                 required
                                 disabled={!!job}
                             >
@@ -246,11 +246,11 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                     </div>
 
                     <div className={isCreatingClient ? "hidden" : "block"}>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Property</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Property</label>
                         <select
                             value={propertyId}
                             onChange={(e) => setPropertyId(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm h-9"
                             required
                             disabled={!clientId}
                         >
@@ -266,22 +266,22 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Date</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Date</label>
                         <input
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm h-9"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Time</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Time</label>
                         <input
                             type="time"
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm h-9"
                             required
                         />
                     </div>
@@ -289,10 +289,10 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Technicians</label>
-                        <div className="border rounded-md p-1.5 max-h-24 overflow-y-auto bg-white">
+                        <label className="block text-sm font-medium mb-1 text-foreground">Technicians</label>
+                        <div className="border rounded-md p-1.5 max-h-24 overflow-y-auto bg-background">
                             {technicians.map((tech) => (
-                                <label key={tech.id} className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <label key={tech.id} className="flex items-center space-x-2 p-1 hover:bg-muted/50 rounded cursor-pointer">
                                     <input
                                         type="checkbox"
                                         checked={techIds.includes(tech.id)}
@@ -305,20 +305,20 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                         }}
                                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-3 w-3"
                                     />
-                                    <span className="text-xs text-gray-900">{tech.name || tech.email}</span>
+                                    <span className="text-xs text-foreground">{tech.name || tech.email}</span>
                                 </label>
                             ))}
                             {technicians.length === 0 && (
-                                <div className="text-xs text-gray-500 italic p-1">No technicians found</div>
+                                <div className="text-xs text-muted-foreground italic p-1">No technicians found</div>
                             )}
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1 text-gray-900">Status</label>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Status</label>
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value as JobStatus)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm h-9"
                         >
                             <option value="PENDING">Pending</option>
                             <option value="SCHEDULED">Scheduled</option>
@@ -330,11 +330,11 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-900">Description</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Description</label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="w-full rounded-md border px-2 py-1.5 bg-white text-gray-900 text-sm"
+                        className="w-full rounded-md border px-2 py-1.5 bg-background text-foreground text-sm"
                         rows={2}
                     />
                 </div>
