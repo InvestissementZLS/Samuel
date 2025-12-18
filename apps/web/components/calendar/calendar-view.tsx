@@ -12,6 +12,7 @@ import { optimizeDailyRoute } from "@/app/actions/optimization-actions";
 import { toast } from "sonner";
 import { CalendarSidebar } from "./calendar-sidebar";
 import { localizer } from "./localizer";
+import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -137,6 +138,25 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
         }
     };
 
+    const handleNavigate = (action: 'PREV' | 'NEXT' | 'TODAY') => {
+        if (action === 'TODAY') {
+            setDate(new Date());
+            return;
+        }
+
+        switch (view) {
+            case Views.MONTH:
+                setDate(action === 'NEXT' ? addMonths(date, 1) : subMonths(date, 1));
+                break;
+            case Views.WEEK:
+                setDate(action === 'NEXT' ? addWeeks(date, 1) : subWeeks(date, 1));
+                break;
+            case Views.DAY:
+                setDate(action === 'NEXT' ? addDays(date, 1) : subDays(date, 1));
+                break;
+        }
+    };
+
     useEffect(() => {
         console.log("CalendarView jobs:", jobs);
         console.log("CalendarView events:", events);
@@ -146,25 +166,51 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
         <div className="h-screen flex flex-col bg-white text-gray-900">
             {/* Toolbar */}
             {/* Toolbar */}
-            <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
-                    <h2 className="text-2xl font-bold text-gray-800">Calendar</h2>
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg w-full sm:w-auto justify-center">
+            <div className="p-4 border-b flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full xl:w-auto">
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-2xl font-bold text-black min-w-[120px]">Calendar</h2>
+                        <div className="flex items-center border rounded-md bg-white shadow-sm">
+                            <button
+                                onClick={() => handleNavigate('PREV')}
+                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 border-r"
+                            >
+                                &lt;
+                            </button>
+                            <button
+                                onClick={() => handleNavigate('TODAY')}
+                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 text-sm font-medium border-r"
+                            >
+                                Today
+                            </button>
+                            <button
+                                onClick={() => handleNavigate('NEXT')}
+                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700"
+                            >
+                                &gt;
+                            </button>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 min-w-[180px]">
+                            {format(date, 'MMMM yyyy')}
+                        </h3>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                         <button
                             onClick={() => setView(Views.MONTH)}
-                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             Month
                         </button>
                         <button
                             onClick={() => setView(Views.WEEK)}
-                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             Week
                         </button>
                         <button
                             onClick={() => setView(Views.DAY)}
-                            className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             Day
                         </button>
@@ -207,8 +253,17 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
 
             {/* Main Content Area */}
             <div className="flex-1 flex overflow-hidden">
+                <style jsx global>{`
+                    .rbc-calendar { color: #000000 !important; }
+                    .rbc-header { color: #000000 !important; font-weight: 600; }
+                    .rbc-off-range-bg { background-color: #f9fafb !important; }
+                    .rbc-off-range { color: #9ca3af !important; }
+                    .rbc-today { background-color: #f3f4f6 !important; }
+                    .rbc-event { border-radius: 4px; }
+                `}</style>
                 <div className="flex-1 relative">
                     <DnDCalendar
+                        toolbar={false}
                         localizer={localizer}
                         events={events}
                         startAccessor={(event: any) => event.start}
