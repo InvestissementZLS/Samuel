@@ -19,11 +19,12 @@ export default async function QuotesPage() {
     });
 
     const products = await prisma.product.findMany();
+    const clients = await prisma.client.findMany({ orderBy: { name: 'asc' } });
 
     return (
         <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">All Quotes</h1>
-            <QuoteList quotes={quotes} products={products} />
+            <QuoteList quotes={quotes} products={products} clients={clients} />
         </div>
     );
 }

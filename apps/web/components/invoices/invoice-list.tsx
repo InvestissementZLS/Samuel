@@ -15,10 +15,11 @@ import Link from "next/link";
 interface InvoiceListProps {
     invoices: (Invoice & { items: (any & { product: Product })[], client: Client })[];
     products: Product[];
+    clients?: Client[];
     clientId?: string; // Optional, if provided, restricts creation to this client
 }
 
-export function InvoiceList({ invoices, products, clientId }: InvoiceListProps) {
+export function InvoiceList({ invoices, products, clientId, clients = [] }: InvoiceListProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
@@ -29,10 +30,7 @@ export function InvoiceList({ invoices, products, clientId }: InvoiceListProps) 
     }, [division]);
 
     const handleCreateNew = () => {
-        if (!clientId) {
-            toast.error("Please go to a Client's page to create a new invoice.");
-            return;
-        }
+        // Allow creation without clientId now
         setSelectedInvoice(null);
         setIsEditing(true);
     };
@@ -73,6 +71,7 @@ export function InvoiceList({ invoices, products, clientId }: InvoiceListProps) 
                 <InvoiceForm
                     invoice={selectedInvoice}
                     products={products}
+                    clients={clients}
                     clientId={selectedInvoice?.clientId || clientId || ""}
                     onSave={handleSave}
                 />
@@ -97,11 +96,10 @@ export function InvoiceList({ invoices, products, clientId }: InvoiceListProps) 
                             <option value="ENTREPRISES">Entreprises</option>
                         </select>
                     </div>
-                    {clientId && (
-                        <Button onClick={handleCreateNew}>
-                            + New Invoice
-                        </Button>
-                    )}
+
+                    <Button onClick={handleCreateNew}>
+                        + New Invoice
+                    </Button>
                 </div>
             </div>
 

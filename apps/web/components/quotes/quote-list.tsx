@@ -14,10 +14,11 @@ import Link from "next/link";
 interface QuoteListProps {
     quotes: (Quote & { items: (any & { product: Product })[], client: Client })[];
     products: Product[];
+    clients?: Client[];
     clientId?: string;
 }
 
-export function QuoteList({ quotes, products, clientId }: QuoteListProps) {
+export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteListProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
@@ -28,10 +29,7 @@ export function QuoteList({ quotes, products, clientId }: QuoteListProps) {
     }, [division]);
 
     const handleCreateNew = () => {
-        if (!clientId) {
-            toast.error("Please go to a Client's page to create a new quote.");
-            return;
-        }
+        // Allow creation without clientId now
         setSelectedQuote(null);
         setIsEditing(true);
     };
@@ -72,6 +70,7 @@ export function QuoteList({ quotes, products, clientId }: QuoteListProps) {
                 <QuoteForm
                     quote={selectedQuote}
                     products={products}
+                    clients={clients}
                     clientId={selectedQuote?.clientId || clientId || ""}
                     onSave={handleSave}
                 />
@@ -96,11 +95,10 @@ export function QuoteList({ quotes, products, clientId }: QuoteListProps) {
                             <option value="ENTREPRISES">Entreprises</option>
                         </select>
                     </div>
-                    {clientId && (
-                        <Button onClick={handleCreateNew}>
-                            + New Quote
-                        </Button>
-                    )}
+
+                    <Button onClick={handleCreateNew}>
+                        + New Quote
+                    </Button>
                 </div>
             </div>
 

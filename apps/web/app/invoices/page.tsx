@@ -19,11 +19,12 @@ export default async function InvoicesPage() {
     });
 
     const products = await prisma.product.findMany();
+    const clients = await prisma.client.findMany({ orderBy: { name: 'asc' } });
 
     return (
         <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">All Invoices</h1>
-            <InvoiceList invoices={invoices} products={products} />
+            <InvoiceList invoices={invoices} products={products} clients={clients} />
         </div>
     );
 }

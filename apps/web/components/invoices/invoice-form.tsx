@@ -3,7 +3,7 @@
 import { useDivision } from "@/components/providers/division-provider";
 
 import { useState } from "react";
-import { Invoice, Product, InvoiceItem } from "@prisma/client";
+import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,16 +15,21 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Combobox } from "@/components/ui/combobox";
+import { ClientDialog } from "@/components/clients/client-dialog";
 
 interface InvoiceFormProps {
     invoice?: Invoice & { items: (InvoiceItem & { product: Product })[] };
     products: Product[];
+    clients?: Client[];
     clientId: string;
     onSave: (data: any) => Promise<void>;
 }
 
-export function InvoiceForm({ invoice, products, clientId, onSave }: InvoiceFormProps) {
+export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] }: InvoiceFormProps) {
     const [loading, setLoading] = useState(false);
+    const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
+    const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+
 
     // Form State
     const [poNumber, setPoNumber] = useState(invoice?.poNumber || "");
@@ -101,7 +106,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave }: InvoiceForm
         try {
             await onSave({
                 id: invoice?.id,
-                clientId,
+                clientId: selectedClientId,
                 poNumber,
                 issuedDate,
                 dueDate,
@@ -135,6 +140,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave }: InvoiceForm
         })
         .map(p => ({ value: p.id, label: p.name }));
 
+    const clientOptions = clients.map(c => ({ value: c.id, label: c.name }));
+    const selectedClient = clients.find(c => c.id === selectedClientId);
+
     return (
         <div className="bg-[#1e1e1e] text-gray-300 p-6 rounded-lg shadow-xl max-w-5xl mx-auto font-sans">
             {/* Header */}
@@ -157,14 +165,50 @@ export function InvoiceForm({ invoice, products, clientId, onSave }: InvoiceForm
                 </div>
             </div>
 
+            <ClientDialog
+                isOpen={isClientDialogOpen}
+                onClose={() => setIsClientDialogOpen(false)}
+            />
+
             {/* Metadata Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 {/* Client Info */}
                 <div className="space-y-4">
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Bill To</label>
-                        <div className="text-white font-medium">Client Name</div>
-                        <div className="text-sm text-gray-400">123 Client Address<br />City, State, Zip</div>
+                        {selectedClientId && selectedClient ? (
+                            <div className="group relative">
+                                <div className="text-white font-medium">{selectedClient.name}</div>
+                                <div className="text-sm text-gray-400 whitespace-pre-line">{selectedClient.billingAddress || selectedClient.address}</div>
+                                <div className="text-sm text-gray-500">{selectedClient.email}</div>
+                                {!clientId && (
+                                    <button
+                                        onClick={() => setSelectedClientId("")}
+                                        className="text-xs text-indigo-400 hover:text-indigo-300 mt-1"
+                                    >
+                                        Change Client
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Combobox
+                                    items={clientOptions}
+                                    value={selectedClientId}
+                                    onSelect={setSelectedClientId}
+                                    placeholder="Select Client..."
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full border-dashed border-gray-700 text-gray-400 hover:text-white hover:bg-gray-800"
+                                    onClick={() => setIsClientDialogOpen(true)}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    New Client
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     <div>
