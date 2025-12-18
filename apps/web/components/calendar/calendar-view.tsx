@@ -224,9 +224,9 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                         onEventDrop={handleEventDrop}
                         resizable
                         draggableAccessor={() => true}
-                        resources={!isMobile && view === Views.DAY ? [
+                        resources={!isMobile && (view === Views.DAY || view === Views.WEEK) ? [
                             { id: "unassigned", title: "Unassigned" },
-                            ...technicians.map(t => ({ id: t.id, title: t.name }))
+                            ...(selectedTechId === "all" ? technicians : technicians.filter(t => t.id === selectedTechId)).map(t => ({ id: t.id, title: t.name }))
                         ] : undefined}
                         resourceIdAccessor={(resource: any) => resource.id}
                         resourceTitleAccessor={(resource: any) => resource.title}
