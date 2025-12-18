@@ -175,7 +175,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                     <select
                         value={selectedTechId}
                         onChange={(e) => setSelectedTechId(e.target.value)}
-                        className="border rounded-md px-3 py-1.5 text-sm bg-white w-full sm:w-auto"
+                        className="border rounded-md px-3 py-1.5 text-sm bg-white text-gray-900 w-full sm:w-auto"
                     >
                         <option value="all">All Technicians</option>
                         {technicians.map(tech => (

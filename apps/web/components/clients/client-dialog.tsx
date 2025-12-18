@@ -132,7 +132,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                     <select
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as "EN" | "FR")}
-                        className="w-full rounded-md border p-2 bg-background"
+                        className="w-full rounded-md border p-2 bg-background text-gray-900"
                     >
                         <option value="FR">Français</option>
                         <option value="EN">English</option>

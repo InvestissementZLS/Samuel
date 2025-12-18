@@ -80,7 +80,7 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
                         <label className="block text-sm font-medium text-gray-700">Product</label>
                         <select
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-gray-900"
                             value={productId}
                             onChange={(e) => setProductId(e.target.value)}
                         >
@@ -95,7 +95,7 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
                         <div>
                             <label className="block text-sm font-medium text-gray-700">From</label>
                             <select
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-gray-900"
                                 value={fromId}
                                 onChange={(e) => setFromId(e.target.value)}
                             >
@@ -110,7 +110,7 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
                             <label className="block text-sm font-medium text-gray-700">To</label>
                             <select
                                 required
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-gray-900"
                                 value={toId}
                                 onChange={(e) => setToId(e.target.value)}
                             >

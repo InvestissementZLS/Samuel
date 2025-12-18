@@ -231,7 +231,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                     setClientId(e.target.value);
                                     setPropertyId("");
                                 }}
-                                className="w-full rounded-md border px-2 py-1.5 bg-background text-sm h-9"
+                                className="w-full rounded-md border px-2 py-1.5 bg-background text-gray-900 text-sm h-9"
                                 required
                                 disabled={!!job}
                             >
@@ -250,7 +250,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         <select
                             value={propertyId}
                             onChange={(e) => setPropertyId(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-background text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-gray-900 text-sm h-9"
                             required
                             disabled={!clientId}
                         >
@@ -271,7 +271,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-background text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-gray-900 text-sm h-9"
                             required
                         />
                     </div>
@@ -281,7 +281,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                             type="time"
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-background text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-gray-900 text-sm h-9"
                             required
                         />
                     </div>
@@ -318,7 +318,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value as JobStatus)}
-                            className="w-full rounded-md border px-2 py-1.5 bg-background text-sm h-9"
+                            className="w-full rounded-md border px-2 py-1.5 bg-background text-gray-900 text-sm h-9"
                         >
                             <option value="PENDING">Pending</option>
                             <option value="SCHEDULED">Scheduled</option>

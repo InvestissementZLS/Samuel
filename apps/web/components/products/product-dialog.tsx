@@ -133,7 +133,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         <select
                             value={division}
                             onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-background text-gray-900"
                         >
                             <option value="EXTERMINATION">Extermination ZLS</option>
                             <option value="ENTREPRISES">Les Entreprises ZLS</option>
@@ -144,7 +144,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         <select
                             value={type}
                             onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT")}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-background text-gray-900"
                         >
                             <option value="CONSUMABLE">Consumable</option>
                             <option value="EQUIPMENT">Equipment (Tools/Machines)</option>
@@ -179,7 +179,7 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         <select
                             value={unit}
                             onChange={(e) => setUnit(e.target.value)}
-                            className="w-full rounded-md border p-2 bg-background"
+                            className="w-full rounded-md border p-2 bg-background text-gray-900"
                         >
                             <option value="" disabled>Select Unit</option>
                             <option value="ml">ml</option>

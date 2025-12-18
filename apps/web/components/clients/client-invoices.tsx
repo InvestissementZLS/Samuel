@@ -96,7 +96,7 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
                         <select
                             value={divisionFilter}
                             onChange={(e) => setDivisionFilter(e.target.value as any)}
-                            className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer"
+                            className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer text-gray-900"
                         >
                             <option value="ALL">All Divisions</option>
                             <option value="EXTERMINATION">Extermination</option>
