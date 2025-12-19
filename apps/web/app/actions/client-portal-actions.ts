@@ -72,38 +72,47 @@ export async function createQuote(data: {
     terms?: string;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    const division = data.division || "EXTERMINATION";
-    const number = await generateNextNumber(division, "QUOTE");
+    console.log("createQuote called with:", JSON.stringify(data, null, 2));
+    try {
+        const division = data.division || "EXTERMINATION";
+        console.log("Generating number for division:", division);
+        const number = await generateNextNumber(division, "QUOTE");
+        console.log("Generated number:", number);
 
-    await prisma.quote.create({
-        data: {
-            clientId: data.clientId,
-            propertyId: data.propertyId,
-            total: data.total,
-            description: data.description,
-            status: 'DRAFT',
-            poNumber: data.poNumber,
-            issuedDate: data.issuedDate,
-            dueDate: data.dueDate,
-            discount: data.discount,
-            tax: data.tax,
-            notes: data.notes,
-            terms: data.terms,
-            division: division,
-            number: number,
-            items: {
-                create: data.items?.map((item: any) => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.price,
-                    description: item.description,
-                    unitCost: item.unitCost,
-                    taxRate: item.taxRate
-                }))
-            }
-        },
-    });
-    revalidatePath(`/clients/${data.clientId}`);
+        await prisma.quote.create({
+            data: {
+                clientId: data.clientId,
+                propertyId: data.propertyId,
+                total: data.total,
+                description: data.description,
+                status: 'DRAFT',
+                poNumber: data.poNumber,
+                issuedDate: data.issuedDate,
+                dueDate: data.dueDate,
+                discount: data.discount,
+                tax: data.tax,
+                notes: data.notes,
+                terms: data.terms,
+                division: division,
+                number: number,
+                items: {
+                    create: data.items?.map((item: any) => ({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price,
+                        description: item.description,
+                        unitCost: item.unitCost,
+                        taxRate: item.taxRate
+                    }))
+                }
+            },
+        });
+        console.log("Quote created successfully");
+        revalidatePath(`/clients/${data.clientId}`);
+    } catch (error) {
+        console.error("Error creating quote:", error);
+        throw error;
+    }
 }
 
 export async function updateQuote(data: {
@@ -120,43 +129,49 @@ export async function updateQuote(data: {
     total: number;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    await prisma.$transaction(async (tx) => {
-        await tx.quote.update({
-            where: { id: data.id },
-            data: {
-                poNumber: data.poNumber,
-                issuedDate: data.issuedDate,
-                dueDate: data.dueDate,
-                discount: data.discount,
-                tax: data.tax,
-                notes: data.notes,
-                terms: data.terms,
-                total: data.total,
-                division: data.division,
+    console.log("updateQuote called with:", JSON.stringify(data, null, 2));
+    try {
+        await prisma.$transaction(async (tx) => {
+            await tx.quote.update({
+                where: { id: data.id },
+                data: {
+                    poNumber: data.poNumber,
+                    issuedDate: data.issuedDate,
+                    dueDate: data.dueDate,
+                    discount: data.discount,
+                    tax: data.tax,
+                    notes: data.notes,
+                    terms: data.terms,
+                    total: data.total,
+                    division: data.division,
+                }
+            });
+
+            // Delete existing items and recreate
+            await tx.quoteItem.deleteMany({
+                where: { quoteId: data.id }
+            });
+
+            if (data.items && data.items.length > 0) {
+                await tx.quoteItem.createMany({
+                    data: data.items.map((item: any) => ({
+                        quoteId: data.id,
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        price: item.price,
+                        description: item.description,
+                        unitCost: item.unitCost,
+                        taxRate: item.taxRate
+                    }))
+                });
             }
         });
-
-        // Delete existing items and recreate
-        await tx.quoteItem.deleteMany({
-            where: { quoteId: data.id }
-        });
-
-        if (data.items && data.items.length > 0) {
-            await tx.quoteItem.createMany({
-                data: data.items.map((item: any) => ({
-                    quoteId: data.id,
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.price,
-                    description: item.description,
-                    unitCost: item.unitCost,
-                    taxRate: item.taxRate
-                }))
-            });
-        }
-    });
-
-    revalidatePath(`/clients/${data.clientId}`);
+        console.log("Quote updated successfully");
+        revalidatePath(`/clients/${data.clientId}`);
+    } catch (error) {
+        console.error("Error updating quote:", error);
+        throw error;
+    }
 }
 
 export async function updateQuoteStatus(id: string, clientId: string, status: QuoteStatus) {
