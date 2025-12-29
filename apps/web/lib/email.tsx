@@ -38,6 +38,13 @@ type QuoteWithDetails = Quote & {
     items: (any & { product: Product })[];
 };
 
+const getAppUrl = () => {
+    if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+    // Fallback to production domain if running in production but env var not set
+    if (process.env.NODE_ENV === 'production') return 'https://praxiszls.com';
+    return 'http://localhost:3000';
+};
+
 export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     const config = getEmailConfig(invoice.division);
 
@@ -51,7 +58,7 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
             ? `Invoice #${invoice.number} from ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
             : `Facture #${invoice.number} de ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
 
-        const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/invoices/${invoice.id}`;
+        const portalUrl = `${getAppUrl()}/portal/invoices/${invoice.id}`;
 
         const html = (invoice.client as any).language === 'EN'
             ? `
@@ -114,7 +121,7 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
             ? `Quote #${quote.number} from ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
             : `Soumission #${quote.number} de ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
 
-        const portalUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portal/quotes/${quote.id}`;
+        const portalUrl = `${getAppUrl()}/portal/quotes/${quote.id}`;
 
         const html = (quote.client as any).language === 'EN'
             ? `
@@ -170,7 +177,7 @@ const systemResend = resendEntreprises || (process.env.RESEND_API_KEY ? new Rese
 
 export async function sendPasswordResetEmail(email: string, token: string) {
     if (!systemResend) {
-        console.log(`[EMAIL MOCK] Password reset link for ${email}: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`);
+        console.log(`[EMAIL MOCK] Password reset link for ${email}: ${getAppUrl()}/reset-password?token=${token}`);
         return;
     }
 
@@ -184,7 +191,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
                     <h2>Réinitialisation de mot de passe</h2>
                     <p>Vous avez demandé une réinitialisation de mot de passe.</p>
                     <p>Cliquez sur le lien ci-dessous pour changer votre mot de passe:</p>
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                    <a href="${getAppUrl()}/reset-password?token=${token}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
                         Réinitialiser le mot de passe
                     </a>
                     <p>Ce lien est valide pour 1 heure.</p>
@@ -192,7 +199,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
                     <h2>Password Reset</h2>
                     <p>You requested a password reset.</p>
                     <p>Click the link below to reset your password:</p>
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}">Reset Password</a>
+                    <a href="${getAppUrl()}/reset-password?token=${token}">Reset Password</a>
                     <p>This link will expire in 1 hour.</p>
                 </div>
             `,
@@ -200,6 +207,6 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     } catch (error) {
         console.error('Failed to send email:', error);
         // Fallback to logging for development if email fails
-        console.log(`[EMAIL FALLBACK] Password reset link for ${email}: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`);
+        console.log(`[EMAIL FALLBACK] Password reset link for ${email}: ${getAppUrl()}/reset-password?token=${token}`);
     }
 }
