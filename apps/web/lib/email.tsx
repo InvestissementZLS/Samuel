@@ -94,12 +94,14 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
                 </div>
             `;
 
+        console.log(`Sending invoice email to: ${invoice.client.email} from: ${config.from}`);
         const data = await config.resend.emails.send({
             from: config.from,
             to: [invoice.client.email || ''],
             subject: subject,
             html: html,
         });
+        console.log("Invoice email sent result:", JSON.stringify(data));
 
         return { success: true, data };
     } catch (error) {
