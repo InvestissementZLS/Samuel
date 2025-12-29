@@ -17,13 +17,13 @@ function getEmailConfig(division: "EXTERMINATION" | "ENTREPRISES") {
     if (division === "EXTERMINATION" && resendExtermination) {
         return {
             resend: resendExtermination,
-            from: "Extermination ZLS <exterminationzls@gmail.com>"
+            from: "Extermination ZLS <extermination@praxiszls.com>"
         };
     }
     // Default to Entreprises
     return {
         resend: resendEntreprises,
-        from: "Les Entreprises ZLS <sales@zls.com>"
+        from: "Les Entreprises ZLS <extermination@praxiszls.com>"
     };
 }
 
@@ -150,12 +150,14 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
                 </div>
             `;
 
+        console.log(`Sending email to: ${quote.client.email} from: ${config.from}`);
         const data = await config.resend.emails.send({
             from: config.from,
             to: [quote.client.email || ''],
             subject: subject,
             html: html,
         });
+        console.log("Email sent result:", JSON.stringify(data));
 
         return { success: true, data };
     } catch (error) {
@@ -164,22 +166,35 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
     }
 }
 
+const systemResend = resendEntreprises || (process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null);
+
 export async function sendPasswordResetEmail(email: string, token: string) {
-    if (!process.env.RESEND_API_KEY) {
+    if (!systemResend) {
         console.log(`[EMAIL MOCK] Password reset link for ${email}: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`);
         return;
     }
 
     try {
-        await resend.emails.send({
-            from: 'Antigravity <onboarding@resend.dev>', // Update this with your verified domain
+        await systemResend.emails.send({
+            from: 'Extermination ZLS <extermination@praxiszls.com>',
             to: email,
-            subject: 'Reset your password',
+            subject: 'Réinitialisation de mot de passe / Password Reset',
             html: `
-                <p>You requested a password reset.</p>
-                <p>Click the link below to reset your password:</p>
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}">Reset Password</a>
-                <p>This link will expire in 1 hour.</p>
+                <div style="font-family: sans-serif;">
+                    <h2>Réinitialisation de mot de passe</h2>
+                    <p>Vous avez demandé une réinitialisation de mot de passe.</p>
+                    <p>Cliquez sur le lien ci-dessous pour changer votre mot de passe:</p>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        Réinitialiser le mot de passe
+                    </a>
+                    <p>Ce lien est valide pour 1 heure.</p>
+                    <hr/>
+                    <h2>Password Reset</h2>
+                    <p>You requested a password reset.</p>
+                    <p>Click the link below to reset your password:</p>
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}">Reset Password</a>
+                    <p>This link will expire in 1 hour.</p>
+                </div>
             `,
         });
     } catch (error) {
