@@ -25,5 +25,10 @@ export default async function InvoicePortalPage({ params }: PageProps) {
         notFound();
     }
 
-    return <InvoicePortalClient invoice={invoice} />;
+    // Use JSON serialization to handle Date objects and ensure clean data for client component
+    const serializedInvoice = JSON.parse(JSON.stringify(invoice));
+
+    // Ensure numeric fields are numbers (in case of weird Prisma behavior, though schema says Float)
+    // But primarly this fixes the "Date object" serialization issue
+    return <InvoicePortalClient invoice={serializedInvoice} />;
 }
