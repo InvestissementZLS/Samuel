@@ -45,6 +45,7 @@ export default async function QuotePortalPage({ params }: PageProps) {
             email: quote.client.email,
             billingAddress: quote.client.billingAddress,
             language: (quote.client as any).language || 'FR',
+            createdAt: quote.client.createdAt.toISOString(),
         },
         items: quote.items.map((item: any) => ({
             id: item.id,
