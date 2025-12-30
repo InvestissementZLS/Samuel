@@ -10,6 +10,7 @@ import { JobProducts } from '@/components/jobs/job-products';
 import { JobTechnicianSelect } from '@/components/jobs/job-technician-select';
 import { JobActions } from '@/components/jobs/job-actions';
 import { JobFinancials } from '@/components/jobs/job-financials';
+import { JobScheduleEdit } from '@/components/jobs/job-schedule-edit';
 
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -108,14 +109,11 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                         <h2 className="text-lg font-semibold mb-4 border-b pb-2">Schedule</h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 uppercase">Date & Time</label>
-                                <p className="text-gray-900 font-medium">
-                                    {format(new Date(job.scheduledAt), 'PPP')}
-                                </p>
-                                <p className="text-gray-900">
-                                    {format(new Date(job.scheduledAt), 'p')}
-                                    {job.scheduledEndAt && ` - ${format(new Date(job.scheduledEndAt), 'p')}`}
-                                </p>
+                                <JobScheduleEdit
+                                    jobId={job.id}
+                                    initialScheduledAt={job.scheduledAt}
+                                    initialScheduledEndAt={job.scheduledEndAt}
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 uppercase">Technician</label>
