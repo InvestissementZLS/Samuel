@@ -34,6 +34,9 @@ export function TimesheetList({ initialTimesheets }: TimesheetListProps) {
                         <th className="h-12 px-4 text-left font-medium">Date</th>
                         <th className="h-12 px-4 text-left font-medium">Start</th>
                         <th className="h-12 px-4 text-left font-medium">End</th>
+                        <th className="h-12 px-4 text-left font-medium">Start KM</th>
+                        <th className="h-12 px-4 text-left font-medium">End KM</th>
+                        <th className="h-12 px-4 text-left font-medium">Distance</th>
                         <th className="h-12 px-4 text-left font-medium">Duration</th>
                         <th className="h-12 px-4 text-left font-medium">Status</th>
                         <th className="h-12 px-4 text-right font-medium">Actions</th>
@@ -42,16 +45,27 @@ export function TimesheetList({ initialTimesheets }: TimesheetListProps) {
                 <tbody>
                     {initialTimesheets.map((entry) => (
                         <tr key={entry.id} className="border-b hover:bg-muted/50">
-                            <td className="p-4 font-medium">{entry.user.name || entry.user.email}</td>
+                            <td className="p-4 font-medium">
+                                <a href={`/timesheets/${entry.id}`} className="hover:underline text-blue-600">
+                                    {entry.user.name || entry.user.email}
+                                </a>
+                            </td>
                             <td className="p-4">{format(new Date(entry.startTime), "PPP")}</td>
                             <td className="p-4">{format(new Date(entry.startTime), "p")}</td>
                             <td className="p-4">{entry.endTime ? format(new Date(entry.endTime), "p") : "-"}</td>
+                            <td className="p-4">{(entry as any).startKm ?? "-"}</td>
+                            <td className="p-4">{(entry as any).endKm ?? "-"}</td>
+                            <td className="p-4">
+                                {(entry as any).endKm && (entry as any).startKm
+                                    ? `${(entry as any).endKm - (entry as any).startKm} km`
+                                    : "-"}
+                            </td>
                             <td className="p-4">{entry.duration ? `${Math.floor(entry.duration / 60)}h ${entry.duration % 60}m` : "-"}</td>
                             <td className="p-4">
                                 <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${entry.status === 'APPROVED' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                                        entry.status === 'OPEN' ? 'bg-blue-50 text-blue-700 ring-blue-600/20' :
-                                            entry.status === 'SUBMITTED' ? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20' :
-                                                'bg-red-50 text-red-700 ring-red-600/20'
+                                    entry.status === 'OPEN' ? 'bg-blue-50 text-blue-700 ring-blue-600/20' :
+                                        entry.status === 'SUBMITTED' ? 'bg-yellow-50 text-yellow-700 ring-yellow-600/20' :
+                                            'bg-red-50 text-red-700 ring-red-600/20'
                                     }`}>
                                     {entry.status}
                                 </span>
@@ -71,7 +85,7 @@ export function TimesheetList({ initialTimesheets }: TimesheetListProps) {
                     ))}
                     {initialTimesheets.length === 0 && (
                         <tr>
-                            <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                            <td colSpan={10} className="p-8 text-center text-muted-foreground">
                                 No timesheet entries found.
                             </td>
                         </tr>

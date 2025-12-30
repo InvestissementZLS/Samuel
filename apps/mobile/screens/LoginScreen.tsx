@@ -29,26 +29,26 @@ export default function LoginScreen() {
             });
 
             const user = response.data;
-            // In a real app, store the token/user in SecureStore or Context
-            // For now, we'll pass the user ID to the next screen or just assume global state
-            // But since we don't have global state yet, we'll just navigate
-            // Ideally we should have a UserContext.
 
-            // For MVP, let's just navigate. We might need to store the techId somewhere.
-            // Let's pass it as a param or store in a simple global variable for this session
-            // For simplicity, let's assume the JobList fetches based on a hardcoded ID or we pass it.
-            // Actually, let's pass it to JobList.
+            // Check for active timesheet
+            try {
+                const timesheetRes = await axios.get(`${API_URL}/api/timesheets/active?userId=${user.id}`);
+                const activeTimesheet = timesheetRes.data.timesheet;
 
-            // Wait, JobList expects undefined params in RootStackParamList.
-            // Let's update RootStackParamList in AppNavigator later if needed, 
-            // but for now let's just navigate and maybe store it in a simple global singleton or just pass it.
+                if (activeTimesheet) {
+                    // Start breadcrumb tracking (if we had a background service context here)
+                    navigation.replace('JobList', { userId: user.id });
+                } else {
+                    navigation.replace('PunchIn', { userId: user.id });
+                }
+            } catch (tError) {
+                console.error("Failed to check timesheet status", tError);
+                // Fallback to JobList if check fails, or PunchIn? 
+                // Let's safe fail to JobList but maybe alert logic is needed.
+                // For now, assume if offline/error, let them see jobs but they might be restricted there (future improvement)
+                navigation.replace('JobList', { userId: user.id });
+            }
 
-            // Let's just navigate for now. We'll handle the techId in JobList by maybe asking for it or 
-            // just fetching all jobs for now if we can't easily pass it without changing types.
-            // But wait, we need to fetch jobs for THIS technician.
-
-            // Pass userId to JobList
-            navigation.replace('JobList', { userId: user.id });
         } catch (error: any) {
             console.error(error);
             Alert.alert('Login Failed', error.response?.data?.error || 'Something went wrong');

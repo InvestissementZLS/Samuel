@@ -427,6 +427,25 @@ model TimesheetEntry {
   duration  Int?            // Duration in minutes
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  startKm   Int?
+  endKm     Int?
+  startOdometerPhotoId String?
+  endOdometerPhotoId   String?
+  startLocation String?
+  endLocation   String?
+  breadcrumbs   GPSBreadcrumb[]
+}
+
+model GPSBreadcrumb {
+  id          String   @id @default(uuid())
+  timesheetId String
+  latitude    Float
+  longitude   Float
+  timestamp   DateTime @default(now())
+  speed       Float?
+  heading     Float?
+  accuracy    Float?
+  timesheet   TimesheetEntry @relation(fields: [timesheetId], references: [id])
 }
 
 enum TimesheetStatus {

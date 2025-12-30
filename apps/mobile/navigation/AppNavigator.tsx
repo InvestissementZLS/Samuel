@@ -4,11 +4,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from '../screens/LoginScreen';
 import JobListScreen from '../screens/JobListScreen';
 import JobDetailsScreen from '../screens/JobDetailsScreen';
+import PunchInScreen from '../screens/PunchInScreen';
+import PunchOutScreen from '../screens/PunchOutScreen';
 
 export type RootStackParamList = {
     Login: undefined;
     JobList: { userId: string };
     JobDetails: { jobId: string };
+    PunchIn: { userId: string };
+    PunchOut: { timesheetId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -31,6 +35,16 @@ export default function AppNavigator() {
                     name="JobDetails"
                     component={JobDetailsScreen}
                     options={{ title: 'Job Details' }}
+                />
+                <Stack.Screen
+                    name="PunchIn"
+                    component={PunchInScreen}
+                    options={{ headerShown: false, gestureEnabled: false }} // No back gesture
+                />
+                <Stack.Screen
+                    name="PunchOut"
+                    component={PunchOutScreen}
+                    options={{ title: 'End Of Day' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

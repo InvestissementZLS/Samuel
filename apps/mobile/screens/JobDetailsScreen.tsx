@@ -122,6 +122,11 @@ export default function JobDetailsScreen() {
                             <Text style={styles.rowText}>{job.property.client.phone}</Text>
                         </TouchableOpacity>
                     )}
+
+                    <TouchableOpacity style={[styles.actionButton, styles.navigateButton]} onPress={openMap}>
+                        <LucideMapPin size={24} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={styles.actionButtonText}>Navigate to Client</Text>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={styles.section}>
@@ -278,6 +283,12 @@ const styles = StyleSheet.create({
     },
     completeButton: {
         backgroundColor: '#16a34a',
+    },
+    navigateButton: {
+        backgroundColor: '#8B5CF6', // Violet/Purple to distinguish from actions
+        marginTop: 10,
+        flexDirection: 'row',
+        justifyContent: 'center',
     },
     actionButtonText: {
         color: 'white',
