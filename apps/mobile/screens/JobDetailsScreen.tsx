@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -186,6 +187,47 @@ export default function JobDetailsScreen() {
                             <Text style={styles.actionButtonText}>Complete Job</Text>
                         </TouchableOpacity>
                     )}
+
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.deleteButton]}
+                        onPress={() => {
+                            Alert.alert(
+                                "Delete Job",
+                                "Are you sure you want to delete this job? This cannot be undone.",
+                                [
+                                    { text: "Cancel", style: "cancel" },
+                                    {
+                                        text: "Delete",
+                                        style: "destructive",
+                                        onPress: async () => {
+                                            setLoading(true); // Re-use loading state to block UI
+                                            try {
+                                                const token = await AsyncStorage.getItem('token');
+                                                const response = await fetch(`${API_URL}/api/jobs/${job.id}`, {
+                                                    method: 'DELETE',
+                                                    headers: { 'Authorization': `Bearer ${token}` }
+                                                });
+
+                                                if (response.ok) {
+                                                    navigation.goBack();
+                                                } else {
+                                                    Alert.alert("Error", "Failed to delete job");
+                                                    setLoading(false);
+                                                }
+                                            } catch (error) {
+                                                console.error(error);
+                                                Alert.alert("Error", "Failed to delete job");
+                                                setLoading(false);
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }}
+                        disabled={loading}
+                    >
+                        <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>Delete Job</Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
             <StatusBar style="auto" />
@@ -307,5 +349,11 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    deleteButton: {
+        backgroundColor: '#FEE2E2',
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: '#FECACA'
     },
 });
