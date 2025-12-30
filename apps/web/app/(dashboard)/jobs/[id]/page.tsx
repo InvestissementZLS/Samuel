@@ -12,8 +12,15 @@ import { JobActions } from '@/components/jobs/job-actions';
 import { JobFinancials } from '@/components/jobs/job-financials';
 import { JobScheduleEdit } from '@/components/jobs/job-schedule-edit';
 
+import { cookies } from 'next/headers';
+import { dictionary } from '@/lib/i18n/dictionary';
+
 export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const cookieStore = await cookies();
+    const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
+    const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
+
     const job = await prisma.job.findUnique({
         where: { id },
         include: {
@@ -59,7 +66,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
             <div className="flex justify-between items-start mb-8">
                 <div>
                     <div className="flex items-center gap-4 mb-2">
-                        <h1 className="text-3xl font-bold text-gray-900">Job Details</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">{t.jobDetails.title}</h1>
                         <JobStatusSelect jobId={job.id} currentStatus={job.status} />
                     </div>
                     <p className="text-gray-500">Job ID: {job.id}</p>
@@ -69,7 +76,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                         href="/calendar"
                         className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
                     >
-                        Back to Calendar
+                        {t.jobDetails.backToCalendar}
                     </Link>
                     <JobActions jobId={job.id} />
                 </div>
@@ -80,22 +87,22 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                 <div className="lg:col-span-1 space-y-6">
                     {/* Client & Property */}
                     <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-                        <h2 className="text-lg font-semibold mb-4 border-b pb-2">Location & Client</h2>
+                        <h2 className="text-lg font-semibold mb-4 border-b pb-2">{t.jobDetails.locationClient}</h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 uppercase">Client</label>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">{t.jobDetails.client}</label>
                                 <Link href={`/clients/${job.property.clientId}`} className="text-blue-600 hover:underline">
                                     {job.property.client.name}
                                 </Link>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 uppercase">Property</label>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">{t.jobDetails.property}</label>
                                 <p className="text-gray-900">{job.property.address}</p>
                                 <p className="text-xs text-gray-500">{job.property.type}</p>
                             </div>
                             {job.property.accessInfo && (
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Access Info</label>
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">{t.jobDetails.accessInfo}</label>
                                     <p className="text-gray-900 bg-yellow-50 p-2 rounded text-sm border border-yellow-100">
                                         {job.property.accessInfo}
                                     </p>
@@ -106,7 +113,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
 
                     {/* Schedule & Tech */}
                     <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-                        <h2 className="text-lg font-semibold mb-4 border-b pb-2">Schedule</h2>
+                        <h2 className="text-lg font-semibold mb-4 border-b pb-2">{t.jobDetails.schedule}</h2>
                         <div className="space-y-4">
                             <div>
                                 <JobScheduleEdit
@@ -116,7 +123,7 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 uppercase">Technician</label>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">{t.jobDetails.technician}</label>
                                 <p className="text-gray-900">
                                     <JobTechnicianSelect
                                         jobId={job.id}
@@ -126,8 +133,8 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                                 </p>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 uppercase">Description</label>
-                                <p className="text-gray-900 text-sm">{job.description || 'No description'}</p>
+                                <label className="block text-xs font-medium text-gray-500 uppercase">{t.jobDetails.description}</label>
+                                <p className="text-gray-900 text-sm">{job.description || t.jobDetails.noDescription}</p>
                             </div>
                         </div>
                     </div>

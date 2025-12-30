@@ -9,21 +9,29 @@ export const metadata: Metadata = {
     description: "Admin dashboard for field service management",
 };
 
-export default function DashboardLayout({
+import { cookies } from "next/headers";
+import { LanguageProvider } from "@/components/providers/language-provider";
+
+export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const cookieStore = await cookies();
+    const initialLanguage = cookieStore.get("NEXT_LOCALE")?.value || "en";
+
     return (
-        <DivisionProvider>
-            <div className="flex h-screen overflow-hidden bg-gray-100 flex-col md:flex-row">
-                <Sidebar />
-                <MobileNav />
-                <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-                    <CommandMenu />
-                    {children}
-                </main>
-            </div>
-        </DivisionProvider>
+        <LanguageProvider initialLanguage={initialLanguage as any}>
+            <DivisionProvider>
+                <div className="flex h-screen overflow-hidden bg-gray-100 flex-col md:flex-row">
+                    <Sidebar />
+                    <MobileNav />
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                        <CommandMenu />
+                        {children}
+                    </main>
+                </div>
+            </DivisionProvider>
+        </LanguageProvider>
     );
 }

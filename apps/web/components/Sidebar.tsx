@@ -5,28 +5,30 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search } from 'lucide-react';
-
-export const navigation = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Calendar', href: '/calendar', icon: Calendar },
-    { name: 'Jobs', href: '/jobs', icon: Truck },
-    { name: 'Quotes', href: '/quotes', icon: FileText },
-    { name: 'Invoices', href: '/invoices', icon: DollarSign },
-    { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Technicians', href: '/technicians', icon: Users },
-    { name: 'Products', href: '/products', icon: Package },
-    { name: 'Commissions', href: '/commissions', icon: DollarSign },
-    { name: 'Reports', href: '/reports', icon: BarChart },
-    { name: 'Timesheets', href: '/timesheets', icon: Calendar }, // Using Calendar icon for now, could use Clock if available
-    { name: 'Settings', href: '/settings', icon: Settings },
-];
-
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
+import { useLanguage } from '@/components/providers/language-provider';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 export function Sidebar() {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const { t } = useLanguage();
+
+    const navigation = [
+        { name: t.sidebar.dashboard, href: '/', icon: Home },
+        { name: t.sidebar.calendar, href: '/calendar', icon: Calendar },
+        { name: t.sidebar.jobs, href: '/jobs', icon: Truck },
+        { name: t.sidebar.quotes, href: '/quotes', icon: FileText },
+        { name: t.sidebar.invoices, href: '/invoices', icon: DollarSign },
+        { name: t.sidebar.clients, href: '/clients', icon: Users },
+        { name: t.sidebar.technicians, href: '/technicians', icon: Users },
+        { name: t.sidebar.products, href: '/products', icon: Package },
+        { name: t.sidebar.commissions, href: '/commissions', icon: DollarSign },
+        { name: t.sidebar.reports, href: '/reports', icon: BarChart },
+        { name: t.sidebar.timesheets, href: '/timesheets', icon: Calendar },
+        { name: t.sidebar.settings, href: '/settings', icon: Settings },
+    ];
 
     return (
         <div className={`hidden md:flex h-full flex-col bg-gray-900 text-white z-50 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
@@ -51,20 +53,20 @@ export function Sidebar() {
                 <GlobalSearch trigger={
                     <button
                         className={`group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isCollapsed ? 'justify-center' : ''}`}
-                        title={isCollapsed ? "Search" : undefined}
+                        title={isCollapsed ? t.common.search : undefined}
                     >
                         <Search
                             className={`${isCollapsed ? 'mr-0' : 'mr-3'} h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-300`}
                             aria-hidden="true"
                         />
-                        {!isCollapsed && "Search"}
+                        {!isCollapsed && t.common.search}
                     </button>
                 } />
                 {navigation.map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                     return (
                         <Link
-                            key={item.name}
+                            key={item.href}
                             href={item.href}
                             className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${isActive
                                 ? 'bg-gray-800 text-white'
@@ -84,15 +86,17 @@ export function Sidebar() {
             </nav>
             <div className="border-t border-gray-800 p-4">
                 {!isCollapsed ? (
-                    <div className="flex items-center">
-                        <div className="ml-3">
-                            <p className="text-sm font-medium text-white">Admin User</p>
-                            <p className="text-xs font-medium text-gray-400">View Profile</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
+                            <p className="text-xs font-medium text-gray-400">{t.common.viewProfile}</p>
                         </div>
+                        <LanguageSwitcher />
                     </div>
                 ) : (
-                    <div className="flex justify-center">
+                    <div className="flex flex-col gap-2 items-center">
                         <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold">AU</div>
+                        <LanguageSwitcher />
                     </div>
                 )}
             </div>
