@@ -9,6 +9,7 @@ interface PageProps {
 }
 
 export default async function InvoicePortalPage({ params }: PageProps) {
+    /*
     const invoice = await prisma.invoice.findUnique({
         where: { id: params.id },
         include: {
@@ -54,6 +55,40 @@ export default async function InvoicePortalPage({ params }: PageProps) {
                 description: item.product.description,
             }
         }))
+    };
+    */
+
+    // DEBUG: Static Data to isolate persistent crash
+    const serializedInvoice = {
+        id: "debug-id",
+        number: "INV-DEBUG",
+        clientId: "debug-client",
+        status: "SENT",
+        issuedDate: new Date().toISOString(),
+        dueDate: null,
+        total: 100.00,
+        subtotal: 90.00,
+        tax: 10.00,
+        amountPaid: 0,
+        division: "EXTERMINATION",
+        client: {
+            name: "Debug Client",
+            email: "debug@test.com",
+            billingAddress: "123 Debug St",
+            language: "FR"
+        },
+        items: [
+            {
+                id: "item-1",
+                description: "Debug Item",
+                quantity: 1,
+                price: 90.00,
+                product: {
+                    name: "Debug Product",
+                    description: "Test description"
+                }
+            }
+        ]
     };
 
     return <InvoicePortalClient invoice={serializedInvoice} />;
