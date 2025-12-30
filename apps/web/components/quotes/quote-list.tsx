@@ -9,6 +9,7 @@ import { FileText, Filter, Link as LinkIcon, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuoteForm } from "@/components/quotes/quote-form";
 import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import Link from "next/link";
 
 interface QuoteListProps {
@@ -19,6 +20,7 @@ interface QuoteListProps {
 }
 
 export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteListProps) {
+    const { t } = useLanguage();
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
@@ -81,7 +83,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Quotes</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t.quotes.title}</h3>
                 <div className="flex gap-2">
                     <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-1.5">
                         <Filter className="w-4 h-4 text-gray-500" />
@@ -97,7 +99,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                     </div>
 
                     <Button onClick={handleCreateNew}>
-                        + New Quote
+                        + {t.quotes.createQuote}
                     </Button>
                 </div>
             </div>

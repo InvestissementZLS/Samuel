@@ -15,6 +15,8 @@ import { useDivision } from "@/components/providers/division-provider";
 import Link from "next/link";
 
 
+import { useLanguage } from "@/components/providers/language-provider";
+
 interface InvoiceListProps {
     invoices: (Invoice & { items: (any & { product: Product })[], client: Client })[];
     products: Product[];
@@ -23,6 +25,7 @@ interface InvoiceListProps {
 }
 
 export function InvoiceList({ invoices, products, clientId, clients = [] }: InvoiceListProps) {
+    const { t } = useLanguage();
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
@@ -96,7 +99,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Invoices</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t.invoices.title}</h3>
                 <div className="flex gap-2">
                     <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-1.5">
                         <Filter className="w-4 h-4 text-gray-500" />
@@ -112,7 +115,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                     </div>
 
                     <Button onClick={handleCreateNew}>
-                        + New Invoice
+                        + {t.invoices.createInvoice}
                     </Button>
                 </div>
             </div>

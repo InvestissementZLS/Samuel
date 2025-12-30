@@ -9,10 +9,12 @@ interface ClientListProps {
     clients: Client[];
 }
 
+import { useLanguage } from "@/components/providers/language-provider";
 import { useRouter } from "next/navigation";
 import { useDivision } from "@/components/providers/division-provider";
 
 export function ClientList({ clients }: ClientListProps) {
+    const { t } = useLanguage();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const router = useRouter();
@@ -38,13 +40,13 @@ export function ClientList({ clients }: ClientListProps) {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Clients ({filteredClients.length})</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{t.clients.title} ({filteredClients.length})</h1>
                 <button
                     onClick={handleAdd}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                 >
                     <Plus className="h-4 w-4" />
-                    Add Client
+                    {t.clients.addClient}
                 </button>
             </div>
 
@@ -54,16 +56,16 @@ export function ClientList({ clients }: ClientListProps) {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Name
+                                    {t.clients.name}
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Email
+                                    {t.clients.email}
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Phone
+                                    {t.clients.phone}
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Address
+                                    {t.clients.address}
                                 </th>
                                 <th scope="col" className="relative px-6 py-3">
                                     <span className="sr-only">Edit</span>
@@ -103,7 +105,7 @@ export function ClientList({ clients }: ClientListProps) {
                     </table>
                 ) : (
                     <div className="p-6 text-center text-gray-500">
-                        <p>No clients found in {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}.</p>
+                        <p>{t.clients.noClients} in {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}.</p>
                         {clients.length > 0 && (
                             <p className="mt-2 text-sm">
                                 {clients.length} clients are hidden because they belong to other divisions.

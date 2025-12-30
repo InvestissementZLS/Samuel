@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { CalendarSidebar } from "./calendar-sidebar";
 import { localizer } from "./localizer";
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -34,6 +35,8 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) {
+    const { t } = useLanguage();
+
     const [view, setView] = useState<View>(Views.MONTH);
     const [date, setDate] = useState(new Date());
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -169,11 +172,12 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
             <div className="p-4 border-b flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full xl:w-auto">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-bold text-black min-w-[120px]">Calendar</h2>
+                        <h2 className="text-2xl font-bold text-black min-w-[120px]">{t.calendar.title}</h2>
                         <div className="flex items-center border rounded-md bg-white shadow-sm">
                             <button
                                 onClick={() => handleNavigate('PREV')}
                                 className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 border-r"
+                                title={t.calendar.prev}
                             >
                                 &lt;
                             </button>
@@ -181,11 +185,12 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                                 onClick={() => handleNavigate('TODAY')}
                                 className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 text-sm font-medium border-r"
                             >
-                                Today
+                                {t.calendar.today}
                             </button>
                             <button
                                 onClick={() => handleNavigate('NEXT')}
                                 className="px-3 py-1.5 hover:bg-gray-50 text-gray-700"
+                                title={t.calendar.next}
                             >
                                 &gt;
                             </button>
@@ -200,19 +205,19 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                             onClick={() => setView(Views.MONTH)}
                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
-                            Month
+                            {t.calendar.month}
                         </button>
                         <button
                             onClick={() => setView(Views.WEEK)}
                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
-                            Week
+                            {t.calendar.week}
                         </button>
                         <button
                             onClick={() => setView(Views.DAY)}
                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
-                            Day
+                            {t.calendar.day}
                         </button>
                     </div>
                 </div>

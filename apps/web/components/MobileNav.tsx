@@ -3,14 +3,26 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Search } from 'lucide-react';
-import { navigation } from './Sidebar';
+import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
+import { useLanguage } from '@/components/providers/language-provider';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 export function MobileNav() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useLanguage();
+
+    const navigation = [
+        { name: t.sidebar.dashboard, href: '/', icon: Home },
+        { name: t.sidebar.calendar, href: '/calendar', icon: Calendar },
+        { name: t.sidebar.jobs, href: '/jobs', icon: Briefcase },
+        { name: t.sidebar.clients, href: '/clients', icon: Users },
+        { name: t.sidebar.invoices, href: '/invoices', icon: FileText },
+        { name: t.sidebar.quotes, href: '/quotes', icon: FileText },
+        { name: t.sidebar.settings, href: '/settings', icon: Settings },
+    ];
 
     return (
         <div className="md:hidden bg-gray-900 text-white border-b border-gray-800">
@@ -43,8 +55,11 @@ export function MobileNav() {
                             </button>
                         </div>
 
-                        <div className="p-4 border-b border-gray-800">
-                            <DivisionSwitcher />
+                        <div className="p-4 border-b border-gray-800 flex justify-between items-center gap-4">
+                            <div className="flex-1">
+                                <DivisionSwitcher />
+                            </div>
+                            <LanguageSwitcher />
                         </div>
 
                         <nav className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -54,7 +69,7 @@ export function MobileNav() {
                                         className="flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700"
                                     >
                                         <Search className="mr-3 h-5 w-5 text-gray-400" />
-                                        Search...
+                                        {t.common.search}
                                     </button>
                                 } />
                             </div>
@@ -63,7 +78,7 @@ export function MobileNav() {
                                 const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                                 return (
                                     <Link
-                                        key={item.name}
+                                        key={item.href}
                                         href={item.href}
                                         onClick={() => setIsOpen(false)}
                                         className={`group flex items-center rounded-md px-2 py-3 text-base font-medium ${isActive
@@ -86,8 +101,8 @@ export function MobileNav() {
                             <div className="flex items-center">
                                 <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold">AU</div>
                                 <div className="ml-3">
-                                    <p className="text-sm font-medium text-white">Admin User</p>
-                                    <p className="text-xs font-medium text-gray-400">View Profile</p>
+                                    <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
+                                    <p className="text-xs font-medium text-gray-400">{t.common.viewProfile}</p>
                                 </div>
                             </div>
                         </div>

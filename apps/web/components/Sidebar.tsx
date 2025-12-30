@@ -49,7 +49,7 @@ export function Sidebar() {
                     <div className="h-8" /> // Spacer
                 )}
             </div>
-            <nav className="flex-1 space-y-1 px-2 py-4">
+            <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto min-h-0">
                 <GlobalSearch trigger={
                     <button
                         className={`group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white ${isCollapsed ? 'justify-center' : ''}`}
