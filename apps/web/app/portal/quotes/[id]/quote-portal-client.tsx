@@ -17,7 +17,7 @@ interface QuotePortalClientProps {
     };
 }
 
-export function QuotePortalClient({ quote }: QuotePortalClientProps) {
+export function QuotePortalClient({ quote }: { quote: any }) {
     const [isSigning, setIsSigning] = useState(false);
     const [signature, setSignature] = useState<string>("");
 

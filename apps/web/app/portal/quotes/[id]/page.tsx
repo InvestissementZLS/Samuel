@@ -25,5 +25,8 @@ export default async function QuotePortalPage({ params }: PageProps) {
         notFound();
     }
 
-    return <QuotePortalClient quote={quote} />;
+    // Use JSON serialization to handle Date objects and ensure clean data for client component
+    const serializedQuote = JSON.parse(JSON.stringify(quote));
+
+    return <QuotePortalClient quote={serializedQuote} />;
 }

@@ -12,7 +12,7 @@ interface InvoicePortalClientProps {
     };
 }
 
-export function InvoicePortalClient({ invoice }: InvoicePortalClientProps) {
+export function InvoicePortalClient({ invoice }: { invoice: any }) {
     const total = invoice.total;
     const subtotal = total - (invoice.tax || 0);
 
