@@ -335,6 +335,7 @@ model InventoryAuditItem {
 enum ProductType {
   CONSUMABLE
   EQUIPMENT
+  SERVICE
 }
 
 enum AuditStatus {

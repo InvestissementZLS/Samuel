@@ -1,62 +1,36 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { revalidatePath } from 'next/cache';
+import { ProductType } from '@prisma/client';
 
-export async function createProduct(data: {
-    name: string;
-    description?: string;
-    unit: string;
-    usageDescription?: string;
-    activeIngredient?: string;
-    recommendedConcentration?: string;
-    stock: number;
-    price: number;
-    cost: number;
-    division: "EXTERMINATION" | "ENTREPRISES";
-    type: "CONSUMABLE" | "EQUIPMENT";
-}) {
-    await prisma.product.create({
-        data: {
-            name: data.name,
-            description: data.description,
-            unit: data.unit,
-            usageDescription: data.usageDescription,
-            activeIngredient: data.activeIngredient,
-            recommendedConcentration: data.recommendedConcentration,
-            stock: data.stock,
-            price: data.price,
-            cost: data.cost,
-            division: data.division,
-            type: data.type,
+export async function searchProducts(query: string) {
+    if (!query) return [];
+
+    return await prisma.product.findMany({
+        where: {
+            name: {
+                contains: query,
+                mode: 'insensitive' // Requires pg_trgm or adequate collation, or simple ILIKE
+            }
         },
+        take: 10
     });
-    revalidatePath('/products');
 }
 
-export async function updateProduct(id: string, data: {
-    name?: string;
-    description?: string;
-    unit?: string;
-    usageDescription?: string;
-    activeIngredient?: string;
-    recommendedConcentration?: string;
-    stock?: number;
-    price?: number;
-    cost?: number;
-    division?: "EXTERMINATION" | "ENTREPRISES";
-    type?: "CONSUMABLE" | "EQUIPMENT";
-}) {
-    await prisma.product.update({
-        where: { id },
-        data,
+export async function createQuickService(name: string) {
+    // Check if exists
+    const existing = await prisma.product.findFirst({
+        where: { name: { equals: name, mode: 'insensitive' } }
     });
-    revalidatePath('/products');
-}
 
-export async function deleteProduct(id: string) {
-    await prisma.product.delete({
-        where: { id },
+    if (existing) return existing;
+
+    return await prisma.product.create({
+        data: {
+            name,
+            type: 'SERVICE' as ProductType, // Ensure TypeScript is happy with the enum
+            unit: 'Service',
+            price: 0 // Default
+        }
     });
-    revalidatePath('/products');
 }

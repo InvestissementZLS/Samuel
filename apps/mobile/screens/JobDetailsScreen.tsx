@@ -141,10 +141,23 @@ export default function JobDetailsScreen() {
                     </View>
                 </View>
 
-                {job.products.length > 0 && (
+                {/* Services Section */}
+                {job.products.filter(p => (p.product as any).type === 'SERVICE').length > 0 && (
+                    <View style={[styles.section, { borderLeftWidth: 4, borderLeftColor: '#8B5CF6' }]}>
+                        <Text style={styles.sectionTitle}>🛠️ Services Requested</Text>
+                        {job.products.filter(p => (p.product as any).type === 'SERVICE').map((p, index) => (
+                            <View key={index} style={styles.productRow}>
+                                <Text style={[styles.productName, { fontWeight: '700', color: '#8B5CF6' }]}>{p.product.name}</Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Products/Materials Section */}
+                {job.products.filter(p => (p.product as any).type !== 'SERVICE').length > 0 && (
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Products Used</Text>
-                        {job.products.map((p, index) => (
+                        <Text style={styles.sectionTitle}>📦 Products & Materials</Text>
+                        {job.products.filter(p => (p.product as any).type !== 'SERVICE').map((p, index) => (
                             <View key={index} style={styles.productRow}>
                                 <Text style={styles.productName}>{p.product.name}</Text>
                                 <Text style={styles.productQty}>{p.quantity} {p.product.unit}</Text>
