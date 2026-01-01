@@ -18,7 +18,8 @@ export default async function DashboardLayout({
     children: React.ReactNode;
 }) {
     const cookieStore = cookies();
-    const initialLanguage = cookieStore.get("NEXT_LOCALE")?.value || "en";
+    const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
+    const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
 
     return (
         <LanguageProvider initialLanguage={initialLanguage as any}>

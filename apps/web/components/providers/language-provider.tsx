@@ -30,7 +30,7 @@ export function LanguageProvider({
         window.location.reload();
     };
 
-    const t = dictionary[language];
+    const t = dictionary[language] || dictionary.en;
 
     return (
         <LanguageContext.Provider value={{ language, setLanguage, t }}>
