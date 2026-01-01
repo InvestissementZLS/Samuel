@@ -8,8 +8,9 @@ import { toast } from "sonner";
 import { Check, Calendar, MapPin, Package, User } from "lucide-react";
 
 export default function ClientBookingPage({ params }: { params: { token: string } }) {
-    const [step, setStep] = useState(1);
-    const [isGuest, setIsGuest] = useState(false);
+    const isNew = params.token === 'new';
+    const [step, setStep] = useState(isNew ? 0 : 1);
+    const [isGuest, setIsGuest] = useState(isNew);
     const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "", address: "" });
     const [loading, setLoading] = useState(true);
     const [clientData, setClientData] = useState<any>(null);
@@ -27,9 +28,7 @@ export default function ClientBookingPage({ params }: { params: { token: string 
     useEffect(() => {
         const init = async () => {
             try {
-                if (params.token === 'new') {
-                    setIsGuest(true);
-                    setStep(0); // Contact Info Step
+                if (isNew) {
                     const s = await getClientServices();
                     setServices(s);
                 } else {
@@ -50,7 +49,7 @@ export default function ClientBookingPage({ params }: { params: { token: string 
             }
         };
         init();
-    }, [params.token]);
+    }, [params.token, isNew]);
 
     const handleGuestSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,8 +113,18 @@ export default function ClientBookingPage({ params }: { params: { token: string 
         }
     };
 
-    if (loading && step === 1) return <div className="p-8 text-center">Loading Portal...</div>;
-    if (!clientData && !isGuest) return <div className="p-8 text-center text-red-500">Invalid or Expired Link</div>;
+    if (loading && step === 1 && !isGuest) return <div className="p-8 text-center">Loading Portal...</div>;
+    if (loading && isGuest) return <div className="p-8 text-center">Loading Guest Portal...</div>;
+
+    if (!clientData && !isGuest) {
+        return (
+            <div className="p-8 text-center text-red-500">
+                <h2 className="text-xl font-bold mb-2">Invalid or Expired Link</h2>
+                <p className="text-sm text-gray-500">Token ID: {params.token}</p>
+                <p className="mt-4">Please request a new booking link.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
