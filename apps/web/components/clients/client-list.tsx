@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Client } from "@prisma/client";
 import { ClientDialog } from "./client-dialog";
-import { Plus, Pencil, MessageSquare } from "lucide-react";
+import { Plus, Pencil, MessageSquare, Link as LinkIcon, Loader2 } from "lucide-react";
+import { createBookingLink } from "@/app/actions/booking-actions";
+import { toast } from "sonner";
 
 interface ClientListProps {
     clients: Client[];
@@ -37,10 +39,33 @@ export function ClientList({ clients }: ClientListProps) {
         setIsDialogOpen(true);
     };
 
+    const handleGenerateLink = async (e: React.MouseEvent, clientId: string) => {
+        e.stopPropagation();
+        try {
+            const token = await createBookingLink(clientId);
+            const url = `${window.location.origin}/booking/${token}`;
+            await navigator.clipboard.writeText(url);
+            toast.success("Booking Link Copied!");
+        } catch (error) {
+            toast.error("Failed to generate link");
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-900">{t.clients.title} ({filteredClients.length})</h1>
+                <button
+                    onClick={() => {
+                        const url = `${window.location.origin}/booking/new`;
+                        navigator.clipboard.writeText(url);
+                        toast.success("New Client Link Copied!");
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 mr-2"
+                >
+                    <LinkIcon className="h-4 w-4" />
+                    New Lead Link
+                </button>
                 <button
                     onClick={handleAdd}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -110,6 +135,13 @@ export function ClientList({ clients }: ClientListProps) {
                                         <div className="text-sm text-gray-500 truncate max-w-xs">{client.billingAddress || "-"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button
+                                            onClick={(e) => handleGenerateLink(e, client.id)}
+                                            className="text-blue-600 hover:text-blue-900 z-10 relative mr-2"
+                                            title="Copy Booking Link"
+                                        >
+                                            <LinkIcon className="h-4 w-4" />
+                                        </button>
                                         <button
                                             onClick={(e) => handleEdit(e, client)}
                                             className="text-indigo-600 hover:text-indigo-900 z-10 relative"

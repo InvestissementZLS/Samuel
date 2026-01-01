@@ -75,6 +75,55 @@ export async function confirmBooking(
     return job;
 }
 
+export async function confirmGuestBooking(
+    clientInfo: { name: string; email: string; phone: string; address: string },
+    productId: string,
+    scheduledAt: Date,
+    techId: string,
+    description: string
+) {
+    // 1. Create Client & Property
+    // @ts-ignore
+    const client = await prisma.client.create({
+        data: {
+            name: clientInfo.name,
+            email: clientInfo.email,
+            phone: clientInfo.phone,
+            billingAddress: clientInfo.address,
+            properties: {
+                create: {
+                    address: clientInfo.address,
+                    type: 'RESIDENTIAL'
+                }
+            }
+        },
+        include: { properties: true }
+    });
+
+    const propertyId = client.properties[0].id;
+
+    // 2. Create Job
+    // @ts-ignore
+    const job = await prisma.job.create({
+        data: {
+            propertyId,
+            description,
+            scheduledAt,
+            status: 'SCHEDULED',
+            technicians: { connect: [{ id: techId }] },
+            products: {
+                create: {
+                    productId,
+                    quantity: 1
+                }
+            },
+            division: 'EXTERMINATION'
+        }
+    });
+
+    return { client, job };
+}
+
 export async function getClientServices() {
     // Return Series/Packages that are eligible for self-service
     // For now, return all SERVICE products
