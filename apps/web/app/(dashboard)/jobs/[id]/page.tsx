@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { serialize } from '@/lib/serialization';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -19,48 +20,51 @@ import { dictionary } from '@/lib/i18n/dictionary';
 export default async function JobDetailsPage({ params }: { params: { id: string } }) {
     const { id } = params;
     const cookieStore = cookies();
-    const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
-    const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
+    const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
+    const lang = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
+    const t = dictionary[lang] || dictionary.en;
 
-    const job = await prisma.job.findUnique({
-        where: { id },
-        include: {
-            property: {
-                include: {
-                    client: true,
+    let jobData;
+    try {
+        jobData = await prisma.job.findUnique({
+            // ... keep args
+            where: { id },
+            include: {
+                property: { include: { client: true } },
+                technicians: true,
+                notes: { orderBy: { createdAt: 'desc' } },
+                photos: { orderBy: { createdAt: 'desc' } },
+                products: {
+                    include: {
+                        product: true,
+                        locations: true,
+                        pests: true,
+                        methods: true,
+                    },
+                },
+                invoices: {
+                    include: { items: { include: { product: true } } },
+                    orderBy: { createdAt: 'desc' }
                 },
             },
-            technicians: true,
-            notes: {
-                orderBy: { createdAt: 'desc' },
-            },
-            photos: {
-                orderBy: { createdAt: 'desc' },
-            },
-            products: {
-                include: {
-                    product: true,
-                    locations: true,
-                    pests: true,
-                    methods: true,
-                },
-            },
-            invoices: {
-                include: {
-                    items: {
-                        include: {
-                            product: true
-                        }
-                    }
-                },
-                orderBy: { createdAt: 'desc' }
-            },
-        },
-    });
+        });
+    } catch (e: any) {
+        // ...
+        console.error("Error loading job:", e);
+        return (
+            <div className="p-8 text-red-600">
+                <h1 className="text-2xl font-bold">Error Loading Job</h1>
+                <p>ID: {id}</p>
+                <code className="block mt-4 bg-gray-100 p-2 rounded">{e.message}</code>
+            </div>
+        );
+    }
 
-    if (!job) {
+    if (!jobData) {
         notFound();
     }
+
+    const job = serialize(jobData);
 
     const availableProducts = await prisma.product.findMany({
         orderBy: { name: 'asc' },

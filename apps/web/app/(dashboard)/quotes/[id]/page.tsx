@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { serialize } from '@/lib/serialization';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -11,18 +12,27 @@ export default async function QuoteDetailsPage({ params }: { params: { id: strin
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
 
-    const quote = await prisma.quote.findUnique({
-        where: { id },
-        include: {
-            client: true,
-            property: true,
-            items: {
-                include: {
-                    product: true
-                }
+    let quoteData;
+    try {
+        quoteData = await prisma.quote.findUnique({
+            where: { id },
+            include: {
+                client: true,
+                property: true,
+                items: { include: { product: true } }
             }
-        }
-    });
+        });
+    } catch (e: any) {
+        return (
+            <div className="p-8 text-red-600">
+                <h1 className="text-2xl font-bold">Error Loading Quote</h1>
+                <p>ID: {id}</p>
+                <code className="block mt-4 bg-gray-100 p-2 rounded">{e.message}</code>
+            </div>
+        );
+    }
+
+    const quote = serialize(quoteData);
 
     if (!quote) {
         notFound();

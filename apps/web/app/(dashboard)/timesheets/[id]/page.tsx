@@ -6,6 +6,7 @@ import { analyzeTechnicianMovement } from "@/lib/gps-analysis";
 import { AlertTriangle } from "lucide-react";
 
 export default async function TimesheetDetailPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const entry = await prisma.timesheetEntry.findUnique({
         where: { id: params.id },
         include: {
@@ -61,8 +62,7 @@ export default async function TimesheetDetailPage({ params }: { params: { id: st
         entry.endTime,
         startLocObj,
         endLocObj,
-        (entry as any).breadcrumbs || [],
-        authorizedLocations
+        (entry as any).breadcrumbs || []
     );
 
     // Helper to check if a specific timestamp falls within an unscheduled stop

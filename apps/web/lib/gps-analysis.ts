@@ -19,6 +19,14 @@ interface AnalysisResult {
         delayMinutes: number;
         message: string;
     };
+    unscheduledStops?: {
+        detected: boolean;
+        stops: {
+            startTime: Date;
+            durationMinutes: number;
+            location: { lat: number; lng: number };
+        }[];
+    };
 }
 
 // Distance Threshold in meters (e.g., 200m radius considered "same location")
