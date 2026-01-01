@@ -77,7 +77,7 @@ export async function createProduct(data: CreateProductData) {
             // @ts-ignore
             minTechnicians: data.minTechnicians || 1,
             materialsNeeded: {
-                create: data.materials?.map(m => ({
+                create: data.materials?.filter(m => m.id)?.map(m => ({
                     materialId: m.id,
                     quantity: m.quantity
                 }))
@@ -119,7 +119,7 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
             prisma.serviceMaterial.deleteMany({ where: { serviceId: id } }),
             // Create new
             prisma.serviceMaterial.createMany({
-                data: data.materials.map(m => ({
+                data: data.materials.filter(m => m.id).map(m => ({
                     serviceId: id,
                     materialId: m.id,
                     quantity: m.quantity

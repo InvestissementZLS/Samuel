@@ -100,6 +100,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    const validMaterials = materials.filter(m => m.id && m.id.trim() !== "");
+
     try {
         if (product) {
             await updateProduct(product.id, {
@@ -116,7 +118,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 warrantyInfo,
                 durationMinutes,
                 minTechnicians,
-                materials
+                materials: validMaterials
             });
             toast.success("Product updated successfully");
         } else {
@@ -136,7 +138,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 warrantyInfo,
                 durationMinutes,
                 minTechnicians,
-                materials
+                materials: validMaterials
             });
             toast.success("Product created successfully");
         }
