@@ -121,161 +121,162 @@ export default function ClientBookingPage({ params }: { params: { token: string 
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
                 {/* Header */}
-                <h1 className="text-2xl font-bold">Booking Portal</h1>
-                <p className="opacity-90">Welcome{clientData ? `, ${clientData.name}` : ''}</p>
-            </div>
+                <div className="bg-blue-600 p-6 text-white">
+                    <h1 className="text-2xl font-bold">Booking Portal</h1>
+                    <p className="opacity-90">Welcome{clientData ? `, ${clientData.name}` : ''}</p>
+                </div>
 
-            {/* Progress */}
-            <div className="flex border-b">
-                {isGuest && (
-                    <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 0 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>0. Info</div>
-                )}
-                <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 1 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>1. Service</div>
-                <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 2 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>2. Schedule</div>
-                <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 3 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>3. Confirmation</div>
-            </div>
+                {/* Progress */}
+                <div className="flex border-b">
+                    {isGuest && (
+                        <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 0 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>0. Info</div>
+                    )}
+                    <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 1 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>1. Service</div>
+                    <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 2 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>2. Schedule</div>
+                    <div className={`flex-1 p-3 text-center text-sm font-medium ${step >= 3 ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-400'}`}>3. Confirmation</div>
+                </div>
 
-            <div className="p-6">
-                {/* Location Confirm (Skip for guest as they just entered it) */}
-                {clientData && clientData.properties.length > 1 && step < 3 && !isGuest && (
-                    <div className="mb-6">
-                        <label className="block text-sm font-bold mb-2">Service Location</label>
-                        <select
-                            className="w-full border p-2 rounded"
-                            value={selectedPropertyId}
-                            onChange={e => setSelectedPropertyId(e.target.value)}
-                        >
-                            {clientData.properties.map((p: any) => (
-                                <option key={p.id} value={p.id}>{p.address}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                <div className="p-6">
+                    {/* Location Confirm (Skip for guest as they just entered it) */}
+                    {clientData && clientData.properties.length > 1 && step < 3 && !isGuest && (
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold mb-2">Service Location</label>
+                            <select
+                                className="w-full border p-2 rounded"
+                                value={selectedPropertyId}
+                                onChange={e => setSelectedPropertyId(e.target.value)}
+                            >
+                                {clientData.properties.map((p: any) => (
+                                    <option key={p.id} value={p.id}>{p.address}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
-                {/* STEP 0: GUEST INFO */}
-                {step === 0 && (
-                    <form onSubmit={handleGuestSubmit} className="space-y-4">
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <User className="text-blue-600" /> Your Information
-                        </h2>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Full Name</label>
-                            <input required className="w-full border p-2 rounded" value={guestInfo.name} onChange={e => setGuestInfo({ ...guestInfo, name: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Email</label>
-                            <input required type="email" className="w-full border p-2 rounded" value={guestInfo.email} onChange={e => setGuestInfo({ ...guestInfo, email: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Phone</label>
-                            <input required type="tel" className="w-full border p-2 rounded" value={guestInfo.phone} onChange={e => setGuestInfo({ ...guestInfo, phone: e.target.value })} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Service Address</label>
-                            <input required className="w-full border p-2 rounded" value={guestInfo.address} onChange={e => setGuestInfo({ ...guestInfo, address: e.target.value })} />
-                        </div>
-                        <button className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">
-                            Continue
-                        </button>
-                    </form>
-                )}
-
-                {/* STEP 1: SERVICES */}
-                {step === 1 && (
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <Package className="text-blue-600" /> Select a Service
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            {services.map(service => (
-                                <button
-                                    key={service.id}
-                                    onClick={() => handleServiceSelect(service)}
-                                    className="text-left border p-4 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all shadow-sm"
-                                >
-                                    <div className="font-bold text-lg">{service.name}</div>
-                                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{service.description || "Professional definition treatment."}</p>
-                                    <div className="mt-3 font-semibold text-blue-600">Request Quote</div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* STEP 2: SCHEDULE */}
-                {step === 2 && (
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center bg-gray-50 p-3 rounded">
-                            <div>
-                                <span className="text-sm text-gray-500">Service</span>
-                                <div className="font-bold">{selectedService.name}</div>
-                            </div>
-                            <button onClick={() => setStep(1)} className="text-sm text-blue-600 hover:underline">Change</button>
-                        </div>
-
-                        <div>
+                    {/* STEP 0: GUEST INFO */}
+                    {step === 0 && (
+                        <form onSubmit={handleGuestSubmit} className="space-y-4">
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <Calendar className="text-blue-600" /> Choose a Time
+                                <User className="text-blue-600" /> Your Information
                             </h2>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Full Name</label>
+                                <input required className="w-full border p-2 rounded" value={guestInfo.name} onChange={e => setGuestInfo({ ...guestInfo, name: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Email</label>
+                                <input required type="email" className="w-full border p-2 rounded" value={guestInfo.email} onChange={e => setGuestInfo({ ...guestInfo, email: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Phone</label>
+                                <input required type="tel" className="w-full border p-2 rounded" value={guestInfo.phone} onChange={e => setGuestInfo({ ...guestInfo, phone: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Service Address</label>
+                                <input required className="w-full border p-2 rounded" value={guestInfo.address} onChange={e => setGuestInfo({ ...guestInfo, address: e.target.value })} />
+                            </div>
+                            <button className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">
+                                Continue
+                            </button>
+                        </form>
+                    )}
 
-                            {analyzingSlots ? (
-                                <div className="py-8 text-center text-gray-500">
-                                    <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                    Finding best availability...
-                                </div>
-                            ) : (
-                                <div className="grid gap-3">
-                                    {availableSlots.map((slot, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setSelectedSlot(slot)}
-                                            className={`p-4 rounded-lg border text-left flex justify-between items-center transition-all ${selectedSlot === slot
-                                                ? 'border-blue-600 bg-blue-50 shadow-md ring-1 ring-blue-600'
-                                                : 'hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <div>
-                                                <div className="font-bold text-gray-900">
-                                                    {format(new Date(slot.date), "EEEE, MMMM d")}
-                                                </div>
-                                                <div className="text-sm text-gray-600">
-                                                    Arriving around {slot.startTime}
-                                                </div>
-                                            </div>
-                                            {selectedSlot === slot && <Check className="text-blue-600" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                    {/* STEP 1: SERVICES */}
+                    {step === 1 && (
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Package className="text-blue-600" /> Select a Service
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {services.map(service => (
+                                    <button
+                                        key={service.id}
+                                        onClick={() => handleServiceSelect(service)}
+                                        className="text-left border p-4 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all shadow-sm"
+                                    >
+                                        <div className="font-bold text-lg">{service.name}</div>
+                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{service.description || "Professional definition treatment."}</p>
+                                        <div className="mt-3 font-semibold text-blue-600">Request Quote</div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+                    )}
 
-                        <button
-                            disabled={!selectedSlot || loading}
-                            onClick={handleConfirm}
-                            className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        >
-                            {loading ? "Confirming..." : "Confirm Booking"}
-                        </button>
-                    </div>
-                )}
+                    {/* STEP 2: SCHEDULE */}
+                    {step === 2 && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                                <div>
+                                    <span className="text-sm text-gray-500">Service</span>
+                                    <div className="font-bold">{selectedService.name}</div>
+                                </div>
+                                <button onClick={() => setStep(1)} className="text-sm text-blue-600 hover:underline">Change</button>
+                            </div>
 
-                {/* STEP 3: SUCCESS */}
-                {step === 3 && (
-                    <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Check size={32} />
+                            <div>
+                                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                    <Calendar className="text-blue-600" /> Choose a Time
+                                </h2>
+
+                                {analyzingSlots ? (
+                                    <div className="py-8 text-center text-gray-500">
+                                        <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                                        Finding best availability...
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {availableSlots.map((slot, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => setSelectedSlot(slot)}
+                                                className={`p-4 rounded-lg border text-left flex justify-between items-center transition-all ${selectedSlot === slot
+                                                    ? 'border-blue-600 bg-blue-50 shadow-md ring-1 ring-blue-600'
+                                                    : 'hover:border-gray-300'
+                                                    }`}
+                                            >
+                                                <div>
+                                                    <div className="font-bold text-gray-900">
+                                                        {format(new Date(slot.date), "EEEE, MMMM d")}
+                                                    </div>
+                                                    <div className="text-sm text-gray-600">
+                                                        Arriving around {slot.startTime}
+                                                    </div>
+                                                </div>
+                                                {selectedSlot === slot && <Check className="text-blue-600" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                disabled={!selectedSlot || loading}
+                                onClick={handleConfirm}
+                                className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                            >
+                                {loading ? "Confirming..." : "Confirm Booking"}
+                            </button>
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
-                        <p className="text-gray-600 mb-6">
-                            We have scheduled your appointment for <strong>{selectedSlot && format(new Date(selectedSlot.date), "EEEE, MMMM d")} at {selectedSlot?.startTime}</strong>.
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            You will receive a confirmation email shortly.
-                        </p>
-                    </div>
-                )}
+                    )}
+
+                    {/* STEP 3: SUCCESS */}
+                    {step === 3 && (
+                        <div className="text-center py-8">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Check size={32} />
+                            </div>
+                            <h2 className="text-2xl font-bold mb-2">Booking Confirmed!</h2>
+                            <p className="text-gray-600 mb-6">
+                                We have scheduled your appointment for <strong>{selectedSlot && format(new Date(selectedSlot.date), "EEEE, MMMM d")} at {selectedSlot?.startTime}</strong>.
+                            </p>
+                            <p className="text-sm text-gray-500">
+                                You will receive a confirmation email shortly.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
-        </div >
     );
 }
