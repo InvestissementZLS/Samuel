@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { JobStatus } from '@prisma/client';
 import { cookies } from 'next/headers';
+import { calculateJobCosts } from './cost-actions';
 
 async function logJobActivity(jobId: string, action: string, details?: string) {
     const cookieStore = await cookies();
@@ -118,13 +119,55 @@ export async function addProductUsed(
     });
 
     await logJobActivity(jobId, 'PRODUCT_USED', `Used product (Qty: ${quantity})`);
+
+    // Trigger real-time cost update
+    await calculateJobCosts(jobId);
+
     revalidatePath(`/jobs/${jobId}`);
 }
 
 export async function removeProductUsed(id: string, jobId: string) {
-    await prisma.usedProduct.delete({
-        where: { id },
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("userId")?.value;
+
+    await prisma.$transaction(async (tx) => {
+        const usedProduct = await tx.usedProduct.findUnique({
+            where: { id }
+        });
+
+        if (!usedProduct) return;
+
+        // Restore inventory
+        if (userId) {
+            const inventoryItem = await tx.inventoryItem.findUnique({
+                where: {
+                    productId_userId: {
+                        productId: usedProduct.productId,
+                        userId
+                    }
+                }
+            });
+
+            if (inventoryItem) {
+                await tx.inventoryItem.update({
+                    where: { id: inventoryItem.id },
+                    data: { quantity: { increment: usedProduct.quantity } } // Increment back
+                });
+            }
+            // If strictly negative tracking, we might just increment the negative value (effectively reducing debt)
+            // But usually we just increment quantity.
+        }
+
+        await tx.usedProduct.delete({
+            where: { id },
+        });
     });
+
+    await logJobActivity(jobId, 'PRODUCT_REMOVED', 'Removed used product');
+
+    // Trigger real-time cost update
+    await calculateJobCosts(jobId);
+
     revalidatePath(`/jobs/${jobId}`);
 }
 

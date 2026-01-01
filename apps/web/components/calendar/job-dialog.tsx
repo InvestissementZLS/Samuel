@@ -70,7 +70,14 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
             setNewClientEmail("");
             setNewClientAddress("");
             router.refresh();
-            if (newClient) setClientId(newClient.id);
+            if (newClient) {
+                setClientId(newClient.id);
+                // @ts-ignore
+                if (newClient.properties && newClient.properties.length > 0) {
+                    // @ts-ignore
+                    setPropertyId(newClient.properties[0].id);
+                }
+            }
         } catch (error) {
             console.error(error);
             toast.error("Failed to create client");

@@ -205,3 +205,99 @@ export async function getLastAudit(userId: string) {
     });
     return audit;
 }
+
+export async function restockTechnician(
+    technicianId: string,
+    items: { productId: string; quantity: number }[]
+) {
+    try {
+        await prisma.$transaction(async (tx) => {
+            for (const item of items) {
+                // 1. DEDUCT FROM WAREHOUSE (userId: null)
+                const warehouseItem = await tx.inventoryItem.findFirst({
+                    where: {
+                        productId: item.productId,
+                        userId: null
+                    }
+                });
+
+                if (warehouseItem) {
+                    await tx.inventoryItem.update({
+                        where: { id: warehouseItem.id },
+                        data: { quantity: { decrement: item.quantity } }
+                    });
+                } else {
+                    // Create negative stock if warehouse item doesn't exist
+                    await tx.inventoryItem.create({
+                        data: {
+                            productId: item.productId,
+                            userId: null,
+                            quantity: -item.quantity
+                        }
+                    });
+                }
+
+                // 2. ADD TO TECHNICIAN
+                const techItem = await tx.inventoryItem.findFirst({
+                    where: {
+                        productId: item.productId,
+                        userId: technicianId
+                    }
+                });
+
+                if (techItem) {
+                    await tx.inventoryItem.update({
+                        where: { id: techItem.id },
+                        data: { quantity: { increment: item.quantity } }
+                    });
+                } else {
+                    await tx.inventoryItem.create({
+                        data: {
+                            productId: item.productId,
+                            userId: technicianId,
+                            quantity: item.quantity
+                        }
+                    });
+                }
+            }
+        });
+
+        revalidatePath('/inventory');
+        return { success: true, message: "Transfer from Warehouse successful" };
+    } catch (error) {
+        console.error("Restock error:", error);
+        return { success: false, message: "Restock failed" };
+    }
+}
+
+export async function receiveWarehouseStock(items: { productId: string; quantity: number }[]) {
+    try {
+        await prisma.$transaction(async (tx) => {
+            for (const item of items) {
+                const existing = await tx.inventoryItem.findFirst({
+                    where: { productId: item.productId, userId: null }
+                });
+
+                if (existing) {
+                    await tx.inventoryItem.update({
+                        where: { id: existing.id },
+                        data: { quantity: { increment: item.quantity } }
+                    });
+                } else {
+                    await tx.inventoryItem.create({
+                        data: {
+                            productId: item.productId,
+                            userId: null,
+                            quantity: item.quantity
+                        }
+                    });
+                }
+            }
+        });
+        revalidatePath('/inventory');
+        return { success: true, message: "Warehouse stock received" };
+    } catch (error) {
+        console.error("Receive error:", error);
+        return { success: false, message: "Failed to receive stock" };
+    }
+}

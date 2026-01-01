@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Client } from "@prisma/client";
 import { ClientDialog } from "./client-dialog";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, MessageSquare } from "lucide-react";
 
 interface ClientListProps {
     clients: Client[];
@@ -86,7 +86,25 @@ export function ClientList({ clients }: ClientListProps) {
                                         <div className="text-sm text-gray-500">{client.email || "-"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{client.phone || "-"}</div>
+                                        <div className="flex items-center gap-2">
+                                            <a
+                                                href={`tel:${client.phone}`}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="text-sm text-gray-900 hover:text-blue-600 hover:underline"
+                                            >
+                                                {client.phone || "-"}
+                                            </a>
+                                            {client.phone && (
+                                                <a
+                                                    href={`sms:${client.phone}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="text-gray-400 hover:text-green-600 p-1 rounded-full hover:bg-green-50"
+                                                    title="Send SMS"
+                                                >
+                                                    <MessageSquare size={16} />
+                                                </a>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500 truncate max-w-xs">{client.billingAddress || "-"}</div>

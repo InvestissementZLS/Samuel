@@ -102,7 +102,8 @@ export async function createQuote(data: {
                         price: item.price,
                         description: item.description,
                         unitCost: item.unitCost,
-                        taxRate: item.taxRate
+                        taxRate: item.taxRate,
+                        isUpsell: item.isUpsell
                     }))
                 }
             },
@@ -161,7 +162,8 @@ export async function updateQuote(data: {
                         price: item.price,
                         description: item.description,
                         unitCost: item.unitCost,
-                        taxRate: item.taxRate
+                        taxRate: item.taxRate,
+                        isUpsell: item.isUpsell
                     }))
                 });
             }
@@ -227,7 +229,8 @@ export async function createInvoice(data: {
                         price: item.price,
                         description: item.description,
                         unitCost: item.unitCost,
-                        taxRate: item.taxRate
+                        taxRate: item.taxRate,
+                        isUpsell: item.isUpsell
                     }))
                 }
             },
@@ -282,7 +285,8 @@ export async function updateInvoice(data: {
                     price: item.price,
                     description: item.description,
                     unitCost: item.unitCost,
-                    taxRate: item.taxRate
+                    taxRate: item.taxRate,
+                    isUpsell: item.isUpsell
                 }))
             });
         }

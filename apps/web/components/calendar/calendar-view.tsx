@@ -160,6 +160,38 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
         }
     };
 
+    const eventPropGetter = (event: any) => {
+        const job = event.resource as Job;
+        let className = "";
+
+        switch (job.status) {
+            case "SCHEDULED":
+                // Green (Confirm)
+                className = "bg-green-100 border-green-300 text-green-800";
+                break;
+            case "PENDING":
+                // Gray (Unconfirm)
+                className = "bg-gray-100 border-gray-300 text-gray-800";
+                break;
+            case "CANCELLED":
+                // Orange (Cancel)
+                className = "bg-orange-100 border-orange-300 text-orange-800";
+                break;
+            case "IN_PROGRESS":
+                // Yellow (Reschedule/In Progress)
+                className = "bg-yellow-100 border-yellow-300 text-yellow-800";
+                break;
+            case "COMPLETED":
+                // Blue (Completed)
+                className = "bg-blue-100 border-blue-300 text-blue-800";
+                break;
+            default:
+                className = "bg-blue-50 border-blue-200 text-blue-700";
+        }
+
+        return { className };
+    };
+
     useEffect(() => {
         console.log("CalendarView jobs:", jobs);
         console.log("CalendarView events:", events);
@@ -284,7 +316,8 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                         onEventDrop={handleEventDrop}
                         resizable
                         draggableAccessor={() => true}
-                        resources={!isMobile && (view === Views.DAY || view === Views.WEEK) ? [
+                        eventPropGetter={eventPropGetter}
+                        resources={!isMobile && (view === Views.DAY) ? [
                             { id: "unassigned", title: "Unassigned" },
                             ...(selectedTechId === "all" ? technicians : technicians.filter(t => t.id === selectedTechId)).map(t => ({ id: t.id, title: t.name }))
                         ] : undefined}

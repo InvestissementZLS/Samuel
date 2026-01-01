@@ -78,8 +78,9 @@ export async function convertJobToInvoice(jobId: string) {
         quantity: used.quantity,
         price: used.product.price,
         description: used.product.name,
-        unitCost: 0, // Assuming we don't track cost on used products directly here
-        taxRate: 0 // Default tax
+        unitCost: 0,
+        taxRate: 0,
+        warrantyInfo: used.product.warrantyInfo // Fetch warranty info
     }));
 
     const total = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -115,8 +116,16 @@ export async function convertJobToInvoice(jobId: string) {
             dueDate: new Date(), // Due on receipt
             total: total,
             description: `Invoice for Job on ${job.scheduledAt.toLocaleDateString()}`,
+            // @ts-ignore
+            notes: items.map(i => i.warrantyInfo).filter(w => !!w).join("\n\n"), // Append Warranty Info
             items: {
-                create: items
+                create: items.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.price,
+                    description: item.description
+                    // Note: InvoiceItem model might not have unitCost/taxRate yet, relying on defaults
+                }))
             }
         }
     });

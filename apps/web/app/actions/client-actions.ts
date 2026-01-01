@@ -19,7 +19,17 @@ export async function createClient(data: {
             billingAddress: data.billingAddress || null,
             divisions: data.divisions || ["EXTERMINATION"],
             language: data.language || "FR",
+            // Auto-create property if address is provided
+            properties: data.billingAddress ? {
+                create: {
+                    address: data.billingAddress,
+                    type: 'RESIDENTIAL' // Default
+                }
+            } : undefined
         },
+        include: {
+            properties: true // Return properties so frontend can use them
+        }
     });
     revalidatePath('/clients');
     return client;

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { PaymentMethod, TransactionType } from '@prisma/client';
+import { processInvoicePaymentCommissions } from './commission-actions';
 
 export async function recordTransaction(data: {
     invoiceId: string;
@@ -72,4 +73,11 @@ export async function recordTransaction(data: {
 
     revalidatePath(`/invoices`);
     revalidatePath(`/clients/${invoice.clientId}`);
+
+    // Trigger Commission Processing if Paid
+    if (newStatus === 'PAID') {
+        // Run in background / don't await block? Or await?
+        // better to await to ensure consistency or catch errors.
+        await processInvoicePaymentCommissions(invoiceId);
+    }
 }

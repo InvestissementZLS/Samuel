@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
-import { Camera } from 'expo-camera';
+import { CameraView, Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../services/LocationTask';
@@ -89,7 +89,7 @@ export default function PunchOutScreen({ navigation, route }: any) {
                 {photo ? (
                     <Image source={{ uri: photo }} style={styles.preview} />
                 ) : (
-                    <Camera style={styles.camera} ref={(ref) => setCameraRef(ref)} />
+                    <CameraView style={styles.camera} ref={(ref) => setCameraRef(ref)} facing="back" />
                 )}
             </View>
 

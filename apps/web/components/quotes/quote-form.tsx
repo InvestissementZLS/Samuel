@@ -45,7 +45,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
         price: item.price,
         cost: item.unitCost || 0,
         tax: item.taxRate || 0,
-        product: item.product
+        product: item.product,
+        // @ts-ignore
+        isUpsell: item.isUpsell || false
     })) || []);
 
     const [discount, setDiscount] = useState(quote?.discount || 0);
@@ -72,7 +74,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
             price: 0,
             cost: 0,
             tax: 0,
-            product: null
+            product: null,
+            isUpsell: false
         }]);
     };
 
@@ -115,7 +118,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                     price: item.price,
                     description: item.description,
                     unitCost: item.cost,
-                    taxRate: item.tax
+                    taxRate: item.tax,
+                    isUpsell: item.isUpsell
                 })),
                 discount: discountAmount,
                 tax: taxRate,
@@ -309,6 +313,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                             <tr>
                                 <th className="px-4 py-3 w-10"></th>
                                 <th className="px-4 py-3">Item</th>
+                                <th className="px-4 py-3 w-16 text-center">Upsell</th>
                                 <th className="px-4 py-3 w-24 text-right">Cost</th>
                                 <th className="px-4 py-3 w-24 text-right">Qty</th>
                                 <th className="px-4 py-3 w-32 text-right">Price</th>
@@ -333,14 +338,34 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
                                                 itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white"
                                             />
-                                            <input
-                                                type="text"
-                                                value={item.description}
-                                                onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                                                placeholder="Add a description"
-                                                className="w-full bg-transparent border-none p-0 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-700"
-                                            />
+                                            <div className="flex items-center gap-2">
+                                                {/* @ts-ignore */}
+                                                {item.product?.isCommissionEligible && (
+                                                    <span className="text-yellow-500" title="Eligible for Commission">
+                                                        $
+                                                    </span>
+                                                )}
+                                                <input
+                                                    type="text"
+                                                    value={item.description}
+                                                    onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                                    placeholder="Add a description"
+                                                    className="w-full bg-transparent border-none p-0 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-700"
+                                                />
+                                            </div>
                                         </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        {/* @ts-ignore */}
+                                        {item.product?.isCommissionEligible && (
+                                            <input
+                                                type="checkbox"
+                                                checked={item.isUpsell || false}
+                                                onChange={(e) => handleItemChange(index, 'isUpsell', e.target.checked)}
+                                                className="rounded border-gray-600 bg-gray-700 text-indigo-500 focus:ring-0"
+                                                title="Vente générée sur place"
+                                            />
+                                        )}
                                     </td>
                                     <td className="px-4 py-3">
                                         <input

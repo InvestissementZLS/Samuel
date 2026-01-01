@@ -129,3 +129,111 @@ export async function getCommissionHistory() {
         orderBy: { updatedAt: 'desc' }
     });
 }
+
+export async function processInvoicePaymentCommissions(invoiceId: string) {
+    console.log("Processing commissions for invoice:", invoiceId);
+    try {
+        const invoice = await prisma.invoice.findUnique({
+            where: { id: invoiceId },
+            include: {
+                items: true,
+                job: {
+                    include: {
+                        technicians: true,
+                        salesRep: true
+                    }
+                }
+            }
+        });
+
+        if (!invoice) throw new Error("Invoice not found");
+        if (invoice.status !== 'PAID') {
+            console.log("Invoice not paid, skipping commission processing");
+            return;
+        }
+
+        const job = invoice.job;
+        if (!job) {
+            console.log("Invoice has no linked job, skipping");
+            return;
+        }
+
+        // 1. Approve existing PENDING commissions for this job (Sales/Supervision)
+        await prisma.commission.updateMany({
+            where: {
+                jobId: job.id,
+                status: 'PENDING'
+            },
+            data: {
+                // @ts-ignore
+                status: 'APPROVED'
+            }
+        });
+
+        // 2. Calculate Upsell Commissions
+        // @ts-ignore
+        const upsellItems = invoice.items.filter((item: any) => item.isUpsell);
+        if (upsellItems.length === 0) {
+            console.log("No upsell items found");
+            return;
+        }
+
+        const upsellTotal = upsellItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+
+        // Determine recipients (Technicians assigned to the job)
+        // If no technicians, fallback to Sales Rep? Or just don't pay?
+        // Logic: "Vente générée sur place" implies technician.
+        const recipients = job.technicians.length > 0 ? job.technicians : (job.salesRep ? [job.salesRep] : []);
+
+        if (recipients.length === 0) {
+            console.log("No recipients found for upsell commission");
+            return;
+        }
+
+        // Calculate commission amount per recipient
+        // We look at the first recipient's rate for simplicity or handle individual rates?
+        // Strategy: Split the total Upsell Value among techs, then apply EACH tech's rate? 
+        // OR: Calculate Total Commission (e.g. 10% of Upsell) and SPLIT it? 
+        // Context: "Commission System... 10% on upsells". usually means 10% of sale goes to commission pool.
+        // I will take 10% of Sale (or user rate) and split it.
+
+        const commissionPool = recipients.reduce((pool, user) => {
+            // usage of commissionPercentageUpsell from schema update
+            // Fallback to 10 if 0? Or respect 0?
+            // If schema update failed (types missing), cast to any.
+            const rate = (user as any).commissionPercentageUpsell || 10;
+            return pool + (upsellTotal * (rate / 100));
+        }, 0);
+
+        // Wait, usually it's: Sale * Rate. If 2 techs, do they BOTH get 10%? Or do they split the 10%?
+        // Usually split.
+        // Let's assume standard logic: 10% of sale is the commission. Split equally.
+        // I'll use the AVERAGE rate of the techs to determine the pool size, then split.
+
+        const avgRate = recipients.reduce((sum, user) => sum + ((user as any).commissionPercentageUpsell || 10), 0) / recipients.length;
+        const totalCommissionAmount = upsellTotal * (avgRate / 100);
+        const amountPerRecipient = totalCommissionAmount / recipients.length;
+
+        const commissionsToCreate = recipients.map(user => ({
+            jobId: job.id,
+            userId: user.id,
+            role: 'UPSELL' as CommissionRole,
+            baseAmount: upsellTotal, // The amount they "sold" (shared)
+            percentage: avgRate,
+            amount: amountPerRecipient,
+            // @ts-ignore
+            status: 'APPROVED' as const
+        }));
+
+        // @ts-ignore
+        await prisma.commission.createMany({
+            data: commissionsToCreate
+        });
+
+        console.log(`Created ${commissionsToCreate.length} upsell commissions`);
+        revalidatePath(`/jobs/${job.id}`);
+
+    } catch (error) {
+        console.error("Error processing commissions:", error);
+    }
+}

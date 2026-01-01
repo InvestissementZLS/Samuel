@@ -18,6 +18,7 @@ model User {
   password                        String?
   commissionPercentageSales       Float        @default(0)
   commissionPercentageSupervision Float        @default(0)
+  commissionPercentageUpsell      Float        @default(10) // Default 10% for upsells
   internalHourlyRate              Float        @default(0)
   canManageCommissions            Boolean      @default(false)
   isActive                        Boolean      @default(true)
@@ -49,6 +50,7 @@ model Client {
   invoices       Invoice[]
   properties     Property[]
   quotes         Quote[]
+  bookingLinks   BookingLink[]
 }
 
 model Property {
@@ -97,6 +99,7 @@ model Job {
   products              UsedProduct[]
   technicians           User[]        @relation("JobToUser")
   activities            JobActivity[]
+  reviewRequest         ReviewRequest?
 }
 
 model JobNote {
@@ -191,6 +194,7 @@ model QuoteItem {
   description String?
   taxRate     Float    @default(0)
   unitCost    Float    @default(0)
+  isUpsell    Boolean  @default(false)
   product     Product  @relation(fields: [productId], references: [id])
   quote       Quote    @relation(fields: [quoteId], references: [id])
 }
@@ -242,6 +246,7 @@ model InvoiceItem {
   description String?
   taxRate     Float    @default(0)
   unitCost    Float    @default(0)
+  isUpsell    Boolean  @default(false)
   invoice     Invoice  @relation(fields: [invoiceId], references: [id])
   product     Product  @relation(fields: [productId], references: [id])
 }
@@ -281,17 +286,38 @@ model Product {
   activeIngredient String?
   recommendedConcentration String?
   stock        Int           @default(0) // Kept for legacy/global view, but InventoryItem is source of truth
+  warrantyInfo String?       // Template text for Invoices
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   price        Float         @default(0)
   division     Division      @default(EXTERMINATION)
   cost         Float         @default(0)
   type         ProductType   @default(CONSUMABLE)
+  isCommissionEligible Boolean @default(false)
+  durationMinutes Int           @default(60) // For Smart Scheduling (avg time)
+  minTechnicians Int           @default(1)  // For Smart Scheduling (manpower)
   invoiceItems InvoiceItem[]
   quoteItems   QuoteItem[]
   usedIn       UsedProduct[]
   inventory    InventoryItem[]
   auditItems   InventoryAuditItem[]
+  seriesSteps  SeriesStep[]
+  
+  // Smart Inventory Relations
+  materialsNeeded ServiceMaterial[] @relation("ServiceToMaterial")
+  usedInServices  ServiceMaterial[] @relation("MaterialToService")
+}
+
+model ServiceMaterial {
+  id          String  @id @default(uuid())
+  serviceId   String
+  materialId  String
+  quantity    Float   // Expected quantity per 1 unit of Service
+  
+  service     Product @relation("ServiceToMaterial", fields: [serviceId], references: [id])
+  material    Product @relation("MaterialToService", fields: [materialId], references: [id])
+
+  @@unique([serviceId, materialId])
 }
 
 model InventoryItem {
@@ -382,6 +408,72 @@ enum QuoteStatus {
   REJECTED
 }
 
+enum ReviewStatus {
+  PENDING
+  CLICKED
+  SUBMITTED_INTERNAL
+  REDIRECTED_GOOGLE
+}
+
+model ReviewRequest {
+  id        String       @id @default(uuid())
+  jobId     String       @unique
+  token     String       @unique @default(uuid())
+  score     Int?         // 1-5
+  feedback  String?      @db.Text
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  
+  job       Job          @relation(fields: [jobId], references: [id])
+}
+
+enum Seasonality {
+  ALL_YEAR
+  SPRING_ONLY // Job must happen in active season (e.g. April-Nov)
+}
+
+model ProductSeries {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  steps       SeriesStep[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model SeriesStep {
+  id             String        @id @default(uuid())
+  seriesId       String
+  productId      String
+  order          Int           // 1, 2, 3
+  delayDays      Int           // Days after previous step (0 for first step)
+  seasonality    Seasonality   @default(ALL_YEAR)
+  isWeatherDependent Boolean   @default(false)
+  
+  series         ProductSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  product        Product       @relation(fields: [productId], references: [id])
+}
+
+model BookingLink {
+  id        String   @id @default(uuid())
+  clientId  String
+  token     String   @unique @default(uuid())
+  status    String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  client    Client   @relation(fields: [clientId], references: [id])
+}
+
+model WarrantyTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum InvoiceStatus {
   DRAFT
   SENT
@@ -407,10 +499,12 @@ enum TransactionType {
 enum CommissionRole {
   SALES
   SUPERVISION
+  UPSELL
 }
 
 enum CommissionStatus {
   PENDING
+  APPROVED
   PAID
 }
 

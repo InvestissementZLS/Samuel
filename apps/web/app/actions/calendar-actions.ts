@@ -12,6 +12,7 @@ export async function createCalendarJob(data: {
     technicianIds?: string[];
     status?: JobStatus;
     division?: "EXTERMINATION" | "ENTREPRISES";
+    products?: { productId: string; quantity: number }[];
 }) {
     await prisma.job.create({
         data: {
@@ -24,6 +25,12 @@ export async function createCalendarJob(data: {
             } : undefined,
             status: data.status || 'SCHEDULED',
             division: data.division || "EXTERMINATION",
+            products: data.products ? {
+                create: data.products.map(p => ({
+                    productId: p.productId,
+                    quantity: p.quantity
+                }))
+            } : undefined
         },
     });
     revalidatePath('/calendar');

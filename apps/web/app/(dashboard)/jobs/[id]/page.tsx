@@ -6,6 +6,7 @@ import { JobStatusSelect } from '@/components/jobs/job-status-select';
 import { JobNotes } from '@/components/jobs/job-notes';
 import { JobPhotos } from '@/components/jobs/job-photos';
 import { JobProducts } from '@/components/jobs/job-products';
+import { JobBilling } from '@/components/jobs/job-billing';
 
 import { JobTechnicianSelect } from '@/components/jobs/job-technician-select';
 import { JobActions } from '@/components/jobs/job-actions';
@@ -43,6 +44,16 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                     pests: true,
                     methods: true,
                 },
+            },
+            invoices: {
+                include: {
+                    items: {
+                        include: {
+                            product: true
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
             },
         },
     });
@@ -155,7 +166,17 @@ export default async function JobDetailsPage({ params }: { params: Promise<{ id:
                     {/* Financials */}
                     <JobFinancials job={job} />
 
-                    {/* Products */}
+                    {/* Billing (Services) */}
+                    <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
+                        <JobBilling
+                            jobId={job.id}
+                            invoices={job.invoices}
+                            // @ts-ignore - Prisma Client types stale
+                            availableServices={availableProducts.filter((p: any) => p.type === 'SERVICE')}
+                        />
+                    </div>
+
+                    {/* Consumption (Materials) */}
                     <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
                         <JobProducts
                             jobId={job.id}

@@ -41,9 +41,11 @@ export function JobList({ jobs }: JobListProps) {
                                 <div className="text-sm text-gray-500">{job.property.address}</div>
                             </div>
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full 
-                                ${job.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                    job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
-                                        'bg-gray-100 text-gray-800'}`}>
+                                    ${job.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                                    job.status === 'SCHEDULED' ? 'bg-green-100 text-green-800' :
+                                        job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                                            job.status === 'CANCELLED' ? 'bg-orange-100 text-orange-800' :
+                                                'bg-gray-100 text-gray-800'}`}>
                                 {job.status}
                             </span>
                         </div>
@@ -140,9 +142,11 @@ export function JobList({ jobs }: JobListProps) {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${job.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                        job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-gray-100 text-gray-800'}`}>
+                    ${job.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                                        job.status === 'SCHEDULED' ? 'bg-green-100 text-green-800' :
+                                            job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                                                job.status === 'CANCELLED' ? 'bg-orange-100 text-orange-800' :
+                                                    'bg-gray-100 text-gray-800'}`}>
                                     {job.status}
                                 </span>
                             </td>

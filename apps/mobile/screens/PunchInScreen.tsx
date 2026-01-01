@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
-import { Camera } from 'expo-camera';
+import { CameraView, Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../services/LocationTask';
@@ -14,7 +14,6 @@ export default function PunchInScreen({ navigation, route }: any) {
     const [cameraRef, setCameraRef] = useState<any>(null); // Use any for ref
     const [photo, setPhoto] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    // const [type, setType] = useState(CameraType.back); // Remove CameraType usage
 
     const userId = route.params?.userId || 'mock-user-id'; // Pass userId from auth context/params
 
@@ -115,11 +114,11 @@ export default function PunchInScreen({ navigation, route }: any) {
                 {photo ? (
                     <Image source={{ uri: photo }} style={styles.preview} />
                 ) : (
-                    <Camera style={styles.camera} ref={(ref) => setCameraRef(ref)}>
+                    <CameraView style={styles.camera} ref={(ref) => setCameraRef(ref)} facing="back">
                         <View style={styles.buttonContainer}>
                             {/* Optional flip button if needed */}
                         </View>
-                    </Camera>
+                    </CameraView>
                 )}
             </View>
 

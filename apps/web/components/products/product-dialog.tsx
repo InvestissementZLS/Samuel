@@ -23,8 +23,23 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
     const [price, setPrice] = useState(0);
     const [cost, setCost] = useState(0);
     const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES">("EXTERMINATION");
-    const [type, setType] = useState<"CONSUMABLE" | "EQUIPMENT">("CONSUMABLE");
+    const [type, setType] = useState<"CONSUMABLE" | "EQUIPMENT" | "SERVICE">("CONSUMABLE");
+    const [isCommissionEligible, setIsCommissionEligible] = useState(false);
+    const [warrantyInfo, setWarrantyInfo] = useState("");
+    const [durationMinutes, setDurationMinutes] = useState(60);
+    const [minTechnicians, setMinTechnicians] = useState(1);
     const [loading, setLoading] = useState(false);
+
+    // Warranty Templates
+    const [warrantyTemplates, setWarrantyTemplates] = useState<{ id: string, name: string, text: string }[]>([]);
+
+    useEffect(() => {
+        if (type === 'SERVICE') {
+            import("@/app/actions/warranty-actions").then(mod => {
+                mod.getWarrantyTemplates().then(setWarrantyTemplates);
+            });
+        }
+    }, [type]);
 
     useEffect(() => {
         if (isOpen) {
@@ -46,6 +61,14 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                 setDivision(product.division || "EXTERMINATION");
                 // @ts-ignore
                 setType(product.type || "CONSUMABLE");
+                // @ts-ignore
+                setIsCommissionEligible(product.isCommissionEligible || false);
+                // @ts-ignore
+                setWarrantyInfo(product.warrantyInfo || "");
+                // @ts-ignore
+                setDurationMinutes(product.durationMinutes || 60);
+                // @ts-ignore
+                setMinTechnicians(product.minTechnicians || 1);
             } else {
                 setName("");
                 setDescription("");
@@ -58,6 +81,10 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                 setCost(0);
                 setDivision("EXTERMINATION");
                 setType("CONSUMABLE");
+                setIsCommissionEligible(false);
+                setWarrantyInfo("");
+                setDurationMinutes(60);
+                setMinTechnicians(1);
             }
         }
     }, [isOpen, product]);
@@ -78,6 +105,8 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     cost: Number(cost),
                     division,
                     type,
+                    isCommissionEligible,
+                    warrantyInfo,
                 });
                 toast.success("Product updated successfully");
             } else {
@@ -93,6 +122,8 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     cost: Number(cost),
                     division,
                     type,
+                    isCommissionEligible,
+                    warrantyInfo,
                 });
                 toast.success("Product created successfully");
             }
@@ -139,18 +170,20 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                             <option value="ENTREPRISES">Les Entreprises ZLS</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
-                        <select
-                            value={type}
-                            onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT")}
-                            className="w-full rounded-md border p-2 bg-background text-foreground"
-                        >
-                            <option value="CONSUMABLE">Consumable</option>
-                            <option value="EQUIPMENT">Equipment (Tools/Machines)</option>
-                        </select>
-                    </div>
                 </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
+                    <select
+                        value={type}
+                        onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT" | "SERVICE")}
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
+                    >
+                        <option value="CONSUMABLE">Consumable</option>
+                        <option value="EQUIPMENT">Equipment (Tools/Machines)</option>
+                        <option value="SERVICE">Service (Template)</option>
+                    </select>
+                </div>
+
 
                 <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">Product Name</label>
@@ -172,6 +205,64 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         rows={3}
                     />
                 </div>
+
+                {type === 'SERVICE' && (
+                    <div>
+                        <div className="flex justify-between items-center mb-1">
+                            <label className="block text-sm font-medium text-foreground">Warranty Information (Template)</label>
+                            {warrantyTemplates.length > 0 && (
+                                <select
+                                    className="text-xs border rounded p-1 bg-background text-foreground"
+                                    onChange={(e) => {
+                                        const t = warrantyTemplates.find(w => w.id === e.target.value);
+                                        if (t) setWarrantyInfo(t.text);
+                                    }}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Paste from Template...</option>
+                                    {warrantyTemplates.map(w => (
+                                        <option key={w.id} value={w.id}>{w.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                        <textarea
+                            value={warrantyInfo}
+                            onChange={(e) => setWarrantyInfo(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            rows={3}
+                            placeholder="Default warranty text for this service..."
+                        />
+                    </div>
+                )}
+
+                {type === 'SERVICE' && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-foreground">Duration (Minutes)</label>
+                            <input
+                                type="number"
+                                value={durationMinutes}
+                                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                                className="w-full rounded-md border p-2 bg-background text-foreground"
+                                required
+                                min="15"
+                                step="15"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-foreground">Required Technicians</label>
+                            <input
+                                type="number"
+                                value={minTechnicians}
+                                onChange={(e) => setMinTechnicians(Number(e.target.value))}
+                                className="w-full rounded-md border p-2 bg-background text-foreground"
+                                required
+                                min="1"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -294,6 +385,6 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                     </button>
                 </div>
             </form>
-        </Modal>
+        </Modal >
     );
 }

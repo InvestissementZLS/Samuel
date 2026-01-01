@@ -1,7 +1,8 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { ProductType } from '@prisma/client';
+import { ProductType, Division } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
 
 export async function searchProducts(query: string) {
     if (!query) return [];
@@ -10,7 +11,7 @@ export async function searchProducts(query: string) {
         where: {
             name: {
                 contains: query,
-                mode: 'insensitive' // Requires pg_trgm or adequate collation, or simple ILIKE
+                mode: 'insensitive'
             }
         },
         take: 10
@@ -18,7 +19,6 @@ export async function searchProducts(query: string) {
 }
 
 export async function createQuickService(name: string) {
-    // Check if exists
     const existing = await prisma.product.findFirst({
         where: { name: { equals: name, mode: 'insensitive' } }
     });
@@ -28,9 +28,73 @@ export async function createQuickService(name: string) {
     return await prisma.product.create({
         data: {
             name,
-            type: 'SERVICE' as ProductType, // Ensure TypeScript is happy with the enum
+            type: 'SERVICE' as ProductType,
             unit: 'Service',
-            price: 0 // Default
+            price: 0
         }
     });
+}
+
+interface CreateProductData {
+    name: string;
+    description?: string;
+    unit: string;
+    usageDescription?: string;
+    activeIngredient?: string;
+    recommendedConcentration?: string;
+    stock: number;
+    price: number;
+    cost: number;
+    division: Division;
+    type: ProductType;
+    isCommissionEligible?: boolean;
+    warrantyInfo?: string;
+    durationMinutes?: number;
+    minTechnicians?: number;
+}
+
+export async function createProduct(data: CreateProductData) {
+    const product = await prisma.product.create({
+        data: {
+            name: data.name,
+            description: data.description,
+            unit: data.unit,
+            usageDescription: data.usageDescription,
+            activeIngredient: data.activeIngredient,
+            recommendedConcentration: data.recommendedConcentration,
+            stock: data.stock,
+            price: data.price,
+            cost: data.cost,
+            division: data.division,
+            type: data.type,
+            // @ts-ignore
+            isCommissionEligible: data.isCommissionEligible || false,
+            // @ts-ignore
+            warrantyInfo: data.warrantyInfo,
+            // @ts-ignore
+            durationMinutes: data.durationMinutes || 60,
+            // @ts-ignore
+            minTechnicians: data.minTechnicians || 1,
+        }
+    });
+    revalidatePath('/products');
+    return product;
+}
+
+export async function updateProduct(id: string, data: Partial<CreateProductData>) {
+    const product = await prisma.product.update({
+        where: { id },
+        data: {
+            ...data
+        }
+    });
+    revalidatePath('/products');
+    return product;
+}
+
+export async function deleteProduct(id: string) {
+    await prisma.product.delete({
+        where: { id }
+    });
+    revalidatePath('/products');
 }
