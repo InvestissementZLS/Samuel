@@ -32,7 +32,7 @@ export default async function InvoicesPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <h1 className="text-3xl font-bold mb-8 text-gray-900">{t.invoices.title}</h1>
-            <InvoiceList invoices={serialize(invoices)} products={products} clients={clients} />
+            <InvoiceList invoices={serialize(invoices)} products={serialize(products)} clients={serialize(clients)} />
         </div>
     );
 }

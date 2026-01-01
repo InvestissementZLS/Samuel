@@ -54,7 +54,7 @@ export default async function CalendarPage() {
                 <h2 className="text-3xl font-bold tracking-tight">Calendar</h2>
             </div>
             <div className="h-full flex-1 flex-col space-y-8 flex">
-                <CalendarView jobs={serialize(jobs)} clients={clients} technicians={technicians} />
+                <CalendarView jobs={serialize(jobs)} clients={serialize(clients)} technicians={serialize(technicians)} />
             </div>
         </div>
     );
