@@ -37,10 +37,12 @@ export async function findSmartSlots(
     startDateStr: string = new Date().toISOString()
 ) {
     try {
+        if (!productId) throw new Error("Product ID is required");
+
         // 1. Get Service Details (Duration & Techs)
         // @ts-ignore
         const product = await prisma.product.findUnique({ where: { id: productId } });
-        if (!product) throw new Error("Product not found");
+        if (!product) throw new Error(`Product not found: ${productId}`);
 
         // @ts-ignore
         const duration = product.durationMinutes || 60;
@@ -82,6 +84,7 @@ export async function findSmartSlots(
 
             // Simple Heuristic: Check Morning (8AM) and Afternoon (1PM) slots
             // Generate hourly slots from 8 AM to 6 PM (18:00)
+            // FIXED: Generate based on Montreal Time (UTC-5 in Winter)
             const candidates = [];
             for (let hour = 8; hour < 18; hour++) {
                 candidates.push({ time: `${hour.toString().padStart(2, '0')}:00`, hour });
@@ -94,7 +97,9 @@ export async function findSmartSlots(
                 for (const candidate of candidates) {
                     // Check conflicts (Very basic overlap check)
                     const candidateDate = new Date(currentDate);
-                    candidateDate.setHours(candidate.hour, 0, 0, 0);
+                    // EST is UTC-5 (Winter). So 8 AM EST = 13:00 UTC.
+                    // We use setUTCHours to force the correct absolute timestamp.
+                    candidateDate.setUTCHours(candidate.hour + 5, 0, 0, 0);
 
                     // --- TIMEZONE FIX: Ensure we check against Montreal Time ---
                     let isPast = false;
@@ -103,13 +108,15 @@ export async function findSmartSlots(
                         const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
                         const nowMontreal = new Date(nowMontrealStr);
 
-                        // Robust: Treat 'candidateDate' as the intended Wall Clock time in Montreal.
-                        // If candidate is "Jan 1, 08:00", we want to compare it to "Now in Montreal".
+                        // Compare candidate (which is now correctly 8 AM EST / 13 PM UTC)
+                        // But wait, 'candidateDate' object is UTC.
+                        // We need to compare "Wall Clock" time.
 
-                        if (isSameDay(candidateDate, nowMontreal)) {
-                            const currentHourMontreal = nowMontreal.getHours();
-                            if (candidate.hour <= currentHourMontreal) isPast = true;
-                        } else if (candidateDate < startOfDay(nowMontreal)) {
+                        // Convert candidate UTC timestamp to Montreal Wall Clock Date
+                        const candidateMontrealStr = candidateDate.toLocaleString("en-US", { timeZone: "America/Montreal" });
+                        const candidateMontreal = new Date(candidateMontrealStr);
+
+                        if (candidateMontreal < nowMontreal) {
                             isPast = true;
                         }
                     } catch (e) {
