@@ -55,83 +55,99 @@ interface CreateProductData {
 }
 
 export async function createProduct(data: CreateProductData) {
-    const product = await prisma.product.create({
-        data: {
-            name: data.name,
-            description: data.description,
-            unit: data.unit,
-            usageDescription: data.usageDescription,
-            activeIngredient: data.activeIngredient,
-            recommendedConcentration: data.recommendedConcentration,
-            stock: data.stock,
-            price: data.price,
-            cost: data.cost,
-            division: data.division,
-            type: data.type,
-            // @ts-ignore
-            isCommissionEligible: data.isCommissionEligible || false,
-            // @ts-ignore
-            warrantyInfo: data.warrantyInfo,
-            // @ts-ignore
-            durationMinutes: data.durationMinutes || 60,
-            // @ts-ignore
-            minTechnicians: data.minTechnicians || 1,
-            materialsNeeded: {
-                create: data.materials?.filter(m => m.id)?.map(m => ({
-                    materialId: m.id,
-                    quantity: m.quantity
-                }))
-            }
-        }
-    });
-    revalidatePath('/products');
-    return product;
-}
+    try {
+        const materialsToCreate = data.materials?.filter(m => m.id) || [];
 
-export async function updateProduct(id: string, data: Partial<CreateProductData>) {
-    // Transaction to update materials
-    const [product] = await prisma.$transaction([
-        prisma.product.update({
-            where: { id },
+        const product = await prisma.product.create({
             data: {
                 name: data.name,
                 description: data.description,
-                unit: data.unit,
+                unit: data.unit || 'ml',
                 usageDescription: data.usageDescription,
-                stock: data.stock !== undefined ? Number(data.stock) : undefined,
-                price: data.price !== undefined ? Number(data.price) : undefined,
-                cost: data.cost !== undefined ? Number(data.cost) : undefined,
+                activeIngredient: data.activeIngredient,
+                recommendedConcentration: data.recommendedConcentration,
+                stock: Math.round(data.stock || 0), // Ensure Integer
+                price: Number(data.price || 0),
+                cost: Number(data.cost || 0),
                 division: data.division,
                 type: data.type,
                 // @ts-ignore
-                isCommissionEligible: data.isCommissionEligible,
+                isCommissionEligible: data.isCommissionEligible || false,
                 // @ts-ignore
                 warrantyInfo: data.warrantyInfo,
                 // @ts-ignore
-                durationMinutes: data.durationMinutes,
+                durationMinutes: Number(data.durationMinutes || 60),
                 // @ts-ignore
-                minTechnicians: data.minTechnicians,
+                minTechnicians: Number(data.minTechnicians || 1),
+                ...(materialsToCreate.length > 0 && {
+                    materialsNeeded: {
+                        create: materialsToCreate.map(m => ({
+                            materialId: m.id,
+                            quantity: Number(m.quantity || 0)
+                        }))
+                    }
+                })
             }
-        }),
-        // If materials provided, sync them
-        ...(data.materials ? [
-            // Delete old
-            prisma.serviceMaterial.deleteMany({ where: { serviceId: id } }),
-            // Create new
-            prisma.serviceMaterial.createMany({
-                data: data.materials.filter(m => m.id).map(m => ({
-                    serviceId: id,
-                    materialId: m.id,
-                    quantity: m.quantity
-                }))
-            })
-        ] : []),
-        // Fetch updated to return
-        prisma.product.findUnique({ where: { id } })
-    ]);
+        });
+        revalidatePath('/products');
+        return product;
+    } catch (error) {
+        console.error("Error creating product:", error);
+        throw error;
+    }
+}
 
-    revalidatePath('/products');
-    return product;
+export async function updateProduct(id: string, data: Partial<CreateProductData>) {
+    try {
+        const materialsToSync = data.materials?.filter(m => m.id) || [];
+
+        // Transaction to update materials
+        const [product] = await prisma.$transaction([
+            prisma.product.update({
+                where: { id },
+                data: {
+                    name: data.name,
+                    description: data.description,
+                    unit: data.unit,
+                    usageDescription: data.usageDescription,
+                    stock: data.stock !== undefined ? Math.round(Number(data.stock)) : undefined,
+                    price: data.price !== undefined ? Number(data.price) : undefined,
+                    cost: data.cost !== undefined ? Number(data.cost) : undefined,
+                    division: data.division,
+                    type: data.type,
+                    // @ts-ignore
+                    isCommissionEligible: data.isCommissionEligible,
+                    // @ts-ignore
+                    warrantyInfo: data.warrantyInfo,
+                    // @ts-ignore
+                    durationMinutes: data.durationMinutes !== undefined ? Number(data.durationMinutes) : undefined,
+                    // @ts-ignore
+                    minTechnicians: data.minTechnicians !== undefined ? Number(data.minTechnicians) : undefined,
+                }
+            }),
+            // If materials provided (array exists), sync them
+            ...(data.materials ? [
+                // Delete old
+                prisma.serviceMaterial.deleteMany({ where: { serviceId: id } }),
+                // Create new
+                prisma.serviceMaterial.createMany({
+                    data: materialsToSync.map(m => ({
+                        serviceId: id,
+                        materialId: m.id,
+                        quantity: Number(m.quantity || 0)
+                    }))
+                })
+            ] : []),
+            // Fetch updated to return
+            prisma.product.findUnique({ where: { id } })
+        ]);
+
+        revalidatePath('/products');
+        return product;
+    } catch (error) {
+        console.error("Error updating product:", error);
+        throw error;
+    }
 }
 
 export async function getConsumables() {
