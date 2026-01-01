@@ -16,9 +16,9 @@ import { JobScheduleEdit } from '@/components/jobs/job-schedule-edit';
 import { cookies } from 'next/headers';
 import { dictionary } from '@/lib/i18n/dictionary';
 
-export default async function JobDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const cookieStore = await cookies();
+export default async function JobDetailsPage({ params }: { params: { id: string } }) {
+    const { id } = params;
+    const cookieStore = cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
 

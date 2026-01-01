@@ -126,8 +126,6 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                             )}
                                         </div>
                                         <div className="flex gap-2 text-sm text-gray-500">
-                                            <span>{format(new Date(quote.createdAt), "MMM d, yyyy")}</span>
-                                            <span>•</span>
                                             <span>${quote.total.toFixed(2)}</span>
                                             {/* @ts-ignore */}
                                             {quote.division && (
@@ -140,17 +138,23 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                                 </>
                                             )}
                                         </div>
-                                        <button
-                                            onClick={() => {
-                                                const url = `${window.location.origin}/portal/quotes/${quote.id}`;
-                                                navigator.clipboard.writeText(url);
-                                                toast.success("Portal link copied to clipboard");
-                                            }}
-                                            className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 hover:underline"
-                                        >
-                                            <LinkIcon className="w-3 h-3" />
-                                            Copy Link
-                                        </button>
+                                        <div className="flex gap-4 mt-2">
+                                            <Link href={`/quotes/${quote.id}`} className="text-xs text-indigo-600 hover:text-indigo-900 flex items-center gap-1 hover:underline">
+                                                <FileText className="w-3 h-3" />
+                                                View Details
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    const url = `${window.location.origin}/portal/quotes/${quote.id}`;
+                                                    navigator.clipboard.writeText(url);
+                                                    toast.success("Portal link copied to clipboard");
+                                                }}
+                                                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 hover:underline"
+                                            >
+                                                <LinkIcon className="w-3 h-3" />
+                                                Copy Link
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">

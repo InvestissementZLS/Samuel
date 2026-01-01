@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 import { ClientPortalInvoice } from '@/components/clients/client-portal-invoice';
 import { translations, Language } from '@/lib/translations';
 
-export default async function ClientPortalPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function ClientPortalPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const client = await prisma.client.findUnique({
         where: { id },
         include: {
