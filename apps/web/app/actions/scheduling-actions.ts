@@ -261,6 +261,14 @@ export async function findSmartSlots(
         return slots.sort((a, b) => b.score - a.score); // Return all valid slots
     } catch (e: any) {
         console.error("[SmartSlots] CRITICAL FAILURE:", e);
-        throw new Error(`Scheduling System Error: ${e.message}`);
+        // Fallback: Return error as a slot logic to ensure visibility
+        return [{
+            date: addDays(new Date(), 1),
+            startTime: "ERR",
+            technicianId: "error",
+            technicianName: "SYSTEM ERROR",
+            score: 0,
+            reason: `${e.message || "Unknown error"}`
+        }];
     }
 }
