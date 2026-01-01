@@ -5,10 +5,10 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     console.log("PDF Generation Triggered");
-    const { id } = await params;
+    const { id } = params;
     console.log("Fetching invoice for PDF:", id);
 
     try {

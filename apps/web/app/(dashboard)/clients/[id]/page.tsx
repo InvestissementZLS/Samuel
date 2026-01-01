@@ -5,8 +5,8 @@ import { ClientTabs } from '@/components/clients/client-tabs';
 import { ClientHeader } from '@/components/clients/client-header';
 import { CopyPortalLink } from '@/components/clients/copy-portal-link';
 
-export default async function ClientDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const client = await prisma.client.findUnique({
         where: { id },
         include: {

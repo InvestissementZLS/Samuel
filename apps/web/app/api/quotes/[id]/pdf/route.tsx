@@ -5,9 +5,9 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
-    const { id } = await params;
+    const { id } = params;
 
     const quote = await prisma.quote.findUnique({
         where: { id },
