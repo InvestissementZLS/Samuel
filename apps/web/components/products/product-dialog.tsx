@@ -277,40 +277,44 @@ return (
                 </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Unit</label>
-                    <select
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                    >
-                        <option value="" disabled>Select Unit</option>
-                        <option value="ml">ml</option>
-                        <option value="L">L</option>
-                        <option value="Gallon">Gallon</option>
-                        <option value="Block">Block</option>
-                        <option value="Pcs">Pcs</option>
-                        <option value="Kg">Kg</option>
-                        <option value="g">g</option>
-                        <option value="oz">oz</option>
-                        <option value="lb">lb</option>
-                    </select>
+            {type !== 'SERVICE' && (
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Unit</label>
+                        <select
+                            value={unit}
+                            onChange={(e) => setUnit(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                        >
+                            <option value="" disabled>Select Unit</option>
+                            <option value="ml">ml</option>
+                            <option value="L">L</option>
+                            <option value="Gallon">Gallon</option>
+                            <option value="Block">Block</option>
+                            <option value="Pcs">Pcs</option>
+                            <option value="Kg">Kg</option>
+                            <option value="g">g</option>
+                            <option value="oz">oz</option>
+                            <option value="lb">lb</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-3 gap-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Stock</label>
-                    <input
-                        type="number"
-                        value={stock}
-                        onChange={(e) => setStock(Number(e.target.value))}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                        required
-                        min="0"
-                    />
-                </div>
+                {type !== 'SERVICE' && (
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Stock</label>
+                        <input
+                            type="number"
+                            value={stock}
+                            onChange={(e) => setStock(Number(e.target.value))}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            required
+                            min="0"
+                        />
+                    </div>
+                )}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">Price ($)</label>
                     <input
@@ -337,38 +341,42 @@ return (
                 </div>
             </div>
 
-            <div className="pt-2">
-                <label className="block text-sm font-medium mb-1 text-foreground">Usage Description</label>
-                <textarea
-                    value={usageDescription}
-                    onChange={(e) => setUsageDescription(e.target.value)}
-                    className="w-full rounded-md border p-2 bg-background text-foreground"
-                    rows={2}
-                    placeholder="How to use this product..."
-                />
-            </div>
+            {type !== 'SERVICE' && (
+                <>
+                    <div className="pt-2">
+                        <label className="block text-sm font-medium mb-1 text-foreground">Usage Description</label>
+                        <textarea
+                            value={usageDescription}
+                            onChange={(e) => setUsageDescription(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            rows={2}
+                            placeholder="How to use this product..."
+                        />
+                    </div>
 
-            <div className="pt-2">
-                <label className="block text-sm font-medium mb-1 text-foreground">Active Ingredient</label>
-                <input
-                    type="text"
-                    value={activeIngredient}
-                    onChange={(e) => setActiveIngredient(e.target.value)}
-                    className="w-full rounded-md border p-2 bg-background text-foreground"
-                    placeholder="e.g. Permethrin 5%"
-                />
-            </div>
+                    <div className="pt-2">
+                        <label className="block text-sm font-medium mb-1 text-foreground">Active Ingredient</label>
+                        <input
+                            type="text"
+                            value={activeIngredient}
+                            onChange={(e) => setActiveIngredient(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            placeholder="e.g. Permethrin 5%"
+                        />
+                    </div>
 
-            <div className="pt-2">
-                <label className="block text-sm font-medium mb-1 text-foreground">Recommended Concentration</label>
-                <input
-                    type="text"
-                    value={recommendedConcentration}
-                    onChange={(e) => setRecommendedConcentration(e.target.value)}
-                    className="w-full rounded-md border p-2 bg-background text-foreground"
-                    placeholder="e.g. 1% - 3%"
-                />
-            </div>
+                    <div className="pt-2">
+                        <label className="block text-sm font-medium mb-1 text-foreground">Recommended Concentration</label>
+                        <input
+                            type="text"
+                            value={recommendedConcentration}
+                            onChange={(e) => setRecommendedConcentration(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            placeholder="e.g. 1% - 3%"
+                        />
+                    </div>
+                </>
+            )}
 
             <div className="flex justify-end gap-2 pt-4">
                 {product && (
