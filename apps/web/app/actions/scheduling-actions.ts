@@ -65,6 +65,20 @@ export async function findSmartSlots(
         });
         console.log(`[SmartSlots] Found ${technicians.length} active technicians`, technicians.map(t => t.name));
 
+        if (technicians.length === 0) {
+            console.warn("[SmartSlots] No active technicians found.");
+            // Return a unified 'empty' response or throw specific error
+            // For the UI to handle gracefully:
+            return [{
+                date: addDays(new Date(), 1),
+                startTime: "N/A",
+                technicianId: "notechs",
+                technicianName: "No Technicians Found",
+                score: 0,
+                reason: "Please contact admin to add technicians."
+            }];
+        }
+
         const startDate = parseISO(startDateStr);
         const weekStart = startOfDay(startDate);
         const weekEnd = endOfDay(addDays(startDate, 6)); // 7 days total
@@ -102,10 +116,9 @@ export async function findSmartSlots(
             // ... candidates loop ...
 
             // Simple Heuristic: Check Morning (8AM) and Afternoon (1PM) slots
-            // Generate hourly slots from 8 AM to 6 PM (18:00)
-            // FIXED: Generate based on Montreal Time (UTC-5 in Winter)
+            // Generate hourly slots from 8 AM to 6 PM (18:00) INCLUSIVE
             const candidates = [];
-            for (let hour = 8; hour < 18; hour++) {
+            for (let hour = 8; hour <= 18; hour++) {
                 candidates.push({ time: `${hour.toString().padStart(2, '0')}:00`, hour });
             }
 
@@ -140,7 +153,6 @@ export async function findSmartSlots(
                             isPast = true;
                         }
                     } catch (e) {
-                        console.error("Timezone Check Failed, defaulting to Server Time", e);
                         // Fallback to simple server time check
                         if (candidateDate < new Date()) isPast = true;
                     }
@@ -176,7 +188,6 @@ export async function findSmartSlots(
                         for (const job of techJobs) {
                             // Defensive Check: If job has no property (data integrity issue), skip distance calculation or treat as far
                             if (!job.property) {
-                                console.warn(`[SmartSlots] Job ${job.id} implies travel but has no property data. Skipping distance calc for this job.`);
                                 continue;
                             }
 
@@ -205,13 +216,16 @@ export async function findSmartSlots(
                         } else if (minDistance < 15) {
                             score += 20;
                             reason = "Efficient";
+                        } else if (!targetProperty) {
+                            score += 0; // Neutral for guests
+                            reason = "";
                         } else {
                             score -= 10;
-                            // reason remains "Available" or previous if not explicitly set
+                            reason = "";
                         }
                     } else {
                         score += 10;
-                        reason = "Technician's first job of the day.";
+                        reason = "";
                     }
 
                     slots.push({
@@ -232,15 +246,14 @@ export async function findSmartSlots(
         // DIAGNOSTIC FALLBACK
         if (slots.length === 0) {
             console.warn("[SmartSlots] No slots found. Debug stats:", debugStats);
-            // Return a fake slot so user can see what's wrong on screen
-            // Only if dev/debug, but user is our internal dev right now.
+            // Informative Slot (Not an error, just info)
             return [{
                 date: addDays(new Date(), 1), // Tomorrow
-                startTime: "99:99",
-                technicianId: "debug",
-                technicianName: "SYSTEM DIAGNOSTIC",
+                startTime: "INFO",
+                technicianId: "info",
+                technicianName: "No Availability",
                 score: 0,
-                reason: `Techs: ${debugStats.techs}, Checked: ${debugStats.candidatesChecked}, Past: ${debugStats.rejectedPast}, Busy: ${debugStats.rejectedConflict}`
+                reason: `Fully Booked (Checked ${debugStats.candidatesChecked} slots)`
             }];
         }
 
@@ -248,14 +261,6 @@ export async function findSmartSlots(
         return slots.sort((a, b) => b.score - a.score); // Return all valid slots
     } catch (e: any) {
         console.error("[SmartSlots] CRITICAL FAILURE:", e);
-        // RETURN ERROR AS A SLOT SO IT IS VISIBLE IN UI
-        return [{
-            date: addDays(new Date(), 1),
-            startTime: "ERR",
-            technicianId: "error",
-            technicianName: "SYSTEM ERROR",
-            score: 0,
-            reason: `${e.message || JSON.stringify(e)}`
-        }];
+        throw new Error(`Scheduling System Error: ${e.message}`);
     }
 }
