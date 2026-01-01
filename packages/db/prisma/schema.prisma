@@ -29,11 +29,12 @@ model User {
   salesJobs                       Job[]        @relation("JobSalesRep")
   supervisedJobs                  Job[]        @relation("JobSupervisor")
   jobs                            Job[]        @relation("JobToUser")
-  activities      JobActivity[]
-  inventory       InventoryItem[]
-  audits          InventoryAudit[]
-  timesheets      TimesheetEntry[]
-  language        Language     @default(FR)
+  soldQuotes                      Quote[]      @relation("QuoteSalesRep")
+  activities                      JobActivity[]
+  inventory                       InventoryItem[]
+  audits                          InventoryAudit[]
+  timesheets                      TimesheetEntry[]
+  language                        Language     @default(FR)
 }
 
 model Client {
@@ -57,6 +58,11 @@ model Property {
   id         String       @id @default(uuid())
   clientId   String
   address    String
+  street     String?
+  city       String?
+  postalCode String?
+  province   String?      @default("QC")
+  country    String?      @default("Canada")
   type       PropertyType @default(RESIDENTIAL)
   accessInfo String?
   createdAt  DateTime     @default(now())
@@ -75,8 +81,14 @@ model Job {
   scheduledEndAt        DateTime?
   status                JobStatus     @default(PENDING)
   description           String?
+
+  // Real-Time Tracking
+  enRouteAt             DateTime?
   startedAt             DateTime?
   completedAt           DateTime?
+  travelDurationMinutes Int?          // ACTUAL travel time
+  actualDurationMinutes Int?          // ACTUAL job duration
+
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   division              Division      @default(EXTERMINATION)
@@ -100,6 +112,15 @@ model Job {
   technicians           User[]        @relation("JobToUser")
   activities            JobActivity[]
   reviewRequest         ReviewRequest?
+  
+  // Completion Proofs
+  signature             String?       @db.Text // Base64 can be long
+  isClientUnreachable   Boolean       @default(false)
+
+  // Commission & Origin
+  quoteId               String?
+  quote                 Quote?        @relation(fields: [quoteId], references: [id])
+  invoiceTriggered      Boolean       @default(false)
 }
 
 model JobNote {
@@ -182,6 +203,12 @@ model Quote {
   items       QuoteItem[]
   signature   String?     // Base64 signature image
   signedAt    DateTime?
+  
+  // Sales Rep Relation
+  salesRepId  String?
+  salesRep    User?       @relation("QuoteSalesRep", fields: [salesRepId], references: [id])
+
+  jobs        Job[]
 }
 
 model QuoteItem {
@@ -296,6 +323,17 @@ model Product {
   isCommissionEligible Boolean @default(false)
   durationMinutes Int           @default(60) // For Smart Scheduling (avg time)
   minTechnicians Int           @default(1)  // For Smart Scheduling (manpower)
+
+  // -- Service Categorization --
+  pestType        PestType?
+  category        ServiceCategory? @default(CURATIVE)
+  tier            ServiceTier?    @default(STANDARD)
+  
+  // -- Warranty & Visits --
+  warrantyMonths  Int?
+  warrantyDetails String?
+  numberOfVisits  Int             @default(1)
+
   invoiceItems InvoiceItem[]
   quoteItems   QuoteItem[]
   usedIn       UsedProduct[]
@@ -381,6 +419,7 @@ enum Role {
 enum JobStatus {
   PENDING
   SCHEDULED
+  EN_ROUTE
   IN_PROGRESS
   COMPLETED
   CANCELLED
@@ -399,6 +438,30 @@ enum Division {
 enum Language {
   EN
   FR
+}
+
+enum PestType {
+  MICE
+  RAT
+  ANTS
+  BEDBUGS
+  COCKROACHES
+  SPIDERS
+  WASPS
+  OTHER
+}
+
+enum ServiceCategory {
+  CURATIVE
+  PREVENTATIVE
+  MAINTENANCE
+  INSPECTION
+}
+
+enum ServiceTier {
+  STANDARD
+  PREMIUM
+  ECO
 }
 
 enum QuoteStatus {

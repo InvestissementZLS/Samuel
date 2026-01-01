@@ -6,6 +6,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import axios from 'axios';
 import { API_URL } from '../config';
+import { getLocalJobs, getOutbox, saveJobsToLocal } from '../lib/db';
+import { syncData } from '../lib/sync';
+import { optimizeRoute } from '../lib/ai';
 import { format } from 'date-fns';
 import * as Location from 'expo-location';
 
@@ -34,21 +37,38 @@ export default function JobListScreen() {
     const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
     const [punchLoading, setPunchLoading] = useState(false);
 
-    const fetchJobs = async () => {
+    const [syncState, setSyncState] = useState('SYNCED');
+
+    const loadJobs = async () => {
+        // 1. Load Local Immediately
+        const local = getLocalJobs();
+        if (local.length > 0) {
+            setJobs(local);
+            setLoading(false);
+        }
+
+        // 2. Sync with Server
         try {
-            const response = await axios.get(`${API_URL}/api/technician/jobs?techId=${userId}`);
-            setJobs(response.data);
+            const fresh = await syncData(userId);
+            if (fresh) setJobs(fresh);
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to fetch jobs');
+            console.log("Sync failed, staying with local");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchJobs();
+        loadJobs();
         checkPunchStatus();
+
+        // Poll for outbox status occasionally? Or rely on focus?
+        // simple interval to check queue size
+        const interval = setInterval(() => {
+            const queue = getOutbox();
+            setSyncState(queue.length > 0 ? 'PENDING_UPLOAD' : 'SYNCED');
+        }, 5000);
+        return () => clearInterval(interval);
     }, [userId]);
 
     const checkPunchStatus = async () => {
@@ -121,11 +141,52 @@ export default function JobListScreen() {
         );
     }
 
+    const handleOptimize = async () => {
+        setLoading(true);
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Need location to optimize route from where you are.');
+                setLoading(false);
+                return;
+            }
+
+            const location = await Location.getCurrentPositionAsync({});
+
+            // AI Magic 🧠
+            const optimized = optimizeRoute(
+                location.coords.latitude,
+                location.coords.longitude,
+                jobs
+            );
+
+            setJobs(optimized as Job[]);
+            // Optional: Save this new order to DB? 
+            // For now, it's a visual sort. If we save, we need to handle "order" field.
+            // saveJobsToLocal(optimized); 
+
+            Alert.alert("Route Optimized ⚡", "Jobs reordered for shortest travel time!");
+
+        } catch (error) {
+            console.error("Optimization failed", error);
+            Alert.alert("Error", "Could not optimize route.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.headerTop}>
-                    <Text style={styles.headerTitle}>My Schedule</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.headerTitle}>My Schedule</Text>
+                        {syncState === 'PENDING_UPLOAD' && (
+                            <View style={{ marginLeft: 10, backgroundColor: '#f59e0b', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
+                                <Text style={{ fontSize: 10, color: 'white', fontWeight: 'bold' }}>WAITING FOR WIFI</Text>
+                            </View>
+                        )}
+                    </View>
                     <TouchableOpacity
                         style={[styles.punchBtn, punchStatus === 'OPEN' ? styles.punchOut : styles.punchIn]}
                         onPress={handlePunch}
@@ -141,6 +202,30 @@ export default function JobListScreen() {
                     </TouchableOpacity>
                 </View>
                 <Text style={styles.date}>{format(new Date(), 'EEEE, MMM d')}</Text>
+
+                {/* AI / Actions Row */}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                    <TouchableOpacity
+                        style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}
+                        onPress={handleOptimize}
+                    >
+                        <Text style={[styles.inventoryBtnText, { color: '#16a34a' }]}>⚡ Optimize Route</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}
+                        onPress={() => navigation.navigate('CreateQuote')}
+                    >
+                        <Text style={[styles.inventoryBtnText, { color: '#1d4ed8' }]}>📝 New Quote</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                    style={[styles.inventoryBtn, { marginTop: 8 }]}
+                    onPress={() => navigation.navigate('Inventory')}
+                >
+                    <Text style={styles.inventoryBtnText}>📦 Inventory</Text>
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -149,7 +234,7 @@ export default function JobListScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
                 refreshing={loading}
-                onRefresh={fetchJobs}
+                onRefresh={loadJobs}
                 ListEmptyComponent={
                     <Text style={styles.emptyText}>No jobs scheduled for today.</Text>
                 }
@@ -277,4 +362,18 @@ const styles = StyleSheet.create({
         color: '#999',
         fontSize: 16,
     },
+    inventoryBtn: {
+        marginTop: 12,
+        backgroundColor: '#f3f4f6',
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#e5e7eb'
+    },
+    inventoryBtnText: {
+        color: '#4b5563',
+        fontWeight: '600',
+        fontSize: 14
+    }
 });

@@ -11,9 +11,10 @@ interface ProductDialogProps {
     isOpen: boolean;
     onClose: () => void;
     product?: Product | null;
+    fixedType?: "CONSUMABLE" | "EQUIPMENT" | "SERVICE";
 }
 
-export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) {
+export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDialogProps) {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [usageDescription, setUsageDescription] = useState("");
@@ -75,25 +76,25 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                 setDurationMinutes(product.durationMinutes || 60);
                 // @ts-ignore
                 setMinTechnicians(product.minTechnicians || 1);
+            } else {
+                setName("");
+                setDescription("");
+                setUsageDescription("");
+                setActiveIngredient("");
+                setRecommendedConcentration("");
+                setUnit("ml");
+                setStock(0);
+                setPrice(0);
+                setCost(0);
+                setDivision("EXTERMINATION");
+                setType(fixedType || "CONSUMABLE");
+                setIsCommissionEligible(false);
+                setWarrantyInfo("");
+                setDurationMinutes(60);
+                setMinTechnicians(1);
             }
-        } else {
-            setName("");
-            setDescription("");
-            setUsageDescription("");
-            setActiveIngredient("");
-            setRecommendedConcentration("");
-            setUnit("ml");
-            setStock(0);
-            setPrice(0);
-            setCost(0);
-            setDivision("EXTERMINATION");
-            setType("CONSUMABLE");
-            setIsCommissionEligible(false);
-            setWarrantyInfo("");
-            setDurationMinutes(60);
-            setMinTechnicians(1);
         }
-    }, [isOpen, product]);
+    }, [isOpen, product, fixedType]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -185,18 +186,20 @@ export function ProductDialog({ isOpen, onClose, product }: ProductDialogProps) 
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
-                    <select
-                        value={type}
-                        onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT" | "SERVICE")}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                    >
-                        <option value="CONSUMABLE">Consumable</option>
-                        <option value="EQUIPMENT">Equipment (Tools/Machines)</option>
-                        <option value="SERVICE">Service (Template)</option>
-                    </select>
-                </div>
+                {!fixedType && (
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Type</label>
+                        <select
+                            value={type}
+                            onChange={(e) => setType(e.target.value as "CONSUMABLE" | "EQUIPMENT" | "SERVICE")}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                        >
+                            <option value="CONSUMABLE">Consumable</option>
+                            <option value="EQUIPMENT">Equipment (Tools/Machines)</option>
+                            <option value="SERVICE">Service (Template)</option>
+                        </select>
+                    </div>
+                )}
 
 
                 <div>

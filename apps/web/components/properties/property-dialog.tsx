@@ -14,7 +14,9 @@ interface PropertyDialogProps {
 }
 
 export function PropertyDialog({ isOpen, onClose, property, clientId }: PropertyDialogProps) {
-    const [address, setAddress] = useState("");
+    const [street, setStreet] = useState("");
+    const [city, setCity] = useState("");
+    const [postalCode, setPostalCode] = useState("");
     const [type, setType] = useState<PropertyType>("RESIDENTIAL");
     const [accessInfo, setAccessInfo] = useState("");
     const [loading, setLoading] = useState(false);
@@ -22,11 +24,19 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
     useEffect(() => {
         if (isOpen) {
             if (property) {
-                setAddress(property.address);
+                // @ts-ignore - types might be stale in IDE but exist in DB
+                setStreet(property.street || property.address || "");
+                // @ts-ignore
+                setCity(property.city || "");
+                // @ts-ignore
+                setPostalCode(property.postalCode || "");
+
                 setType(property.type);
                 setAccessInfo(property.accessInfo || "");
             } else {
-                setAddress("");
+                setStreet("");
+                setCity("");
+                setPostalCode("");
                 setType("RESIDENTIAL");
                 setAccessInfo("");
             }
@@ -39,10 +49,23 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
 
         try {
             if (property) {
-                await updateProperty(property.id, { address, type, accessInfo });
+                await updateProperty(property.id, {
+                    street,
+                    city,
+                    postalCode,
+                    type,
+                    accessInfo
+                });
                 toast.success("Property updated successfully");
             } else {
-                await createProperty({ clientId, address, type, accessInfo });
+                await createProperty({
+                    clientId,
+                    street,
+                    city,
+                    postalCode,
+                    type,
+                    accessInfo
+                });
                 toast.success("Property created successfully");
             }
             onClose();
@@ -77,14 +100,40 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Address</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Street Address</label>
                     <input
                         type="text"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                        placeholder="123 Main St"
                         className="w-full rounded-md border p-2 bg-background text-foreground"
                         required
                     />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">City</label>
+                        <input
+                            type="text"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Montreal"
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Postal Code</label>
+                        <input
+                            type="text"
+                            value={postalCode}
+                            onChange={(e) => setPostalCode(e.target.value)}
+                            placeholder="H1A 1A1"
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            required
+                        />
+                    </div>
                 </div>
 
                 <div>

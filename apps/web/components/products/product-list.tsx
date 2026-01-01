@@ -176,6 +176,11 @@ export function ProductList({ products }: ProductListProps) {
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
                 product={selectedProduct}
+                fixedType={
+                    activeTab === 'INVENTORY' ? 'CONSUMABLE' :
+                        activeTab === 'EQUIPMENT' ? 'EQUIPMENT' :
+                            'SERVICE'
+                }
             />
         </div>
     );

@@ -13,6 +13,9 @@ export type RootStackParamList = {
     JobDetails: { jobId: string };
     PunchIn: { userId: string };
     PunchOut: { timesheetId: string };
+    Inventory: undefined;
+    Signature: { onOK: (signature: string) => void };
+    CreateQuote: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -45,6 +48,26 @@ export default function AppNavigator() {
                     name="PunchOut"
                     component={PunchOutScreen}
                     options={{ title: 'End Of Day' }}
+                />
+                <Stack.Screen
+                    name="Inventory"
+                    component={require('../screens/InventoryScreen').default}
+                    options={{ title: 'Weekly Inventory' }}
+                />
+                <Stack.Screen
+                    name="Inventory"
+                    component={require('../screens/InventoryScreen').default}
+                    options={{ title: 'Weekly Inventory' }}
+                />
+                <Stack.Screen
+                    name="Signature"
+                    component={require('../screens/SignatureScreen').default}
+                    options={{ title: 'Signature' }}
+                />
+                <Stack.Screen
+                    name="CreateQuote"
+                    component={require('../screens/CreateQuoteScreen').default}
+                    options={{ title: 'New Quote' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>
