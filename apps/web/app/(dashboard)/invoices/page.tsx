@@ -6,7 +6,7 @@ import { dictionary } from "@/lib/i18n/dictionary";
 export const dynamic = 'force-dynamic';
 
 export default async function InvoicesPage() {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
 

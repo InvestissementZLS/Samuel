@@ -6,7 +6,7 @@ import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminde
 import { cookies } from 'next/headers';
 
 export default async function DashboardPage() {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const userId = cookieStore.get('userId')?.value;
 
     // Fetch summary data for Extermination
