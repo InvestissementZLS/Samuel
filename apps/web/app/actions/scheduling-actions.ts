@@ -66,6 +66,19 @@ export async function findSmartSlots(
         console.log(`[SmartSlots] Found ${technicians.length} active technicians`, technicians.map(t => t.name));
 
         const startDate = parseISO(startDateStr);
+        const weekStart = startOfDay(startDate);
+        const weekEnd = endOfDay(addDays(startDate, 6)); // 7 days total
+
+        // BATCH FETCH: Get all jobs for the entire week in one query
+        const allWeekJobs = await prisma.job.findMany({
+            where: {
+                scheduledAt: { gte: weekStart, lte: weekEnd },
+                status: { notIn: ['CANCELLED'] }
+            },
+            include: { property: true, technicians: true }
+        });
+
+        console.log(`[SmartSlots] Fetched ${allWeekJobs.length} jobs for week range ${weekStart.toISOString()} - ${weekEnd.toISOString()}`);
 
         let debugStats = {
             techs: technicians.length,
@@ -80,14 +93,13 @@ export async function findSmartSlots(
             const dayStart = startOfDay(currentDate);
             const dayEnd = endOfDay(currentDate);
 
-            // Fetch existing jobs for this day
-            const existingJobs = await prisma.job.findMany({
-                where: {
-                    scheduledAt: { gte: dayStart, lte: dayEnd },
-                    status: { notIn: ['CANCELLED'] } // REJECTED is not a valid JobStatus
-                },
-                include: { property: true, technicians: true }
-            });
+            // Filter jobs for this specific day from the batch
+            const existingJobs = allWeekJobs.filter(j =>
+                new Date(j.scheduledAt) >= dayStart &&
+                new Date(j.scheduledAt) <= dayEnd
+            );
+
+            // ... candidates loop ...
 
             // Simple Heuristic: Check Morning (8AM) and Afternoon (1PM) slots
             // Generate hourly slots from 8 AM to 6 PM (18:00)
