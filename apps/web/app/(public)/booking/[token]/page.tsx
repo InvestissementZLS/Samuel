@@ -7,10 +7,24 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Check, Calendar, MapPin, Package, User } from "lucide-react";
 
-export default function ClientBookingPage({ params }: { params: { token: string } }) {
-    const isNew = params.token === 'new';
-    const [step, setStep] = useState(isNew ? 0 : 1);
-    const [isGuest, setIsGuest] = useState(isNew);
+import { useParams } from "next/navigation";
+
+export default function ClientBookingPage() {
+    const params = useParams();
+    // casting to string to avoid array issues, though usually string in this case
+    const token = typeof params?.token === 'string' ? params.token : Array.isArray(params?.token) ? params.token[0] : '';
+
+    // Determine initial state based on token immediately
+    const isNew = token === 'new';
+
+    // We cannot reliably initialize state from useParams during first render on some Next.js versions 
+    // because useParams might be empty initially during hydration.
+    // However, for standard pages it should be fine. 
+    // To be safe, let's use useEffect to set isGuest if token changes.
+    // OR just rely on derived state if we can. 
+
+    const [step, setStep] = useState(1); // Default to 1, adjust in effect
+    const [isGuest, setIsGuest] = useState(false);
     const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "", address: "" });
     const [loading, setLoading] = useState(true);
     const [clientData, setClientData] = useState<any>(null);
@@ -25,14 +39,20 @@ export default function ClientBookingPage({ params }: { params: { token: string 
     const [availableSlots, setAvailableSlots] = useState<SmartSlot[]>([]);
     const [analyzingSlots, setAnalyzingSlots] = useState(false);
 
+
+    // Use token derived from params
     useEffect(() => {
         const init = async () => {
+            if (!token) return; // Wait for token
+
             try {
-                if (isNew) {
+                if (token === 'new') {
+                    setIsGuest(true);
+                    setStep(0);
                     const s = await getClientServices();
                     setServices(s);
                 } else {
-                    const link = await verifyBookingToken(params.token);
+                    const link = await verifyBookingToken(token);
                     if (link) {
                         setClientData(link.client);
                         if (link.client.properties.length > 0) {
@@ -49,7 +69,7 @@ export default function ClientBookingPage({ params }: { params: { token: string 
             }
         };
         init();
-    }, [params.token, isNew]);
+    }, [token]);
 
     const handleGuestSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,7 +116,7 @@ export default function ClientBookingPage({ params }: { params: { token: string 
                 );
             } else {
                 await confirmBooking(
-                    params.token,
+                    token,
                     selectedPropertyId,
                     selectedService.id,
                     new Date(selectedSlot.date),
@@ -120,7 +140,7 @@ export default function ClientBookingPage({ params }: { params: { token: string 
         return (
             <div className="p-8 text-center text-red-500">
                 <h2 className="text-xl font-bold mb-2">Invalid or Expired Link</h2>
-                <p className="text-sm text-gray-500">Token ID: {params.token}</p>
+                <p className="text-sm text-gray-500">Token ID: {token || "Missing"}</p>
                 <p className="mt-4">Please request a new booking link.</p>
             </div>
         );
