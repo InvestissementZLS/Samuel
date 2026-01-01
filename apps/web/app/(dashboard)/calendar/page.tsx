@@ -9,44 +9,56 @@ export const metadata: Metadata = {
 };
 
 export default async function CalendarPage() {
-    const [jobs, clients, technicians] = await Promise.all([
-        prisma.job.findMany({
-            include: {
-                property: {
-                    include: {
-                        client: true,
+    let jobs = [], clients = [], technicians = [];
+    try {
+        [jobs, clients, technicians] = await Promise.all([
+            prisma.job.findMany({
+                include: {
+                    property: {
+                        include: {
+                            client: true,
+                        },
+                    },
+                    technicians: true,
+                    invoices: true,
+                    activities: {
+                        include: {
+                            user: true
+                        },
+                        orderBy: {
+                            createdAt: 'desc'
+                        }
                     },
                 },
-                technicians: true,
-                invoices: true,
-                activities: {
-                    include: {
-                        user: true
-                    },
-                    orderBy: {
-                        createdAt: 'desc'
-                    }
+            }),
+            prisma.client.findMany({
+                include: {
+                    properties: true,
                 },
-            },
-        }),
-        prisma.client.findMany({
-            include: {
-                properties: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        }),
-        prisma.user.findMany({
-            where: {
-                role: 'TECHNICIAN',
-                isActive: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        }),
-    ]);
+                orderBy: {
+                    name: 'asc',
+                },
+            }),
+            prisma.user.findMany({
+                where: {
+                    role: 'TECHNICIAN',
+                    isActive: true,
+                },
+                orderBy: {
+                    name: 'asc',
+                },
+            }),
+        ]);
+    } catch (error: any) {
+        console.error("Calendar Page Error:", error);
+        return (
+            <div className="p-8 text-red-600">
+                <h1 className="text-2xl font-bold">Error Loading Calendar</h1>
+                <code className="block mt-4 bg-gray-100 p-2 rounded">{error.message}</code>
+                <pre className="mt-2 text-xs">{JSON.stringify(error, null, 2)}</pre>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
