@@ -36,160 +36,172 @@ export async function findSmartSlots(
     propertyId: string,
     startDateStr: string = new Date().toISOString()
 ) {
-    // 1. Get Service Details (Duration & Techs)
-    // @ts-ignore
-    const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) throw new Error("Product not found");
+    try {
+        // 1. Get Service Details (Duration & Techs)
+        // @ts-ignore
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        if (!product) throw new Error("Product not found");
 
-    // @ts-ignore
-    const duration = product.durationMinutes || 60;
-    // @ts-ignore
-    const minTechs = product.minTechnicians || 1;
+        // @ts-ignore
+        const duration = product.durationMinutes || 60;
+        // @ts-ignore
+        const minTechs = product.minTechnicians || 1;
 
-    // 2. Get Target Location (Optional)
-    let targetProperty = null;
-    if (propertyId && propertyId !== 'temp') {
-        targetProperty = await prisma.property.findUnique({ where: { id: propertyId } });
-    }
-
-    // If no property found (e.g. Guest Booking), we just skip distance optimization
-    // if (!targetProperty) throw new Error("Property not found"); // REMOVED STRICT CHECK
-
-    // 3. Search Schedule for next 7 days
-    const slots: SmartSlot[] = [];
-    const technicians = await prisma.user.findMany({
-        where: { role: 'TECHNICIAN', isActive: true }
-    });
-    console.log(`[SmartSlots] Found ${technicians.length} active technicians`, technicians.map(t => t.name));
-
-    const startDate = parseISO(startDateStr);
-
-    // Iterate 7 days
-    for (let i = 0; i < 7; i++) {
-        const currentDate = addDays(startDate, i);
-        const dayStart = startOfDay(currentDate);
-        const dayEnd = endOfDay(currentDate);
-
-        // Fetch existing jobs for this day
-        const existingJobs = await prisma.job.findMany({
-            where: {
-                scheduledAt: { gte: dayStart, lte: dayEnd },
-                status: { notIn: ['CANCELLED'] } // REJECTED is not a valid JobStatus
-            },
-            include: { property: true, technicians: true }
-        });
-
-        // Simple Heuristic: Check Morning (8AM) and Afternoon (1PM) slots
-        // Generate hourly slots from 8 AM to 6 PM (18:00)
-        const candidates = [];
-        for (let hour = 8; hour < 18; hour++) {
-            candidates.push({ time: `${hour.toString().padStart(2, '0')}:00`, hour });
+        // 2. Get Target Location (Optional)
+        let targetProperty = null;
+        if (propertyId && propertyId !== 'temp') {
+            targetProperty = await prisma.property.findUnique({ where: { id: propertyId } });
         }
 
-        for (const tech of technicians) {
-            // Filter jobs assigned to this tech
-            const techJobs = existingJobs.filter(j => j.technicians.some(t => t.id === tech.id));
+        // If no property found (e.g. Guest Booking), we just skip distance optimization
+        // if (!targetProperty) throw new Error("Property not found"); // REMOVED STRICT CHECK
 
-            for (const candidate of candidates) {
-                // Check conflicts (Very basic overlap check)
-                const candidateDate = new Date(currentDate);
-                candidateDate.setHours(candidate.hour, 0, 0, 0);
+        // 3. Search Schedule for next 7 days
+        const slots: SmartSlot[] = [];
+        const technicians = await prisma.user.findMany({
+            where: { role: 'TECHNICIAN', isActive: true }
+        });
+        console.log(`[SmartSlots] Found ${technicians.length} active technicians`, technicians.map(t => t.name));
 
-                // --- TIMEZONE FIX: Ensure we check against Montreal Time ---
-                let isPast = false;
-                try {
-                    // Get current time in Montreal
-                    const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
-                    const nowMontreal = new Date(nowMontrealStr);
+        const startDate = parseISO(startDateStr);
 
-                    // Robust: Treat 'candidateDate' as the intended Wall Clock time in Montreal.
-                    // If candidate is "Jan 1, 08:00", we want to compare it to "Now in Montreal".
+        // Iterate 7 days
+        for (let i = 0; i < 7; i++) {
+            const currentDate = addDays(startDate, i);
+            const dayStart = startOfDay(currentDate);
+            const dayEnd = endOfDay(currentDate);
 
-                    if (isSameDay(candidateDate, nowMontreal)) {
-                        const currentHourMontreal = nowMontreal.getHours();
-                        if (candidate.hour <= currentHourMontreal) isPast = true;
-                    } else if (candidateDate < startOfDay(nowMontreal)) {
-                        isPast = true;
+            // Fetch existing jobs for this day
+            const existingJobs = await prisma.job.findMany({
+                where: {
+                    scheduledAt: { gte: dayStart, lte: dayEnd },
+                    status: { notIn: ['CANCELLED'] } // REJECTED is not a valid JobStatus
+                },
+                include: { property: true, technicians: true }
+            });
+
+            // Simple Heuristic: Check Morning (8AM) and Afternoon (1PM) slots
+            // Generate hourly slots from 8 AM to 6 PM (18:00)
+            const candidates = [];
+            for (let hour = 8; hour < 18; hour++) {
+                candidates.push({ time: `${hour.toString().padStart(2, '0')}:00`, hour });
+            }
+
+            for (const tech of technicians) {
+                // Filter jobs assigned to this tech
+                const techJobs = existingJobs.filter(j => j.technicians.some(t => t.id === tech.id));
+
+                for (const candidate of candidates) {
+                    // Check conflicts (Very basic overlap check)
+                    const candidateDate = new Date(currentDate);
+                    candidateDate.setHours(candidate.hour, 0, 0, 0);
+
+                    // --- TIMEZONE FIX: Ensure we check against Montreal Time ---
+                    let isPast = false;
+                    try {
+                        // Get current time in Montreal
+                        const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
+                        const nowMontreal = new Date(nowMontrealStr);
+
+                        // Robust: Treat 'candidateDate' as the intended Wall Clock time in Montreal.
+                        // If candidate is "Jan 1, 08:00", we want to compare it to "Now in Montreal".
+
+                        if (isSameDay(candidateDate, nowMontreal)) {
+                            const currentHourMontreal = nowMontreal.getHours();
+                            if (candidate.hour <= currentHourMontreal) isPast = true;
+                        } else if (candidateDate < startOfDay(nowMontreal)) {
+                            isPast = true;
+                        }
+                    } catch (e) {
+                        console.error("Timezone Check Failed, defaulting to Server Time", e);
+                        // Fallback to simple server time check
+                        if (candidateDate < new Date()) isPast = true;
                     }
-                } catch (e) {
-                    console.error("Timezone Check Failed, defaulting to Server Time", e);
-                    // Fallback to simple server time check
-                    if (candidateDate < new Date()) isPast = true;
-                }
 
-                if (isPast) continue;
-                // -----------------------------------------------------------
+                    if (isPast) continue;
+                    // -----------------------------------------------------------
 
-                const candidateEnd = addMinutes(candidateDate, duration);
+                    const candidateEnd = addMinutes(candidateDate, duration);
 
-                const hasConflict = techJobs.some(job => {
-                    const jobStart = new Date(job.scheduledAt);
-                    // @ts-ignore
-                    const jobEnd = job.scheduledEndAt || addMinutes(jobStart, 60);
-                    return (candidateDate < jobEnd && candidateEnd > jobStart);
-                });
+                    const hasConflict = techJobs.some(job => {
+                        const jobStart = new Date(job.scheduledAt);
+                        // @ts-ignore
+                        const jobEnd = job.scheduledEndAt || addMinutes(jobStart, 60);
+                        return (candidateDate < jobEnd && candidateEnd > jobStart);
+                    });
 
-                if (hasConflict) continue;
+                    if (hasConflict) continue;
 
-                // Optimization: Distance to other jobs this day
-                let minDistance = 9999;
-                let nearbyJobCount = 0;
+                    // Optimization: Distance to other jobs this day
+                    let minDistance = 9999;
+                    let nearbyJobCount = 0;
 
-                if (techJobs.length === 0) {
-                    // Empty day - Neutral score
-                    minDistance = 0; // No travel constraint
-                } else if (targetProperty) {
-                    for (const job of techJobs) {
-                        const dist = calculateDistance(
-                            targetProperty.latitude || 0,
-                            targetProperty.longitude || 0,
-                            job.property.latitude || 0,
-                            job.property.longitude || 0
-                        );
-                        if (dist < minDistance) minDistance = dist;
-                        if (dist < 10) nearbyJobCount++; // Jobs within 10km
-                    }
-                } else {
-                    // Guest Booking (No location known) - Just assume neutral distance
-                    minDistance = 9999;
-                }
+                    if (techJobs.length === 0) {
+                        // Empty day - Neutral score
+                        minDistance = 0; // No travel constraint
+                    } else if (targetProperty) {
+                        for (const job of techJobs) {
+                            // Defensive Check: If job has no property (data integrity issue), skip distance calculation or treat as far
+                            if (!job.property) {
+                                console.warn(`[SmartSlots] Job ${job.id} implies travel but has no property data. Skipping distance calc for this job.`);
+                                continue;
+                            }
 
-                // Scoring Logic
-                let score = 50; // Base
-                let reason = "Available";
-
-                if (techJobs.length > 0) {
-                    if (minDistance < 5) {
-                        score += 40;
-                        reason = `Excellent Efficiency! Only ${minDistance.toFixed(1)}km from another job.`;
-                    } else if (minDistance < 15) {
-                        score += 20;
-                        reason = `Good Efficiency (${minDistance.toFixed(1)}km detour).`;
-                    } else if (!targetProperty) {
-                        score += 0; // Neutral for guests
-                        reason = "Available (Guest Booking)";
+                            const dist = calculateDistance(
+                                targetProperty.latitude || 0,
+                                targetProperty.longitude || 0,
+                                job.property.latitude || 0,
+                                job.property.longitude || 0
+                            );
+                            if (dist < minDistance) minDistance = dist;
+                            if (dist < 10) nearbyJobCount++; // Jobs within 10km
+                        }
                     } else {
-                        score -= 10;
-                        reason = `Far from other jobs (${minDistance.toFixed(1)}km).`;
+                        // Guest Booking (No location known) - Just assume neutral distance
+                        minDistance = 9999;
                     }
-                } else {
-                    score += 10;
-                    reason = "Technician's first job of the day.";
-                }
 
-                slots.push({
-                    date: candidateDate,
-                    startTime: candidate.time,
-                    technicianId: tech.id,
-                    // @ts-ignore
-                    technicianName: tech.name,
-                    score,
-                    reason
-                });
+                    // Scoring Logic
+                    let score = 50; // Base
+                    let reason = "Available";
+
+                    if (techJobs.length > 0) {
+                        if (minDistance < 5) {
+                            score += 40;
+                            reason = `Excellent Efficiency! Only ${minDistance.toFixed(1)}km from another job.`;
+                        } else if (minDistance < 15) {
+                            score += 20;
+                            reason = `Good Efficiency (${minDistance.toFixed(1)}km detour).`;
+                        } else if (!targetProperty) {
+                            score += 0; // Neutral for guests
+                            reason = "Available (Guest Booking)";
+                        } else {
+                            score -= 10;
+                            reason = `Far from other jobs (${minDistance.toFixed(1)}km).`;
+                        }
+                    } else {
+                        score += 10;
+                        reason = "Technician's first job of the day.";
+                    }
+
+                    slots.push({
+                        date: candidateDate,
+                        startTime: candidate.time,
+                        technicianId: tech.id,
+                        // @ts-ignore
+                        technicianName: tech.name,
+                        score,
+                        reason
+                    });
+                }
             }
         }
-    }
 
-    // Sort by Score desc
-    return slots.sort((a, b) => b.score - a.score); // Return all valid slots
+        console.log(`[SmartSlots] Success. Found ${slots.length} total slots.`);
+        // Sort by Score desc
+        return slots.sort((a, b) => b.score - a.score); // Return all valid slots
+    } catch (e: any) {
+        console.error("[SmartSlots] CRITICAL FAILURE:", e);
+        throw new Error(`Scheduling System Error: ${e.message || "Unknown"}`);
+    }
 }
