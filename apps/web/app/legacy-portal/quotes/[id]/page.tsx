@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { QuotePortalClient } from "./quote-portal-client";
 
 interface PageProps {
-    params: Promise<{
+    params: {
         id: string;
-    }>;
+    };
 }
 
 export default async function QuotePortalPage({ params }: PageProps) {
-    const { id } = await params;
+    const { id } = params;
     const quote = await prisma.quote.findUnique({
         where: { id },
         include: {

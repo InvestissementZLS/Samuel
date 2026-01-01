@@ -7,7 +7,7 @@ import { sendPasswordResetEmail } from "@/lib/email";
 
 // Helper to get current user from cookie
 async function getCurrentUser() {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const userId = cookieStore.get("auth_token")?.value;
     if (!userId) return null;
     return await prisma.user.findUnique({ where: { id: userId } });

@@ -3,13 +3,13 @@ import { notFound } from "next/navigation";
 import { InvoicePortalClient } from "./invoice-portal-client";
 
 interface PageProps {
-    params: Promise<{
+    params: {
         id: string;
-    }>;
+    };
 }
 
 export default async function InvoicePortalPage({ params }: PageProps) {
-    const { id } = await params;
+    const { id } = params;
 
     const invoice = await prisma.invoice.findUnique({
         where: { id },
