@@ -5,7 +5,10 @@
     ],
     "globalEnv": [
         "DATABASE_URL",
-        "DIRECT_URL"
+        "DIRECT_URL",
+        "RESEND_API_KEY",
+        "RESEND_API_KEY_ENTREPRISES",
+        "RESEND_API_KEY_EXTERMINATION"
     ],
     "tasks": {
         "build": {
