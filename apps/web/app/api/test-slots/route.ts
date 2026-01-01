@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-// import { findSmartSlots } from '@/app/actions/scheduling-actions';
-// import { prisma } from '@/lib/prisma';
+import { findSmartSlots } from '@/app/actions/scheduling-actions';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic'; // Force dynamic (no cached static build)
 
 export async function GET() {
-    return NextResponse.json({ status: "Alive", message: "Deployment Success" });
-    /*
     try {
         // Find first service
+        // @ts-ignore
         const service = await prisma.product.findFirst({ where: { type: 'SERVICE' } });
         if (!service) return NextResponse.json({ error: "No SERVICE product found in DB" }, { status: 404 });
 
@@ -28,5 +27,4 @@ export async function GET() {
             stack: e.stack
         }, { status: 500 });
     }
-    */
 }

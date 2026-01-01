@@ -129,10 +129,17 @@ export async function findSmartSlots(
                 for (const candidate of candidates) {
                     debugStats.candidatesChecked++;
                     // Check conflicts (Very basic overlap check)
+                    // Create a candidate date that represents this hour in Montreal
                     const candidateDate = new Date(currentDate);
-                    // EST is UTC-5 (Winter). So 8 AM EST = 13:00 UTC.
-                    // We use setUTCHours to force the correct absolute timestamp.
-                    candidateDate.setUTCHours(candidate.hour + 5, 0, 0, 0);
+
+                    // Helper to determine offset (EST=5, EDT=4)
+                    const getMontrealOffset = (d: Date) => {
+                        const str = d.toLocaleString("en-US", { timeZone: "America/Montreal", timeZoneName: "short" });
+                        return str.includes("EDT") ? 4 : 5;
+                    };
+
+                    const offset = getMontrealOffset(candidateDate);
+                    candidateDate.setUTCHours(candidate.hour + offset, 0, 0, 0);
 
                     // --- TIMEZONE FIX: Ensure we check against Montreal Time ---
                     let isPast = false;
@@ -141,11 +148,7 @@ export async function findSmartSlots(
                         const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
                         const nowMontreal = new Date(nowMontrealStr);
 
-                        // Compare candidate (which is now correctly 8 AM EST / 13 PM UTC)
-                        // But wait, 'candidateDate' object is UTC.
-                        // We need to compare "Wall Clock" time.
-
-                        // Convert candidate UTC timestamp to Montreal Wall Clock Date
+                        // Convert candidate UTC timestamp to Montreal Wall Clock Date for comparison
                         const candidateMontrealStr = candidateDate.toLocaleString("en-US", { timeZone: "America/Montreal" });
                         const candidateMontreal = new Date(candidateMontrealStr);
 
@@ -153,7 +156,7 @@ export async function findSmartSlots(
                             isPast = true;
                         }
                     } catch (e) {
-                        // Fallback to simple server time check
+                        // Fallback
                         if (candidateDate < new Date()) isPast = true;
                     }
 
