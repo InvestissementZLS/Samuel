@@ -113,7 +113,19 @@ export default function ClientBookingPage() {
                 }
             } catch (e: any) {
                 console.error("Slot Finding Error:", e);
-                toast.error(e.message || "Could not find slots. Please try again.");
+                // Display raw error for debugging
+                const errorMsg = e.message || JSON.stringify(e) || "Unknown Error";
+                toast.error(`Error: ${errorMsg}`);
+
+                // Also set a visible error in the UI (temporary for debug)
+                setAvailableSlots([{
+                    date: new Date(),
+                    startTime: "ERR",
+                    technicianId: "error",
+                    technicianName: "ERROR",
+                    score: 0,
+                    reason: `SYSTEM ERROR: ${errorMsg}`
+                } as any]);
             } finally {
                 setAnalyzingSlots(false);
             }
