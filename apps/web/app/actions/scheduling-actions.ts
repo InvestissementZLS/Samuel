@@ -60,6 +60,7 @@ export async function findSmartSlots(
     const technicians = await prisma.user.findMany({
         where: { role: 'TECHNICIAN', isActive: true }
     });
+    console.log(`[SmartSlots] Found ${technicians.length} active technicians`, technicians.map(t => t.name));
 
     const startDate = parseISO(startDateStr);
 
@@ -95,31 +96,28 @@ export async function findSmartSlots(
                 candidateDate.setHours(candidate.hour, 0, 0, 0);
 
                 // --- TIMEZONE FIX: Ensure we check against Montreal Time ---
-                // Get current time in Montreal
-                const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
-                const nowMontreal = new Date(nowMontrealStr);
+                let isPast = false;
+                try {
+                    // Get current time in Montreal
+                    const nowMontrealStr = new Date().toLocaleString("en-US", { timeZone: "America/Montreal" });
+                    const nowMontreal = new Date(nowMontrealStr);
 
-                // Get candidate time in Montreal (Approximate for comparison)
-                // Since candidateDate is created from 'currentDate' (which iterates days), 
-                // and 'setHours' sets local server hours.
-                // We need to be careful. If server is UTC, setHours(8) is 8 AM UTC.
-                // BUT, our goal involves comparing "Is this slot past?".
+                    // Robust: Treat 'candidateDate' as the intended Wall Clock time in Montreal.
+                    // If candidate is "Jan 1, 08:00", we want to compare it to "Now in Montreal".
 
-                // ROBUST APPROACH: 
-                // Treat 'candidateDate' as the intended Wall Clock time in Montreal.
-                // If candidate is "Jan 1, 08:00", we want to compare it to "Now in Montreal".
-
-                // Construct a Date object representing the candidates Wall Clock time relative to Now's relative time.
-                // If nowMontreal is "Dec 31, 20:00", and candidate is "Dec 31, 08:00", it should skip.
-
-                if (isSameDay(candidateDate, nowMontreal)) {
-                    const currentHourMontreal = nowMontreal.getHours();
-                    if (candidate.hour <= currentHourMontreal) continue;
+                    if (isSameDay(candidateDate, nowMontreal)) {
+                        const currentHourMontreal = nowMontreal.getHours();
+                        if (candidate.hour <= currentHourMontreal) isPast = true;
+                    } else if (candidateDate < startOfDay(nowMontreal)) {
+                        isPast = true;
+                    }
+                } catch (e) {
+                    console.error("Timezone Check Failed, defaulting to Server Time", e);
+                    // Fallback to simple server time check
+                    if (candidateDate < new Date()) isPast = true;
                 }
 
-                // Also skip if candidate day is strictly before today (Montreal)
-                if (candidateDate < startOfDay(nowMontreal)) continue;
-
+                if (isPast) continue;
                 // -----------------------------------------------------------
 
                 const candidateEnd = addMinutes(candidateDate, duration);
