@@ -38,6 +38,18 @@ export default function ClientBookingPage() {
     // Slots
     const [availableSlots, setAvailableSlots] = useState<SmartSlot[]>([]);
     const [analyzingSlots, setAnalyzingSlots] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+    // Group slots by date
+    const slotsByDate = availableSlots.reduce((acc, slot) => {
+        const day = format(new Date(slot.date), "yyyy-MM-dd");
+        if (!acc[day]) acc[day] = [];
+        acc[day].push(slot);
+        return acc;
+    }, {} as Record<string, SmartSlot[]>);
+
+    // Get unique dates sorted
+    const availableDates = Object.keys(slotsByDate).sort();
 
 
     // Use token derived from params
@@ -94,8 +106,14 @@ export default function ClientBookingPage() {
                 // Let's modify availableSlots to just be generic for now if guest.
                 const slots = await findSmartSlots(service.id, selectedPropertyId === 'temp' ? '' : selectedPropertyId);
                 setAvailableSlots(slots);
-            } catch (e) {
-                toast.error("Could not find slots");
+
+                // Auto-select first date
+                if (slots.length > 0) {
+                    setSelectedDate(format(new Date(slots[0].date), "yyyy-MM-dd"));
+                }
+            } catch (e: any) {
+                console.error("Slot Finding Error:", e);
+                toast.error(e.message || "Could not find slots. Please try again.");
             } finally {
                 setAnalyzingSlots(false);
             }
@@ -254,27 +272,68 @@ export default function ClientBookingPage() {
                                         Finding best availability...
                                     </div>
                                 ) : (
-                                    <div className="grid gap-3">
-                                        {availableSlots.map((slot, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => setSelectedSlot(slot)}
-                                                className={`p-4 rounded-lg border text-left flex justify-between items-center transition-all ${selectedSlot === slot
-                                                    ? 'border-blue-600 bg-blue-50 shadow-md ring-1 ring-blue-600'
-                                                    : 'hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <div>
-                                                    <div className="font-bold text-gray-900">
-                                                        {format(new Date(slot.date), "EEEE, MMMM d")}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">
-                                                        Arriving around {slot.startTime}
-                                                    </div>
-                                                </div>
-                                                {selectedSlot === slot && <Check className="text-blue-600" />}
-                                            </button>
-                                        ))}
+                                    <div className="space-y-6">
+                                        {/* Horizontal Date Picker */}
+                                        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+                                            {availableDates.map((dateStr) => {
+                                                const dateObj = new Date(dateStr + 'T00:00:00'); // Safe parsing for ISO date string yyyy-MM-dd
+                                                return (
+                                                    <button
+                                                        key={dateStr}
+                                                        onClick={() => setSelectedDate(dateStr)}
+                                                        className={`flex-shrink-0 px-4 py-3 rounded-lg border text-center transition-all min-w-[100px] ${selectedDate === dateStr
+                                                            ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                                                            }`}
+                                                    >
+                                                        <div className={`text-xs uppercase font-semibold ${selectedDate === dateStr ? 'text-blue-100' : 'text-gray-500'}`}>
+                                                            {format(dateObj, "EEE")}
+                                                        </div>
+                                                        <div className="text-lg font-bold">
+                                                            {format(dateObj, "MMM d")}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Slots Grid for Selected Date */}
+                                        {selectedDate && slotsByDate[selectedDate] ? (
+                                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                                {/* Deduplicate slots by time, picking the best one (already sorted by score from backend) */}
+                                                {Array.from(
+                                                    new Map(
+                                                        slotsByDate[selectedDate]
+                                                            .map(slot => [slot.startTime, slot])
+                                                    ).values()
+                                                )
+                                                    .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                                                    .map((slot, i) => (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setSelectedSlot(slot)}
+                                                            className={`p-3 rounded-lg border text-left flex justify-between items-center transition-all ${selectedSlot?.startTime === slot.startTime && selectedSlot?.date.toString() === slot.date.toString()
+                                                                ? 'border-blue-600 bg-blue-50 shadow-md ring-1 ring-blue-600'
+                                                                : 'hover:border-gray-300'
+                                                                }`}
+                                                        >
+                                                            <div>
+                                                                <div className="font-bold text-gray-900">
+                                                                    {slot.startTime}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {slot.reason.includes("Guest") ? "Available" : "Best Slot"}
+                                                                </div>
+                                                            </div>
+                                                            {selectedSlot?.startTime === slot.startTime && <Check className="h-4 w-4 text-blue-600" />}
+                                                        </button>
+                                                    ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center text-gray-500 py-12 bg-gray-50 rounded-lg dashed border border-gray-200">
+                                                {availableDates.length > 0 ? "Select a date to view times." : "No slots available."}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

@@ -16,6 +16,8 @@ export function ProductList({ products }: ProductListProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { division } = useDivision();
 
+    const [activeTab, setActiveTab] = useState<'INVENTORY' | 'EQUIPMENT' | 'SERVICES'>('INVENTORY');
+
     const handleAdd = () => {
         setSelectedProduct(null);
         setIsDialogOpen(true);
@@ -29,19 +31,62 @@ export function ProductList({ products }: ProductListProps) {
     const filteredProducts = products.filter(product => {
         // @ts-ignore
         const productDivision = product.division || "EXTERMINATION";
-        return productDivision === division;
+        // @ts-ignore
+        const productType = product.type || "CONSUMABLE";
+
+        const matchesDivision = productDivision === division;
+        const matchesTab = activeTab === 'INVENTORY'
+            ? (productType === 'CONSUMABLE')
+            : activeTab === 'EQUIPMENT'
+                ? (productType === 'EQUIPMENT')
+                : (productType === 'SERVICE');
+
+        return matchesDivision && matchesTab;
     });
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">Inventory ({filteredProducts.length})</h2>
+                <div>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                        {activeTab === 'INVENTORY' ? 'Consumables' : activeTab === 'EQUIPMENT' ? 'Equipment & Tools' : 'Service Templates'}
+                    </h2>
+                    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg inline-block">
+                        <button
+                            onClick={() => setActiveTab('INVENTORY')}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'INVENTORY'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                        >
+                            Inventory
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('EQUIPMENT')}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'EQUIPMENT'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                        >
+                            Equipment
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('SERVICES')}
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'SERVICES'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                        >
+                            Services
+                        </button>
+                    </div>
+                </div>
                 <div className="flex gap-2">
                     <button
                         onClick={handleAdd}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
                     >
-                        + Add Product
+                        + Add {activeTab === 'INVENTORY' ? 'Consumable' : activeTab === 'EQUIPMENT' ? 'Equipment' : 'Service'}
                     </button>
                 </div>
             </div>
@@ -52,10 +97,17 @@ export function ProductList({ products }: ProductListProps) {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Division</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                            {activeTab !== 'SERVICES' && (
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                            )}
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                            {activeTab !== 'SERVICES' && (
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                            )}
+                            {activeTab === 'SERVICES' && (
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                            )}
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -73,9 +125,11 @@ export function ProductList({ products }: ProductListProps) {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {product.name}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {product.unit}
-                                </td>
+                                {activeTab !== 'SERVICES' && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {product.unit}
+                                    </td>
+                                )}
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     ${product.price.toFixed(2)}
                                 </td>
@@ -83,9 +137,17 @@ export function ProductList({ products }: ProductListProps) {
                                     {/* @ts-ignore */}
                                     ${(product.cost || 0).toFixed(2)}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                                    {product.stock}
-                                </td>
+                                {activeTab !== 'SERVICES' && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                                        {product.stock}
+                                    </td>
+                                )}
+                                {activeTab === 'SERVICES' && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {/* @ts-ignore */}
+                                        {product.durationMinutes || 60} min
+                                    </td>
+                                )}
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
                                         onClick={(e) => {
@@ -102,7 +164,7 @@ export function ProductList({ products }: ProductListProps) {
                         {filteredProducts.length === 0 && (
                             <tr>
                                 <td colSpan={7} className="px-6 py-8 text-center text-gray-500 italic">
-                                    No products found.
+                                    No items found.
                                 </td>
                             </tr>
                         )}
