@@ -12,7 +12,9 @@
     "prettier": "^3.0.0",
     "prisma": "^5.22.0",
     "turbo": "latest",
-    "next": "latest"
+    "next": "latest",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "packageManager": "npm@10.0.0",
   "workspaces": [
