@@ -10,7 +10,6 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@repo/db": "*",
         "@prisma/client": "^5.22.0",
         "@radix-ui/react-popover": "^1.1.15",
         "@radix-ui/react-slot": "^1.2.4",
