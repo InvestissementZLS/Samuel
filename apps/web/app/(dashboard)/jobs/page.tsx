@@ -1,19 +1,18 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { JobList } from '@/components/jobs/job-list';
+import { serialize } from '@/lib/serialization';
 
 export default async function JobsPage() {
-    const jobs = await prisma.job.findMany({
+    const jobsData = await prisma.job.findMany({
         include: {
-            property: {
-                include: {
-                    client: true,
-                },
-            },
+            property: { include: { client: true } },
             technicians: true,
         },
         orderBy: { scheduledAt: 'asc' },
     });
+
+    const jobs = serialize(jobsData);
 
     return (
         <div className="space-y-6">
