@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { addDays } from 'date-fns';
 import { createCalendarJob } from './calendar-actions';
 import { JobStatus } from '@prisma/client';
+import { sendBookingConfirmation } from '@/lib/email-service';
 
 export async function createBookingLink(clientId: string) {
     // Generate a link valid for 7 days
@@ -69,8 +70,17 @@ export async function confirmBooking(
     // User wants "Flow" so maybe keep it active for other bookings? 
     // Let's set it to USED if we want one-time. 
     // For now, let's keep it ACTIVE so they can re-use it or book multiple services if needed.
-    // Or maybe update status?
     // prisma.bookingLink.update({ where: { id: link.id }, data: { status: 'USED' } });
+
+    // 3. Send Confirmation Email
+    if (link.client.email) {
+        await sendBookingConfirmation(
+            link.client.email,
+            link.client.name,
+            scheduledAt,
+            description
+        );
+    }
 
     return job;
 }
@@ -120,6 +130,17 @@ export async function confirmGuestBooking(
             division: 'EXTERMINATION'
         }
     });
+
+
+    // 3. Send Confirmation Email
+    if (client.email) {
+        await sendBookingConfirmation(
+            client.email,
+            client.name,
+            scheduledAt,
+            description
+        );
+    }
 
     return { client, job };
 }
