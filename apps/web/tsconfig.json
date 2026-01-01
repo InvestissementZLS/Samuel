@@ -5,12 +5,6 @@
         "paths": {
             "@/*": [
                 "./*"
-            ],
-            "@prisma/client": [
-                "../../packages/db/index.ts"
-            ],
-            "@repo/db": [
-                "../../packages/db/index.ts"
             ]
         },
         "plugins": [
