@@ -17,7 +17,7 @@ export default async function TechniciansPage() {
 
     const technicians = await prisma.user.findMany({
         where: {
-            role: 'TECHNICIAN',
+            role: { in: ['TECHNICIAN', 'OFFICE', 'ADMIN'] },
             ...(isAdmin ? {} : { isActive: true }) // Only show active technicians if not admin
         },
         orderBy: { name: 'asc' },
