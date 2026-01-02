@@ -88,7 +88,13 @@ export async function deleteTechnician(id: string) {
 
 export async function getTechnicians() {
     return await prisma.user.findMany({
-        where: { role: 'TECHNICIAN' },
+        where: {
+            OR: [
+                { role: 'TECHNICIAN' },
+                { role: 'OFFICE' },
+                { role: 'ADMIN' }
+            ]
+        },
         orderBy: { name: 'asc' }
     });
 }
