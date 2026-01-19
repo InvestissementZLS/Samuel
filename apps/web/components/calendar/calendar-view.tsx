@@ -46,7 +46,6 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     // Filters
     const [selectedTechId, setSelectedTechId] = useState<string>("all");
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
-    const [selectedStatus, setSelectedStatus] = useState<string>("all");
     const [isMobile, setIsMobile] = useState(false);
     const [showSidebar, setShowSidebar] = useState(true);
 

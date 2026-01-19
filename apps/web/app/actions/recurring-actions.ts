@@ -102,13 +102,11 @@ export async function generateFollowUpJobs(parentJobId: string) {
         // Fetch full package details including included services
         const fullPackage = await prisma.product.findUnique({
             where: { id: packageProduct.productId },
-            where: { id: packageProduct.productId },
             include: { includedServices: { include: { childProduct: true }, orderBy: { order: 'asc' } } }
         });
 
         if (fullPackage && fullPackage.includedServices.length > 0) {
             for (const item of fullPackage.includedServices) {
-                const service = item.childProduct;
                 const service = item.childProduct;
                 // Timeline Logic
                 // Base date is parent job date + delay
