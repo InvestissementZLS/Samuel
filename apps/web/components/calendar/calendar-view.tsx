@@ -46,10 +46,26 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     // Filters
     const [selectedTechId, setSelectedTechId] = useState<string>("all");
     const [selectedStatus, setSelectedStatus] = useState<string>("all");
+    const [selectedStatus, setSelectedStatus] = useState<string>("all");
     const [isMobile, setIsMobile] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(true);
 
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        const checkMobile = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            // Default Sidebar visibility based on screen size
+            if (mobile) {
+                setShowSidebar(false);
+            } else {
+                setShowSidebar(true);
+            }
+
+            // Force Agenda view on mobile start if not already set
+            if (mobile && view !== Views.AGENDA && view !== Views.DAY) {
+                setView(Views.AGENDA);
+            }
+        };
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
@@ -227,29 +243,48 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                                 &gt;
                             </button>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 min-w-[180px]">
+
+                        <h3 className="text-lg font-semibold text-gray-900 min-w-[180px] hidden sm:block">
                             {format(date, 'MMMM yyyy')}
                         </h3>
+
+                        {/* Mobile Sidebar Toggle */}
+                        {isMobile && (
+                            <button
+                                onClick={() => setShowSidebar(!showSidebar)}
+                                className={`px-2 py-1.5 rounded-md border ${showSidebar ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-gray-200 text-gray-700'}`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /></svg>
+                            </button>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg overflow-x-auto max-w-full">
                         <button
                             onClick={() => setView(Views.MONTH)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             {t.calendar.month}
                         </button>
-                        <button
-                            onClick={() => setView(Views.WEEK)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
-                        >
-                            {t.calendar.week}
-                        </button>
+                        {!isMobile && (
+                            <button
+                                onClick={() => setView(Views.WEEK)}
+                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            >
+                                {t.calendar.week}
+                            </button>
+                        )}
                         <button
                             onClick={() => setView(Views.DAY)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             {t.calendar.day}
+                        </button>
+                        <button
+                            onClick={() => setView(Views.AGENDA)}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.AGENDA ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                        >
+                            List
                         </button>
                     </div>
                 </div>
@@ -339,14 +374,29 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                 </div>
 
                 {/* Sidebar */}
-                <CalendarSidebar
-                    date={date}
-                    setDate={setDate}
-                    selectedJob={selectedJob}
-                    onCloseJobDetails={() => setSelectedJob(null)}
-                    unassignedJobs={unassignedJobs}
-                    jobs={filteredJobs}
-                />
+                {showSidebar && (
+                    <div className={`${isMobile ? 'absolute inset-0 z-10 bg-white' : ''} h-full`}>
+                        <CalendarSidebar
+                            date={date}
+                            setDate={(d) => {
+                                setDate(d);
+                                if (isMobile) setShowSidebar(false); // Close on select
+                            }}
+                            selectedJob={selectedJob}
+                            onCloseJobDetails={() => setSelectedJob(null)}
+                            unassignedJobs={unassignedJobs}
+                            jobs={filteredJobs}
+                        />
+                        {isMobile && (
+                            <button
+                                onClick={() => setShowSidebar(false)}
+                                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             <JobDialog

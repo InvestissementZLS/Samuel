@@ -266,6 +266,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
             isOpen={isOpen}
             onClose={onClose}
             title={product ? t.productDialog.editProduct : t.productDialog.newProduct}
+            maxWidth="max-w-4xl"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -564,31 +565,37 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
 
                                     {/* Timeline Steps */}
                                     <div className="space-y-3 mb-4">
-                                        {includedServices.sort((a, b) => a.order - b.order).map((step, index) => {
+                                        {includedServices.map((step, index) => {
+                                            const availableServiceList = availableServices.filter(s => s.id !== product?.id); // Prevent self-reference?
+                                            // Actually backend handles recursion check but good UI practice
                                             const serviceName = availableServices.find(s => s.id === step.id)?.name || "Unknown Service";
                                             return (
-                                                <div key={index} className="flex flex-col gap-2 p-3 bg-gray-50 border rounded text-sm relative group">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-5 h-5 rounded-full bg-yellow-200 text-yellow-800 flex items-center justify-center text-xs font-bold">
-                                                                {index + 1}
-                                                            </div>
-                                                            <span className="font-medium text-gray-900">{serviceName}</span>
-                                                        </div>
+                                                <div key={index} className="flex flex-col sm:flex-row gap-2 sm:items-end bg-gray-50 p-2 rounded mb-2 border border-blue-100 relative group">
+                                                    <div className="flex items-center justify-between sm:w-auto">
+                                                        <span className="text-xs font-bold w-6 pt-2">{step.order}.</span>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
                                                                 const newList = includedServices.filter((_, i) => i !== index);
+                                                                // Reorder
+                                                                newList.forEach((item, idx) => item.order = idx + 1);
                                                                 setIncludedServices(newList);
                                                             }}
-                                                            className="text-gray-400 hover:text-red-500"
+                                                            className="text-gray-400 hover:text-red-500 sm:hidden"
                                                         >
                                                             <Trash2 size={14} />
                                                         </button>
                                                     </div>
 
-                                                    <div className="grid grid-cols-2 gap-2 mt-1">
-                                                        <div>
+                                                    <div className="flex-1 w-full sm:w-auto">
+                                                        <label className="text-[10px] text-gray-500 uppercase block">Service</label>
+                                                        <div className="font-medium text-sm text-gray-900 border rounded p-1 bg-white truncate">
+                                                            {serviceName}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+                                                        <div className="sm:w-20">
                                                             <label className="text-[10px] text-gray-500 uppercase block">Wait (Days)</label>
                                                             <input
                                                                 type="number"
@@ -602,7 +609,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                                                 className="w-full border rounded p-1 text-xs bg-white"
                                                             />
                                                         </div>
-                                                        <div>
+                                                        <div className="sm:w-32">
                                                             <label className="text-[10px] text-gray-500 uppercase block">Seasonality</label>
                                                             <select
                                                                 value={step.seasonality}
@@ -619,6 +626,18 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                                             </select>
                                                         </div>
                                                     </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newList = includedServices.filter((_, i) => i !== index);
+                                                            newList.forEach((item, idx) => item.order = idx + 1);
+                                                            setIncludedServices(newList);
+                                                        }}
+                                                        className="hidden sm:block text-gray-400 hover:text-red-500 mb-1"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             );
                                         })}

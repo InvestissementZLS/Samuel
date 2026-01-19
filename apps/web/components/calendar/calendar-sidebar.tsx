@@ -45,7 +45,7 @@ export function CalendarSidebar({ date, setDate, selectedJob, onCloseJobDetails,
     const completedCount = dailyJobs.filter(job => job.status === 'COMPLETED').length;
 
     return (
-        <div className="h-full flex flex-col bg-[#1e1e1e] text-gray-300 border-l border-gray-800 w-[250px]">
+        <div className="h-full flex flex-col bg-[#1e1e1e] text-gray-300 border-l border-gray-800 w-full md:w-[250px]">
             {/* Tabs / Header */}
             <div className="flex border-b border-gray-800">
                 <button
