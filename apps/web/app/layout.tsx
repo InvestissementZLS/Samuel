@@ -10,16 +10,24 @@ export const metadata: Metadata = {
     description: "ZLS Field Service Application",
 };
 
+import { cookies } from "next/headers";
+import { LanguageProvider } from "@/components/providers/language-provider";
+
 export default function RootLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const cookieStore = cookies();
+    const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
+    const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
     return (
         <html lang="fr">
             <body className={inter.className}>
-                {children}
-                <Toaster />
+                <LanguageProvider initialLanguage={initialLanguage as any}>
+                    {children}
+                    <Toaster />
+                </LanguageProvider>
             </body>
         </html>
     );
