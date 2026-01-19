@@ -8,8 +8,18 @@ export default async function JobsPage() {
         include: {
             property: { include: { client: true } },
             technicians: true,
+            products: {
+                include: {
+                    product: true
+                }
+            }
         },
         orderBy: { scheduledAt: 'asc' },
+    });
+
+    const services = await prisma.product.findMany({
+        where: { type: 'SERVICE' },
+        orderBy: { name: 'asc' }
     });
 
     const jobs = serialize(jobsData);
@@ -26,7 +36,7 @@ export default async function JobsPage() {
                 </Link>
             </div>
 
-            <JobList jobs={jobs} />
+            <JobList jobs={jobs} services={services} />
         </div>
     );
 }

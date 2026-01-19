@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getPortalData, cancelJob } from "@/app/actions/portal-actions";
 import { format, isAfter, addHours } from "date-fns";
-import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileText, CreditCard } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileText, CreditCard, Download, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { dictionary, Locale } from "@/lib/i18n/dictionary";
 import { PaymentModal } from "@/components/portal/payment-modal";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { InvoicePDF } from "@/components/pdf/invoice-pdf";
+import { QuotePDF } from "@/components/pdf/quote-pdf";
+import Image from "next/image";
 
 // Skeleton Loader
 function SkeletonCard() {
@@ -120,6 +124,7 @@ export default function ClientPortalPage() {
         window.location.reload();
     };
 
+
     // Separate jobs
     const now = new Date();
     const upcomingJobs = jobs.filter(j => new Date(j.scheduledAt) >= now && j.status !== 'CANCELLED' && j.status !== 'COMPLETED');
@@ -149,17 +154,34 @@ export default function ClientPortalPage() {
         );
     }
 
+    const isExtermination = client.divisions?.includes("EXTERMINATION") || true; // Default/Fallback
+
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
             {/* Header */}
             <header className="bg-white shadow">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {p.title}
-                    </h1>
-                    <p className="text-gray-500">
-                        {client.name}
-                    </p>
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {p.title}
+                        </h1>
+                        <p className="text-gray-500">
+                            {client.name}
+                        </p>
+                    </div>
+                    {isExtermination ? (
+                        <img
+                            src="/zls-logo.png"
+                            alt="Extermination ZLS"
+                            className="h-12 w-auto object-contain"
+                        />
+                    ) : (
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="h-12 w-auto object-contain"
+                        />
+                    )}
                 </div>
             </header>
 
@@ -199,7 +221,7 @@ export default function ClientPortalPage() {
                                             <div className="text-xl font-bold text-gray-900">
                                                 ${quote.total.toFixed(2)}
                                             </div>
-                                            <div className="mt-1">
+                                            <div className="mt-1 flex flex-col items-end gap-2">
                                                 {quote.status === 'ACCEPTED' && (
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                         Accepted
@@ -211,9 +233,21 @@ export default function ClientPortalPage() {
                                                     </span>
                                                 )}
                                                 {['DRAFT', 'SENT'].includes(quote.status) && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        Pending
-                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-right mr-4">
+                                                            <div className="font-bold text-gray-900">{quote.total.toFixed(2)} $</div>
+                                                            <div className={`text-xs font-semibold ${quote.status === 'ACCEPTED' ? 'text-green-600' : 'text-gray-500'}`}>
+                                                                {quote.status}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => router.push(`/portal/${token}/quote/${quote.id}`)}
+                                                            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                            View
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
@@ -286,23 +320,32 @@ export default function ClientPortalPage() {
                                                 )}
                                                 {inv.status !== 'PAID' && (
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mt-1">
-                                                        Balance: ${(inv.total - inv.amountPaid).toFixed(2)}
+                                                        Balance: ${(inv.total - (inv.amountPaid || 0)).toFixed(2)}
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {inv.status !== 'PAID' && (inv.total - inv.amountPaid) > 0 && (
+                                            <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => {
-                                                        setSelectedInvoice(inv);
-                                                        setIsPaymentOpen(true);
-                                                    }}
-                                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                                                    onClick={() => router.push(`/portal/${token}/invoice/${inv.id}`)}
+                                                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium border border-blue-200 bg-blue-50 px-3 py-1.5 rounded"
                                                 >
-                                                    <CreditCard className="h-4 w-4 mr-2" />
-                                                    Pay Now
+                                                    <Eye className="h-4 w-4" />
+                                                    Voir
                                                 </button>
-                                            )}
+                                                {inv.status !== 'PAID' && (inv.total - (inv.amountPaid || 0)) > 0 && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedInvoice(inv);
+                                                            setIsPaymentOpen(true);
+                                                        }}
+                                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                                                    >
+                                                        <CreditCard className="h-4 w-4 mr-2" />
+                                                        Pay Now
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </li>
                                 ))}
@@ -405,31 +448,41 @@ export default function ClientPortalPage() {
                             <ul className="divide-y divide-gray-200">
                                 {pastJobs.map(job => {
                                     const jobDate = new Date(job.scheduledAt);
+
                                     return (
-                                        <li key={job.id} className="p-4 hover:bg-gray-50">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <div className="font-medium text-gray-900">
-                                                        {format(jobDate, "d MMM yyyy")} - {job.products?.map((p: any) => p.product.name).join(", ") || "Service"}
+                                        <li key={job.id} className="hover:bg-gray-50 transition-colors">
+                                            <div className="p-4 flex justify-between items-center group cursor-pointer" onClick={() => router.push(`/portal/${token}/job/${job.id}`)}>
+                                                <div className="flex-1">
+                                                    <div className="font-medium text-gray-900 flex items-center gap-2">
+                                                        <span>{format(jobDate, "d MMM yyyy")}</span>
+                                                        <span className="text-gray-400">|</span>
+                                                        <span className="text-gray-700 group-hover:text-indigo-600 transition-colors">
+                                                            {job.products?.map((p: any) => p.product.name).join(", ") || "Service"}
+                                                        </span>
                                                     </div>
-                                                    <div className="text-sm text-gray-500">
+                                                    <div className="text-sm text-gray-500 mt-1">
                                                         {job.property?.address}
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    {job.status === 'CANCELLED' ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                            {p.cancelled}
-                                                        </span>
-                                                    ) : job.status === 'COMPLETED' ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            {p.completed}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                            {job.status}
-                                                        </span>
-                                                    )}
+                                                <div className="flex items-center gap-4">
+                                                    <div>
+                                                        {job.status === 'CANCELLED' ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                {p.cancelled}
+                                                            </span>
+                                                        ) : job.status === 'COMPLETED' ? (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                {p.completed}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                                {job.status}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-gray-400 group-hover:text-indigo-600 transition-colors flex items-center gap-1 text-sm font-medium">
+                                                        Voir Rapport <Eye className="h-4 w-4" />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </li>
@@ -441,17 +494,19 @@ export default function ClientPortalPage() {
                 )}
 
                 {/* Payment Modal */}
-                {selectedInvoice && (
-                    <PaymentModal
-                        isOpen={isPaymentOpen}
-                        onClose={() => setIsPaymentOpen(false)}
-                        invoiceId={selectedInvoice.id}
-                        amount={selectedInvoice.total - selectedInvoice.amountPaid}
-                        onSuccess={handlePaymentSuccess}
-                    />
-                )}
+                {
+                    selectedInvoice && (
+                        <PaymentModal
+                            isOpen={isPaymentOpen}
+                            onClose={() => setIsPaymentOpen(false)}
+                            invoiceId={selectedInvoice.id}
+                            amount={selectedInvoice.total - selectedInvoice.amountPaid}
+                            onSuccess={handlePaymentSuccess}
+                        />
+                    )
+                }
 
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

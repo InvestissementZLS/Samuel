@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard, Box, Package, Clock, DollarSign } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -21,6 +21,10 @@ export function MobileNav() {
         { name: t.sidebar.clients, href: '/clients', icon: Users },
         { name: t.sidebar.invoices, href: '/invoices', icon: FileText },
         { name: t.sidebar.quotes, href: '/quotes', icon: FileText },
+        { name: t.sidebar.products, href: '/products', icon: Package },
+        { name: t.sidebar.inventory, href: '/inventory', icon: Box },
+        { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
+        { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
 

@@ -137,3 +137,46 @@ export async function removeBillableService(itemId: string, jobId: string) {
         return { success: false };
     }
 }
+
+export async function ensureJobInvoiceFinalized(jobId: string) {
+    const job = await prisma.job.findUnique({
+        where: { id: jobId },
+        include: {
+            property: true,
+            invoices: {
+                where: { status: { not: 'CANCELLED' } }
+            }
+        }
+    });
+
+    if (!job) throw new Error("Job not found");
+
+    let invoice = job.invoices[0];
+
+    if (!invoice) {
+        const number = await generateInvoiceNumber(job.division);
+        invoice = await prisma.invoice.create({
+            data: {
+                jobId,
+                clientId: job.property.clientId,
+                status: 'SENT',
+                division: job.division,
+                number: number,
+                issuedDate: new Date(),
+                dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                total: job.netSellingPrice
+            }
+        });
+    } else if (invoice.status === 'DRAFT') {
+        invoice = await prisma.invoice.update({
+            where: { id: invoice.id },
+            data: {
+                status: 'SENT',
+                issuedDate: new Date(),
+                total: job.netSellingPrice
+            }
+        });
+    }
+
+    return invoice;
+}

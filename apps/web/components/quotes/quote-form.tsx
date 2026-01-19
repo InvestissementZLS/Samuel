@@ -5,7 +5,7 @@ import { useDivision } from "@/components/providers/division-provider";
 import { useState } from "react";
 import { Quote, Product, QuoteItem, Client } from "@prisma/client";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Calculator } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/popover";
 import { Combobox } from "@/components/ui/combobox";
 import { ClientDialog } from "@/components/clients/client-dialog";
+import { ConstructionCalculator } from "./construction-calculator";
 
 interface QuoteFormProps {
     quote?: Quote & { items: (QuoteItem & { product: Product })[] };
@@ -29,6 +30,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
     const [loading, setLoading] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || quote?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+    const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
     // Form State
     const [poNumber, setPoNumber] = useState(quote?.poNumber || "");
@@ -201,7 +203,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                                     placeholder="Select Client..."
                                     className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 hover:text-white justify-between w-full"
                                     popoverClassName="bg-gray-800 border-gray-700 text-white"
-                                    itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white hover:bg-gray-700 hover:text-white"
+                                    itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
                                 />
                                 <Button
                                     variant="outline"
@@ -334,9 +336,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                                                 value={item.productId}
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
                                                 placeholder="Select Item"
-                                                className="bg-transparent border-none text-white hover:bg-gray-800 justify-between w-full p-0 h-auto"
+                                                className="bg-transparent border-none text-white hover:bg-gray-800 hover:text-white aria-expanded:text-white justify-between w-full p-0 h-auto"
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
-                                                itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white"
+                                                itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
                                             />
                                             <div className="flex items-center gap-2">
                                                 {/* @ts-ignore */}
@@ -406,13 +408,40 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                             ))}
                         </tbody>
                     </table>
-                    <div className="p-2 border-t border-gray-800">
+                    <div className="p-2 border-t border-gray-800 flex gap-2">
                         <Button variant="ghost" onClick={handleAddItem} className="text-indigo-400 hover:text-indigo-300 hover:bg-gray-800">
                             <Plus className="w-4 h-4 mr-2" /> Add Item
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsCalculatorOpen(true)}
+                            className="text-emerald-400 hover:text-emerald-300 hover:bg-gray-800"
+                        >
+                            <Calculator className="w-4 h-4 mr-2" />
+                            Calculateur Chantier
                         </Button>
                     </div>
                 </div>
             </div>
+
+            <ConstructionCalculator
+                isOpen={isCalculatorOpen}
+                onClose={() => setIsCalculatorOpen(false)}
+                division={division}
+                onConfirm={(calculatedItem) => {
+                    setItems([...items, {
+                        id: `calc-${Date.now()}`,
+                        productId: "", // No linked product for custom estimates
+                        description: calculatedItem.description,
+                        quantity: calculatedItem.quantity,
+                        price: calculatedItem.price,
+                        cost: calculatedItem.cost,
+                        tax: 0,
+                        product: null,
+                        isUpsell: false
+                    }]);
+                }}
+            />
 
             {/* Footer / Totals */}
             <div className="flex flex-col md:flex-row gap-8">

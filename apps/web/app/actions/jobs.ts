@@ -36,6 +36,25 @@ export async function updateJob(id: string, data: {
     techIds?: string[];
     status?: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'IN_PROGRESS' | 'PENDING';
 }) {
+    // Validation: Check Seasonality if scheduling
+    if (data.scheduledAt) {
+        const { checkSeasonality } = await import('@/app/actions/recurring-actions');
+
+        const job = await prisma.job.findUnique({
+            where: { id },
+            include: { products: { include: { product: true } } }
+        });
+
+        if (job) {
+            for (const usedProduct of job.products) {
+                const result = await checkSeasonality(data.scheduledAt, usedProduct.productId);
+                if (!result.allowed) {
+                    throw new Error(result.message || "Seasonality restriction");
+                }
+            }
+        }
+    }
+
     const { techIds, ...rest } = data;
     await prisma.job.update({
         where: { id },
@@ -46,6 +65,7 @@ export async function updateJob(id: string, data: {
             } : undefined,
         },
     });
+    revalidatePath(`/jobs/${id}`); // Ensure detailed view is updated
     revalidatePath('/calendar');
     revalidatePath('/jobs');
 }

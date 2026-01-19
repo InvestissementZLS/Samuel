@@ -8,7 +8,10 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 
 // Initialize Stripe outside of component to avoid recreating it
 // Replace with your actual Publishable Key from Stripe Dashboard
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Initialize Stripe outside of component to avoid recreating it
+// Replace with your actual Publishable Key from Stripe Dashboard
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -114,12 +117,20 @@ export function PaymentModal({ isOpen, onClose, invoiceId, amount, onSuccess }: 
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Secure Payment">
-            {clientSecret ? (
+            {clientSecret && stripePromise ? (
                 <Elements options={options} stripe={stripePromise}>
                     <PaymentForm amount={amount} onSuccess={onSuccess} onClose={onClose} />
                 </Elements>
             ) : (
-                <div className="p-4 text-center">Loading payment options...</div>
+                <div className="p-4 text-center">
+                    {!stripePromise ? (
+                        <div className="text-red-500">
+                            Stripe configuration error: Missing Publishable Key.
+                        </div>
+                    ) : (
+                        "Loading payment options..."
+                    )}
+                </div>
             )}
         </Modal>
     );

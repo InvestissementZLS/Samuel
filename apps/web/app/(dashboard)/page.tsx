@@ -3,11 +3,18 @@ import { prisma } from '@/lib/prisma';
 import { Calendar, Users, Truck, CheckCircle, Clock } from 'lucide-react';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminder';
+import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
+import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
 import { cookies } from 'next/headers';
 
 export default async function DashboardPage() {
     const cookieStore = cookies();
     const userId = cookieStore.get('userId')?.value;
+
+    const user = userId ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+    }) : null;
 
     // Fetch summary data for Extermination
     const exoJobs = await prisma.job.count({ where: { division: 'EXTERMINATION' } });
@@ -45,6 +52,16 @@ export default async function DashboardPage() {
     return (
         <div className="space-y-6">
             {userId && <WeeklyAuditReminder userId={userId} />}
+
+            {/* Smart Inventory Widgets (New) */}
+            {user?.role === 'TECHNICIAN' && userId && (
+                <InventoryForecast userId={userId} />
+            )}
+
+            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                <InventoryAdminWidget />
+            )}
+
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             </div>

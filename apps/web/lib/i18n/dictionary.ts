@@ -20,6 +20,9 @@ export const dictionary = {
             commissions: "Commissions",
             reports: "Reports",
             timesheets: "Timesheets",
+            recurring: "Recurring",
+            inventory: "Inventory",
+            expenses: "Expenses",
             settings: "Settings",
         },
         divisions: {
@@ -164,7 +167,10 @@ export const dictionary = {
             products: "Produits",
             commissions: "Commissions",
             reports: "Rapports",
+            expenses: "Dépenses",
             timesheets: "Feuilles de temps",
+            recurring: "Récurrent & Garantie",
+            inventory: "Inventaire",
             settings: "Paramètres",
         },
         divisions: {

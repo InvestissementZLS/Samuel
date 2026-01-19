@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/popover";
 import { Combobox } from "@/components/ui/combobox";
 import { ClientDialog } from "@/components/clients/client-dialog";
+import { InvoicePreviewDialog } from "@/components/invoices/invoice-preview-dialog";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface InvoiceFormProps {
     invoice?: Invoice & { items: (InvoiceItem & { product: Product })[] };
@@ -30,6 +32,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     const [loading, setLoading] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const { language } = useLanguage();
 
 
     // Form State
@@ -52,8 +56,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
 
     const [discount, setDiscount] = useState(invoice?.discount || 0);
     const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
-    const [taxRate, setTaxRate] = useState(invoice?.tax || 0);
-    const [isQuebecTax, setIsQuebecTax] = useState(Math.abs((invoice?.tax || 0) - 14.975) < 0.01);
+    const [taxRate, setTaxRate] = useState(invoice ? (invoice.tax || 0) : 14.975);
+    const [isQuebecTax, setIsQuebecTax] = useState(invoice ? Math.abs((invoice.tax || 0) - 14.975) < 0.01 : true);
 
     const [notes, setNotes] = useState(invoice?.notes || "");
     const [terms, setTerms] = useState(invoice?.terms || "");
@@ -160,7 +164,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
         .filter(p => {
             // @ts-ignore
             const productDivision = p.division || "EXTERMINATION";
-            return productDivision === division;
+            // @ts-ignore
+            const productType = p.type || "SERVICE"; // Default to service if not specified
+            return productDivision === division && productType === "SERVICE";
         })
         .map(p => ({ value: p.id, label: p.name }));
 
@@ -180,7 +186,11 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     </h1>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" className="bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800">
+                    <Button
+                        variant="outline"
+                        className="bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800"
+                        onClick={() => setIsPreviewOpen(true)}
+                    >
                         Preview
                     </Button>
                     <Button onClick={handleSave} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white">
@@ -193,6 +203,40 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                 isOpen={isClientDialogOpen}
                 onClose={() => setIsClientDialogOpen(false)}
             />
+
+            {selectedClient && (
+                <InvoicePreviewDialog
+                    isOpen={isPreviewOpen}
+                    onClose={() => setIsPreviewOpen(false)}
+                    // @ts-ignore
+                    language={selectedClient?.language || language}
+                    invoice={{
+                        // @ts-ignore - Constructing temp invoice for preview
+                        id: invoice?.id || "PREVIEW",
+                        number: invoice?.number || "PREVIEW",
+                        clientId: selectedClientId,
+                        poNumber: poNumber,
+                        issuedDate: issuedDate,
+                        dueDate: dueDate,
+                        division: division,
+                        status: "DRAFT",
+                        total: total,
+                        subtotal: subtotal,
+                        tax: taxAmount,
+                        discount: discountAmount,
+                        amountPaid: amountPaid,
+                        notes: notes,
+                        terms: terms,
+                        client: selectedClient,
+                        items: items.map(item => ({
+                            ...item,
+                            product: item.product || { name: item.description, price: item.price }
+                        })),
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    }}
+                />
+            )}
 
             {/* Metadata Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
@@ -223,7 +267,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                     placeholder="Select Client..."
                                     className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 hover:text-white justify-between w-full"
                                     popoverClassName="bg-gray-800 border-gray-700 text-white"
-                                    itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white hover:bg-gray-700 hover:text-white"
+                                    itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
                                 />
                                 <Button
                                     variant="outline"
@@ -334,7 +378,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         <thead className="bg-gray-800 text-gray-400 font-medium uppercase text-xs">
                             <tr>
                                 <th className="px-4 py-3 w-10"></th>
-                                <th className="px-4 py-3">Item</th>
+                                <th className="px-4 py-3">Service</th>
                                 <th className="px-4 py-3 w-24 text-right">Cost</th>
                                 <th className="px-4 py-3 w-24 text-right">Qty</th>
                                 <th className="px-4 py-3 w-32 text-right">Price</th>
@@ -354,10 +398,10 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                                 items={productOptions}
                                                 value={item.productId}
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
-                                                placeholder="Select Item"
-                                                className="bg-transparent border-none text-white hover:bg-gray-800 justify-between w-full p-0 h-auto"
+                                                placeholder="Select Service"
+                                                className="bg-transparent border-none text-white hover:bg-gray-800 hover:text-white aria-expanded:text-white justify-between w-full p-0 h-auto"
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
-                                                itemClassName="text-white aria-selected:bg-gray-700 aria-selected:text-white"
+                                                itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
                                             />
                                             <input
                                                 type="text"
@@ -409,7 +453,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     </table>
                     <div className="p-2 border-t border-gray-800">
                         <Button variant="ghost" onClick={handleAddItem} className="text-indigo-400 hover:text-indigo-300 hover:bg-gray-800">
-                            <Plus className="w-4 h-4 mr-2" /> Add Item
+                            <Plus className="w-4 h-4 mr-2" /> Add Service
                         </Button>
                     </div>
                 </div>

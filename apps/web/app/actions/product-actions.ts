@@ -52,6 +52,11 @@ interface CreateProductData {
     durationMinutes?: number;
     minTechnicians?: number;
     materials?: { id: string; quantity: number }[];
+    // New
+    isPackage?: boolean;
+    includedServices?: string[]; // IDs of services included in this package
+    containerSize?: number;
+    preparationListUrl?: string;
 }
 
 export async function createProduct(data: CreateProductData) {
@@ -79,11 +84,39 @@ export async function createProduct(data: CreateProductData) {
                 durationMinutes: Number(data.durationMinutes || 60),
                 // @ts-ignore
                 minTechnicians: Number(data.minTechnicians || 1),
+                // Recurring & Seasonality (New)
+                // @ts-ignore
+                isRecurring: data.isRecurring || false,
+                // @ts-ignore
+                recurrenceIntervalDays: data.recurrenceIntervalDays ? Number(data.recurrenceIntervalDays) : null,
+                // @ts-ignore
+                numberOfVisits: data.numberOfVisits ? Number(data.numberOfVisits) : 1,
+                // @ts-ignore
+                seasonStartMonth: data.seasonStartMonth ? Number(data.seasonStartMonth) : null,
+                // @ts-ignore
+                seasonEndMonth: data.seasonEndMonth ? Number(data.seasonEndMonth) : null,
+                // @ts-ignore
+                warrantyMonths: data.warrantyMonths ? Number(data.warrantyMonths) : null,
+                // @ts-ignore
+                isPackage: data.isPackage || false,
+                // @ts-ignore
+                containerSize: data.containerSize ? Number(data.containerSize) : null,
+                // @ts-ignore
+                preparationListUrl: data.preparationListUrl || null,
+
                 ...(materialsToCreate.length > 0 && {
                     materialsNeeded: {
                         create: materialsToCreate.map(m => ({
                             materialId: m.id,
                             quantity: Number(m.quantity || 0)
+                        }))
+                    }
+                }),
+                ...(data.includedServices && data.includedServices.length > 0 && {
+                    includedServices: {
+                        create: data.includedServices.map(childId => ({
+                            childProductId: childId,
+                            quantity: 1
                         }))
                     }
                 })
@@ -123,6 +156,26 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
                     durationMinutes: data.durationMinutes !== undefined ? Number(data.durationMinutes) : undefined,
                     // @ts-ignore
                     minTechnicians: data.minTechnicians !== undefined ? Number(data.minTechnicians) : undefined,
+                    // Recurring (New)
+                    // @ts-ignore
+                    isRecurring: data.isRecurring,
+                    // @ts-ignore
+                    recurrenceIntervalDays: data.recurrenceIntervalDays !== undefined ? Number(data.recurrenceIntervalDays) : undefined,
+                    // @ts-ignore
+                    numberOfVisits: data.numberOfVisits !== undefined ? Number(data.numberOfVisits) : undefined,
+                    // @ts-ignore
+                    seasonStartMonth: data.seasonStartMonth !== undefined ? Number(data.seasonStartMonth) : undefined,
+                    // @ts-ignore
+                    seasonEndMonth: data.seasonEndMonth !== undefined ? Number(data.seasonEndMonth) : undefined,
+                    // @ts-ignore
+                    warrantyMonths: data.warrantyMonths !== undefined ? Number(data.warrantyMonths) : undefined,
+                    // @ts-ignore
+                    // @ts-ignore
+                    isPackage: data.isPackage || false,
+                    // @ts-ignore
+                    containerSize: data.containerSize !== undefined ? Number(data.containerSize) : undefined,
+                    // @ts-ignore
+                    preparationListUrl: data.preparationListUrl !== undefined ? data.preparationListUrl : undefined,
                 }
             }),
             // If materials provided (array exists), sync them
@@ -135,6 +188,21 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
                         serviceId: id,
                         materialId: m.id,
                         quantity: Number(m.quantity || 0)
+                    }))
+                })
+            ] : []),
+            // Sync Included Services (for Packages)
+            ...(data.includedServices ? [
+                // Delete old included services
+                // @ts-ignore
+                prisma.includedService.deleteMany({ where: { parentProductId: id } }),
+                // Create new
+                // @ts-ignore
+                prisma.includedService.createMany({
+                    data: data.includedServices.map(childId => ({
+                        parentProductId: id,
+                        childProductId: childId,
+                        quantity: 1
                     }))
                 })
             ] : []),
@@ -154,6 +222,13 @@ export async function getConsumables() {
     return await prisma.product.findMany({
         where: { type: 'CONSUMABLE' },
         select: { id: true, name: true, unit: true }
+    });
+}
+
+export async function getServices() {
+    return await prisma.product.findMany({
+        where: { type: 'SERVICE' },
+        select: { id: true, name: true }
     });
 }
 

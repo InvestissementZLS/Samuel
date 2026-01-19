@@ -27,7 +27,10 @@ export default async function InvoicesPage() {
     });
 
     const products = await prisma.product.findMany();
-    const clients = await prisma.client.findMany({ orderBy: { name: 'asc' } });
+    const clients = await prisma.client.findMany({
+        distinct: ['name'],
+        orderBy: { name: 'asc' }
+    });
 
     return (
         <div className="max-w-7xl mx-auto">

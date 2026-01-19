@@ -1,15 +1,116 @@
 'use server';
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { AuditStatus, ProductType } from "@prisma/client";
+import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
+export async function getProductStockDetails(productId: string) {
+    // Get all inventory items for this product (Warehouse + Users)
+    const inventoryItems = await prisma.inventoryItem.findMany({
+        where: { productId },
+        include: {
+            user: {
+                select: { id: true, name: true, email: true }
+            }
+        }
+    });
+
+    // Also get the main product stock as "Global/Legacy" if needed, 
+    // but ideally we treat the main product.stock as "Unassigned/Warehouse" 
+    // OR we use a specific InventoryItem with userId=null as Warehouse.
+    // For this implementation, let's assume Product.stock is the MASTER total, 
+    // and InventoryItems tracks the distribution.
+    // actually, let's try to migrate to a cleaner model where:
+    // Warehouse Stock = Product.stock - Sum(User Stocks).
+    // Or better: We create an InventoryItem where userId is NULL for Warehouse.
+
+    return inventoryItems;
+}
+
+export async function assignStockToUser(productId: string, userId: string, quantity: number) {
+    if (quantity <= 0) return { success: false, error: "Quantity must be positive" };
+
+    try {
+        // 1. Check if user already has an inventory record
+        // Upsert is perfect here
+        await prisma.inventoryItem.upsert({
+            where: {
+                productId_userId: {
+                    productId,
+                    userId
+                }
+            },
+            update: {
+                quantity: { increment: quantity }
+            },
+            create: {
+                productId,
+                userId,
+                quantity
+            }
+        });
+
+        // 2. Decrement main product stock? 
+        // If Product.stock represents "Available in Warehouse", then Yes.
+        // If Product.stock represents "Total Company Assets", then No.
+        // Let's assume Product.stock is "Total Company Assets".
+        // But the user specifically wants to know "Where is my stock".
+        // So we need to fetch "Unassigned Stock".
+        // Let's adhere to: Product.stock is TOTAL.
+        // We just track distribution.
+
+        revalidatePath('/products');
+        return { success: true };
+    } catch (error) {
+        console.error("Error assigning stock:", error);
+        return { success: false, error: "Failed to assign stock" };
+    }
+}
+
+export async function removeStockFromUser(productId: string, userId: string, quantity: number) {
+    try {
+        const currentItem = await prisma.inventoryItem.findUnique({
+            where: { productId_userId: { productId, userId } }
+        });
+
+        if (!currentItem || currentItem.quantity < quantity) {
+            return { success: false, error: "Insufficient user stock" };
+        }
+
+        await prisma.inventoryItem.update({
+            where: { productId_userId: { productId, userId } },
+            data: { quantity: { decrement: quantity } }
+        });
+
+        // Cleanup if 0?
+        // await prisma.inventoryItem.deleteMany({ where: { quantity: 0 } });
+
+        revalidatePath('/products');
+        return { success: true };
+    } catch (error) {
+        console.error("Error removing stock:", error);
+        return { success: false, error: "Failed to remove stock" };
+    }
+}
+
+export async function getTechnicians() {
+    return await prisma.user.findMany({
+        where: { role: 'TECHNICIAN', isActive: true },
+        select: { id: true, name: true }
+    });
+}
+
+// Resurrected functions
 export async function getInventory(userId?: string) {
     try {
+        const where = userId ? { userId } : { userId: null }; // userId null = warehouse
+        // However, existing data might not have userId null for warehouse if we used Product.stock as master.
+        // Let's adapt: If userId is provided, return their items.
+        // If userId is undefined (Warehouse), return items where userId is null.
+
+        // But previously the dashboard used getInventory(undefined) for WAREHOUSE.
+
         const inventory = await prisma.inventoryItem.findMany({
-            where: {
-                userId: userId || null // null for warehouse
-            },
+            where: userId ? { userId } : { userId: null },
             include: {
                 product: true
             }
@@ -17,112 +118,12 @@ export async function getInventory(userId?: string) {
         return { success: true, data: inventory };
     } catch (error) {
         console.error("Error fetching inventory:", error);
-        return { success: false, error: "Failed to fetch inventory" };
+        return { success: false, error: "Failed" };
     }
 }
 
 export async function getAllProducts() {
-    return await prisma.product.findMany({
-        orderBy: { name: 'asc' }
-    });
-}
-
-export async function transferStock(
-    productId: string,
-    fromUserId: string | null, // null = Warehouse
-    toUserId: string | null,   // null = Warehouse
-    quantity: number
-) {
-    try {
-        if (quantity <= 0) throw new Error("Quantity must be positive");
-
-        // 1. Check source availability
-        const sourceItem = await prisma.inventoryItem.findFirst({
-            where: {
-                productId,
-                userId: fromUserId
-            }
-        });
-
-        if (!sourceItem || sourceItem.quantity < quantity) {
-            return { success: false, message: "Insufficient stock in source location" };
-        }
-
-        // 2. Decrement source
-        await prisma.inventoryItem.update({
-            where: { id: sourceItem.id },
-            data: { quantity: { decrement: quantity } }
-        });
-
-        // 3. Increment destination (create if not exists)
-        const destItem = await prisma.inventoryItem.findFirst({
-            where: {
-                productId,
-                userId: toUserId
-            }
-        });
-
-        if (destItem) {
-            await prisma.inventoryItem.update({
-                where: { id: destItem.id },
-                data: { quantity: { increment: quantity } }
-            });
-        } else {
-            await prisma.inventoryItem.create({
-                data: {
-                    productId,
-                    userId: toUserId,
-                    quantity
-                }
-            });
-        }
-
-        revalidatePath('/inventory');
-        return { success: true, message: "Transfer successful" };
-
-    } catch (error) {
-        console.error("Error transferring stock:", error);
-        return { success: false, message: "Transfer failed" };
-    }
-}
-
-export async function submitAudit(
-    technicianId: string,
-    items: { productId: string; actualQuantity: number; notes?: string }[]
-) {
-    try {
-        // Fetch current expected quantities
-        const currentInventory = await prisma.inventoryItem.findMany({
-            where: { userId: technicianId }
-        });
-
-        const auditItems = items.map(item => {
-            const current = currentInventory.find(i => i.productId === item.productId);
-            return {
-                productId: item.productId,
-                expectedQuantity: current?.quantity || 0,
-                actualQuantity: item.actualQuantity,
-                notes: item.notes
-            };
-        });
-
-        await prisma.inventoryAudit.create({
-            data: {
-                technicianId,
-                status: 'PENDING',
-                items: {
-                    create: auditItems
-                }
-            }
-        });
-
-        revalidatePath('/inventory');
-        return { success: true, message: "Audit submitted successfully" };
-
-    } catch (error) {
-        console.error("Error submitting audit:", error);
-        return { success: false, message: "Failed to submit audit" };
-    }
+    return await prisma.product.findMany();
 }
 
 export async function getAudits() {
@@ -144,160 +145,54 @@ export async function reconcileAudit(auditId: string, action: 'APPROVE' | 'REJEC
             include: { items: true }
         });
 
-        if (!audit) throw new Error("Audit not found");
+        if (!audit) return { success: false, message: "Audit not found" };
 
         if (action === 'REJECT') {
             await prisma.inventoryAudit.update({
                 where: { id: auditId },
                 data: { status: 'REJECTED' }
             });
-            revalidatePath('/inventory');
             return { success: true, message: "Audit rejected" };
         }
 
-        // If Approved, update inventory to match actual counts
+        // Approve: Update inventory
         await prisma.$transaction(async (tx) => {
-            for (const item of audit.items) {
-                if (item.actualQuantity !== item.expectedQuantity) {
-                    const existingItem = await tx.inventoryItem.findFirst({
-                        where: {
-                            productId: item.productId,
-                            userId: audit.technicianId
-                        }
-                    });
-
-                    if (existingItem) {
-                        await tx.inventoryItem.update({
-                            where: { id: existingItem.id },
-                            data: { quantity: item.actualQuantity }
-                        });
-                    } else {
-                        await tx.inventoryItem.create({
-                            data: {
-                                productId: item.productId,
-                                userId: audit.technicianId,
-                                quantity: item.actualQuantity
-                            }
-                        });
-                    }
-                }
-            }
-
             await tx.inventoryAudit.update({
                 where: { id: auditId },
                 data: { status: 'APPROVED' }
             });
+
+            for (const item of audit.items) {
+                // Update specific user inventory or warehouse?
+                // Audit belongs to a technician, so update their inventory
+                await tx.inventoryItem.upsert({
+                    where: {
+                        productId_userId: {
+                            productId: item.productId,
+                            userId: audit.technicianId
+                        }
+                    },
+                    update: { quantity: item.actualQuantity },
+                    create: {
+                        productId: item.productId,
+                        userId: audit.technicianId,
+                        quantity: item.actualQuantity
+                    }
+                });
+            }
         });
 
         revalidatePath('/inventory');
         return { success: true, message: "Audit approved and inventory updated" };
-
     } catch (error) {
         console.error("Error reconciling audit:", error);
-        return { success: false, message: "Failed to reconcile audit" };
+        return { success: false, message: "Error" };
     }
 }
 
 export async function getLastAudit(userId: string) {
-    const audit = await prisma.inventoryAudit.findFirst({
+    return await prisma.inventoryAudit.findFirst({
         where: { technicianId: userId },
         orderBy: { date: 'desc' }
     });
-    return audit;
-}
-
-export async function restockTechnician(
-    technicianId: string,
-    items: { productId: string; quantity: number }[]
-) {
-    try {
-        await prisma.$transaction(async (tx) => {
-            for (const item of items) {
-                // 1. DEDUCT FROM WAREHOUSE (userId: null)
-                const warehouseItem = await tx.inventoryItem.findFirst({
-                    where: {
-                        productId: item.productId,
-                        userId: null
-                    }
-                });
-
-                if (warehouseItem) {
-                    await tx.inventoryItem.update({
-                        where: { id: warehouseItem.id },
-                        data: { quantity: { decrement: item.quantity } }
-                    });
-                } else {
-                    // Create negative stock if warehouse item doesn't exist
-                    await tx.inventoryItem.create({
-                        data: {
-                            productId: item.productId,
-                            userId: null,
-                            quantity: -item.quantity
-                        }
-                    });
-                }
-
-                // 2. ADD TO TECHNICIAN
-                const techItem = await tx.inventoryItem.findFirst({
-                    where: {
-                        productId: item.productId,
-                        userId: technicianId
-                    }
-                });
-
-                if (techItem) {
-                    await tx.inventoryItem.update({
-                        where: { id: techItem.id },
-                        data: { quantity: { increment: item.quantity } }
-                    });
-                } else {
-                    await tx.inventoryItem.create({
-                        data: {
-                            productId: item.productId,
-                            userId: technicianId,
-                            quantity: item.quantity
-                        }
-                    });
-                }
-            }
-        });
-
-        revalidatePath('/inventory');
-        return { success: true, message: "Transfer from Warehouse successful" };
-    } catch (error) {
-        console.error("Restock error:", error);
-        return { success: false, message: "Restock failed" };
-    }
-}
-
-export async function receiveWarehouseStock(items: { productId: string; quantity: number }[]) {
-    try {
-        await prisma.$transaction(async (tx) => {
-            for (const item of items) {
-                const existing = await tx.inventoryItem.findFirst({
-                    where: { productId: item.productId, userId: null }
-                });
-
-                if (existing) {
-                    await tx.inventoryItem.update({
-                        where: { id: existing.id },
-                        data: { quantity: { increment: item.quantity } }
-                    });
-                } else {
-                    await tx.inventoryItem.create({
-                        data: {
-                            productId: item.productId,
-                            userId: null,
-                            quantity: item.quantity
-                        }
-                    });
-                }
-            }
-        });
-        revalidatePath('/inventory');
-        return { success: true, message: "Warehouse stock received" };
-    } catch (error) {
-        console.error("Receive error:", error);
-        return { success: false, message: "Failed to receive stock" };
-    }
 }

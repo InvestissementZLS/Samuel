@@ -72,6 +72,8 @@ model Property {
   jobs       Job[]
   client     Client       @relation(fields: [clientId], references: [id])
   quotes     Quote[]
+  
+  warrantyExpiresAt DateTime?
 }
 
 model Job {
@@ -114,13 +116,26 @@ model Job {
   reviewRequest         ReviewRequest?
   
   // Completion Proofs
-  signature             String?       @db.Text // Base64 can be long
+  signature             String?       @db.Text // Legacy (to be migrated or used as generic)
+  clientSignature       String?       @db.Text
+  technicianSignature   String?       @db.Text
+  
+  // Service Report Data
+  reportNotes           String?       @db.Text // Public (Client facing)
+  internalNotes         String?       @db.Text // Private (Team only)
+  serviceReportUrl      String?
+
   isClientUnreachable   Boolean       @default(false)
 
   // Commission & Origin
   quoteId               String?
   quote                 Quote?        @relation(fields: [quoteId], references: [id])
   invoiceTriggered      Boolean       @default(false)
+
+  // -- Recurring --
+  parentJobId           String?
+  parentJob             Job?          @relation("JobRecurrence", fields: [parentJobId], references: [id])
+  childJobs             Job[]         @relation("JobRecurrence")
 }
 
 model JobNote {
@@ -333,6 +348,14 @@ model Product {
   warrantyMonths  Int?
   warrantyDetails String?
   numberOfVisits  Int             @default(1)
+  
+  // -- Recurring Service Blueprint --
+  isRecurring            Boolean @default(false) 
+  recurrenceIntervalDays Int?    // e.g. 14 for bi-weekly
+  
+  // -- Seasonality --
+  seasonStartMonth       Int?    // 1 (Jan) to 12 (Dec)
+  seasonEndMonth         Int?    // 1 (Jan) to 12 (Dec)
 
   invoiceItems InvoiceItem[]
   quoteItems   QuoteItem[]
@@ -344,6 +367,29 @@ model Product {
   // Smart Inventory Relations
   materialsNeeded ServiceMaterial[] @relation("ServiceToMaterial")
   usedInServices  ServiceMaterial[] @relation("MaterialToService")
+
+  // -- Bundles/Packages (Included Services) --
+  isPackage            Boolean           @default(false)
+  includedServices     IncludedService[] @relation("ParentService")
+  includedInPackages   IncludedService[] @relation("ChildService")
+  
+  // -- Container Logic --
+  containerSize        Float?            // e.g. 500 (ml) or 300 (g). Used to convert UI "Bottles" to stored "Total Units"
+  
+  // -- PDS / Preparation --
+  preparationListUrl   String?
+}
+
+model IncludedService {
+  id              String  @id @default(uuid())
+  parentProductId String
+  childProductId  String
+  quantity        Int     @default(1)
+  
+  parentProduct   Product @relation("ParentService", fields: [parentProductId], references: [id])
+  childProduct    Product @relation("ChildService", fields: [childProductId], references: [id])
+
+  @@unique([parentProductId, childProductId])
 }
 
 model ServiceMaterial {
@@ -611,4 +657,30 @@ enum TimesheetStatus {
   SUBMITTED
   APPROVED
   REJECTED
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  description String
+  amount      Float
+  date        DateTime @default(now())
+  category    String   // Rent, Gas, Insurance, Marketing, Equipment, etc.
+  accountingCode String? // T2125/T2 Code (e.g. "8521")
+  division    Division? // Optional: Link to specific division if applicable
+  frequency   ExpenseFrequency @default(ONCE)
+  nextOccurrence DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Potential future links
+  receiptUrl  String?
+  paymentMethod String @default("CREDIT_CARD") // Credit, Cash, Transfer...
+}
+
+enum ExpenseFrequency {
+  ONCE
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  YEARLY
 }

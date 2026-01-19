@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { addHours, isAfter } from 'date-fns';
 import { revalidatePath } from 'next/cache';
+import { sendPreparationListEmail } from '@/lib/email';
 
 // Validate token and fetch client data with jobs, invoices, and quotes
 export async function getPortalData(token: string) {
@@ -18,14 +19,16 @@ export async function getPortalData(token: string) {
                     quotes: {
                         orderBy: { createdAt: 'desc' },
                         include: {
-                            items: { include: { product: true } }
+                            items: { include: { product: true } },
+                            client: true
                         }
                     },
                     invoices: {
                         where: { status: { not: 'CANCELLED' } },
                         orderBy: { createdAt: 'desc' },
                         include: {
-                            items: { include: { product: true } }
+                            items: { include: { product: true } },
+                            client: true
                         }
                     },
                     properties: {
@@ -37,7 +40,9 @@ export async function getPortalData(token: string) {
                                 orderBy: { scheduledAt: 'asc' },
                                 include: {
                                     products: { include: { product: true } },
-                                    technicians: { select: { name: true } }
+                                    technicians: { select: { name: true } },
+                                    photos: true,
+                                    notes: true
                                 }
                             }
                         }
@@ -108,7 +113,8 @@ export async function respondToQuote(token: string, quoteId: string, action: 'AC
 
     // 2. Verify Quote ownership
     const quote = await prisma.quote.findUnique({
-        where: { id: quoteId }
+        where: { id: quoteId },
+        include: { items: { include: { product: true } } }
     });
 
     if (!quote || quote.clientId !== client.id) {
@@ -125,6 +131,22 @@ export async function respondToQuote(token: string, quoteId: string, action: 'AC
         }
     });
 
+    if (action === 'ACCEPTED') {
+        const pdsItems: { listUrl: string, serviceName: string }[] = [];
+        quote.items.forEach(item => {
+            // @ts-ignore
+            if (item.product.preparationListUrl) {
+                // @ts-ignore
+                pdsItems.push({ listUrl: item.product.preparationListUrl, serviceName: item.product.name });
+            }
+        });
+
+        if (pdsItems.length > 0) {
+            // @ts-ignore
+            await sendPreparationListEmail(client, quote.division, pdsItems);
+        }
+    }
+
     revalidatePath(`/portal/${token}`);
     return { success: true };
 }
@@ -132,4 +154,144 @@ export async function respondToQuote(token: string, quoteId: string, action: 'AC
 export async function signQuote(quoteId: string, signature: string) {
     console.log("Signing quote", quoteId, signature);
     return { success: true }; // Placeholder to unblock build
+}
+
+export async function getOrCreateClientPortalToken(clientId: string) {
+    // 1. Check for existing active token
+    const existing = await prisma.bookingLink.findFirst({
+        where: {
+            clientId,
+            status: 'ACTIVE',
+            expiresAt: { gt: new Date() }
+        }
+    });
+
+    if (existing) {
+        return existing.token;
+    }
+
+    // 2. Create new token if none exists
+    const newToken = await prisma.bookingLink.create({
+        data: {
+            clientId,
+            expiresAt: addHours(new Date(), 24 * 365), // Valid for 1 year for now
+        }
+    });
+
+
+
+    return newToken.token;
+}
+
+export async function getPortalJob(token: string, jobId: string) {
+    if (!token) return null;
+
+    // 1. Verify Token & Get Client ID (Lightweight)
+    // @ts-ignore
+    const link = await prisma.bookingLink.findUnique({
+        where: { token },
+        select: { clientId: true, status: true, expiresAt: true }
+    });
+
+    if (!link) {
+        console.error("Portal: Invalid token", token);
+        return null;
+    }
+    // @ts-ignore
+    if ((link.status && link.status !== 'ACTIVE') || (link.expiresAt && link.expiresAt < new Date())) {
+        console.error("Portal: Token expired or inactive", link);
+        return null;
+    }
+
+    // 2. Fetch Job with Full Details
+    try {
+        // @ts-ignore
+        const job = await prisma.job.findUnique({
+            where: { id: jobId },
+            include: {
+                property: true,
+                products: { include: { product: true } },
+                technicians: { select: { name: true } },
+                notes: true,
+                photos: true,
+                activities: {
+                    where: { action: { in: ['CHECKLIST_COMPLETED', 'FORM_FILLED'] } }
+                }
+            }
+        });
+
+        if (!job) {
+            console.error("Portal: Job not found", jobId);
+            return null;
+        }
+
+        // 3. Verify Ownership (Job -> Property -> Client must match Link -> Client)
+        // @ts-ignore
+        if (job.property.clientId !== link.clientId) {
+            console.error("Portal: Unauthorized access logic mismatch", { jobClient: job.property.clientId, linkClient: link.clientId });
+            return null;
+        }
+
+        // @ts-ignore
+        return job;
+    } catch (err) {
+        console.error("Portal: Error fetching job", err);
+        return null;
+    }
+}
+
+export async function getPortalQuote(token: string, quoteId: string) {
+    if (!token) return null;
+
+    const link = await prisma.bookingLink.findUnique({
+        where: { token },
+        select: { clientId: true, status: true, expiresAt: true }
+    });
+
+    // @ts-ignore
+    if (!link || (link.status && link.status !== 'ACTIVE') || (link.expiresAt && link.expiresAt < new Date())) {
+        return null;
+    }
+
+    // @ts-ignore
+    const quote = await prisma.quote.findUnique({
+        where: { id: quoteId },
+        include: {
+            items: { include: { product: true } },
+            client: true,
+            property: true
+        }
+    });
+
+    if (!quote || quote.clientId !== link.clientId) return null;
+
+    return quote;
+}
+
+export async function getPortalInvoice(token: string, invoiceId: string) {
+    if (!token) return null;
+
+    const link = await prisma.bookingLink.findUnique({
+        where: { token },
+        select: { clientId: true, status: true, expiresAt: true }
+    });
+
+    // @ts-ignore
+    if (!link || (link.status && link.status !== 'ACTIVE') || (link.expiresAt && link.expiresAt < new Date())) {
+        return null;
+    }
+
+    // @ts-ignore
+    const invoice = await prisma.invoice.findUnique({
+        where: { id: invoiceId },
+        include: {
+            items: { include: { product: true } },
+            client: true,
+            transactions: true
+        }
+    });
+
+    if (!invoice || invoice.clientId !== link.clientId) return null;
+
+    return invoice;
 }

@@ -11,19 +11,51 @@ interface JobPhotosProps {
 }
 
 export function JobPhotos({ jobId, photos }: JobPhotosProps) {
+    const [file, setFile] = useState<File | null>(null);
     const [url, setUrl] = useState("");
     const [caption, setCaption] = useState("");
     const [loading, setLoading] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!url.trim()) return;
-
         setLoading(true);
+
         try {
-            await addJobPhoto(jobId, url, caption);
+            let finalUrl = url;
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    finalUrl = data.url;
+                } else {
+                    throw new Error(data.message || 'Upload failed');
+                }
+            }
+
+            if (!finalUrl.trim()) return;
+
+            await addJobPhoto(jobId, finalUrl, caption);
             setUrl("");
+            setFile(null);
             setCaption("");
             setIsAdding(false);
             toast.success("Photo added");
@@ -50,6 +82,21 @@ export function JobPhotos({ jobId, photos }: JobPhotosProps) {
             {isAdding && (
                 <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-md space-y-3 border border-gray-200">
                     <div>
+                        <label className="block text-xs font-medium text-gray-700">Upload Image</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="mt-1 w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-md file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-indigo-50 file:text-indigo-700
+                                hover:file:bg-indigo-100"
+                        />
+                    </div>
+                    <div className="text-center text-xs text-gray-400 my-2">- OR -</div>
+                    <div>
                         <label className="block text-xs font-medium text-gray-700">Image URL</label>
                         <input
                             type="url"
@@ -57,7 +104,6 @@ export function JobPhotos({ jobId, photos }: JobPhotosProps) {
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://example.com/image.jpg"
                             className="mt-1 w-full rounded-md border border-gray-300 p-2 text-sm"
-                            required
                         />
                     </div>
                     <div>
@@ -72,7 +118,7 @@ export function JobPhotos({ jobId, photos }: JobPhotosProps) {
                     </div>
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || (!file && !url.trim())}
                         className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
                     >
                         {loading ? "Adding..." : "Add Photo"}

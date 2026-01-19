@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { JobStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { differenceInMinutes } from 'date-fns';
+import { calculateCommissions } from './commission-actions';
+import { ensureJobInvoiceFinalized } from './job-billing-actions';
+import { sendInvoice } from './email-actions';
 
 export async function updateJobStatus(
     jobId: string,
@@ -55,6 +58,30 @@ export async function updateJobStatus(
         where: { id: jobId },
         data // { status, timestamps... }
     });
+
+    // --- Automation Trigger ---
+    if (status === 'COMPLETED') {
+        try {
+            console.log(`[Automation] Processing post-completion for job ${jobId}`);
+
+            // 1. Ensure Invoice exists and is set to SENT
+            const invoice = await ensureJobInvoiceFinalized(jobId);
+
+            // 2. Calculate initial PENDING commissions
+            await calculateCommissions(jobId);
+
+            // 3. Send the Invoice Email to client
+            if (invoice && invoice.id) {
+                await sendInvoice(invoice.id);
+            }
+
+            console.log(`[Automation] Successfully completed flow for job ${jobId}`);
+        } catch (autoError) {
+            console.error("[Automation] Error in post-completion flow:", autoError);
+            // We don't throw here to avoid blocking the status update itself, 
+            // but the error is logged.
+        }
+    }
 
     // Determine paths to revalidate
     // Usually dashboard, calendar, or job details

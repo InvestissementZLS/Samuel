@@ -12,6 +12,9 @@ import { JobBilling } from '@/components/jobs/job-billing';
 import { JobTechnicianSelect } from '@/components/jobs/job-technician-select';
 import { JobActions } from '@/components/jobs/job-actions';
 import { JobFinancials } from '@/components/jobs/job-financials';
+import { JobPreviewButton } from '@/components/jobs/job-preview-button';
+import { JobStatusActions } from '@/components/jobs/job-status-actions';
+
 import { JobScheduleEdit } from '@/components/jobs/job-schedule-edit';
 
 import { cookies } from 'next/headers';
@@ -27,7 +30,6 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
     let jobData;
     try {
         jobData = await prisma.job.findUnique({
-            // ... keep args
             where: { id },
             include: {
                 property: { include: { client: true } },
@@ -49,7 +51,6 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
             },
         });
     } catch (e: any) {
-        // ...
         console.error("Error loading job:", e);
         return (
             <div className="p-8 text-red-600">
@@ -87,12 +88,14 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
                     <p className="text-gray-500">Job ID: {job.id}</p>
                 </div>
                 <div className="flex gap-2">
+                    <JobPreviewButton clientId={job.property.clientId} />
                     <Link
                         href="/calendar"
-                        className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50"
+                        className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-50 flex items-center"
                     >
                         {t.jobDetails.backToCalendar}
                     </Link>
+                    <JobStatusActions jobId={job.id} status={job.status} />
                     <JobActions jobId={job.id} />
                 </div>
             </div>
@@ -190,6 +193,6 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

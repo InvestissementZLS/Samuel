@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
-import { createProduct, updateProduct, deleteProduct, getConsumables, getProductDetails } from "@/app/actions/product-actions";
+import { createProduct, updateProduct, deleteProduct, getConsumables, getServices, getProductDetails } from "@/app/actions/product-actions";
 import { Product } from "@prisma/client";
 import { Trash2, Plus } from "lucide-react";
+import { UnitCostCalculator } from "./unit-cost-calculator";
 
 interface ProductDialogProps {
     isOpen: boolean;
@@ -32,6 +33,23 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [minTechnicians, setMinTechnicians] = useState(1);
     const [materials, setMaterials] = useState<{ id: string; quantity: number }[]>([]);
 
+    // Recurring Blueprint & Seasonality
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [recurrenceIntervalDays, setRecurrenceIntervalDays] = useState(14);
+    const [numberOfVisits, setNumberOfVisits] = useState(1);
+    const [preparationListUrl, setPreparationListUrl] = useState("");
+
+    const [seasonStartMonth, setSeasonStartMonth] = useState<number | undefined>(undefined);
+    const [seasonEndMonth, setSeasonEndMonth] = useState<number | undefined>(undefined);
+    const [warrantyMonths, setWarrantyMonths] = useState<number | undefined>(undefined);
+
+    // Package / Bundling
+    const [isPackage, setIsPackage] = useState(false);
+    const [includedServices, setIncludedServices] = useState<string[]>([]);
+    const [availableServices, setAvailableServices] = useState<{ id: string; name: string }[]>([]);
+
+    const [containerSize, setContainerSize] = useState<number | undefined>(undefined);
+
     // Available Consumables
     const [availableConsumables, setAvailableConsumables] = useState<{ id: string, name: string, unit: string }[]>([]);
     const [loading, setLoading] = useState(false);
@@ -45,6 +63,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 mod.getWarrantyTemplates().then(setWarrantyTemplates);
             });
             getConsumables().then(setAvailableConsumables);
+            getServices().then(setAvailableServices);
         }
     }, [type]);
 
@@ -76,6 +95,49 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 setDurationMinutes(product.durationMinutes || 60);
                 // @ts-ignore
                 setMinTechnicians(product.minTechnicians || 1);
+
+                // Recurring
+                // @ts-ignore
+                setIsRecurring(product.isRecurring || false);
+                // @ts-ignore
+                setRecurrenceIntervalDays(product.recurrenceIntervalDays || 14);
+                // @ts-ignore
+                setNumberOfVisits(product.numberOfVisits || 1);
+                // @ts-ignore
+                setSeasonStartMonth(product.seasonStartMonth || undefined);
+                // @ts-ignore
+                setSeasonEndMonth(product.seasonEndMonth || undefined);
+                // @ts-ignore
+                setWarrantyMonths(product.warrantyMonths || undefined);
+
+                // Package
+                // @ts-ignore
+                setIsPackage(product.isPackage || false);
+
+                // Container Logic
+                // @ts-ignore
+                setContainerSize(product.containerSize || undefined);
+
+                // Fetch deep details for Included Services & Materials
+                getProductDetails(product.id).then(details => {
+                    if (details) {
+                        if (details.includedServices) {
+                            setIncludedServices(details.includedServices.map((r: any) => r.childProductId));
+                        }
+                        if (details.materialsNeeded) {
+                            setMaterials(details.materialsNeeded.map((m: any) => ({
+                                id: m.materialId,
+                                quantity: m.quantity
+                            })));
+                        }
+                        // @ts-ignore
+                        if (details.preparationListUrl) {
+                            // @ts-ignore
+                            setPreparationListUrl(details.preparationListUrl);
+                        }
+                    }
+                });
+
             } else {
                 setName("");
                 setDescription("");
@@ -92,6 +154,17 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 setWarrantyInfo("");
                 setDurationMinutes(60);
                 setMinTechnicians(1);
+
+                setIsRecurring(false);
+                setRecurrenceIntervalDays(14);
+                setNumberOfVisits(1);
+                setSeasonStartMonth(undefined);
+                setSeasonEndMonth(undefined);
+                setWarrantyMonths(undefined);
+
+                setIsPackage(false);
+                setIncludedServices([]);
+                setContainerSize(undefined);
             }
         }
     }, [isOpen, product, fixedType]);
@@ -103,42 +176,43 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
         const validMaterials = materials.filter(m => m.id && m.id.trim() !== "");
 
         try {
+            const productData = {
+                name,
+                description,
+                unit,
+                usageDescription,
+                stock: Number(stock),
+                price: Number(price),
+                cost: Number(cost),
+                division,
+                type,
+                isCommissionEligible,
+                warrantyInfo,
+                durationMinutes,
+                minTechnicians,
+                materials: validMaterials,
+                // New Fields
+                isRecurring,
+                recurrenceIntervalDays,
+                numberOfVisits,
+                seasonStartMonth,
+                seasonEndMonth,
+                warrantyMonths,
+                // Package
+                isPackage,
+                includedServices,
+                containerSize: containerSize ? Number(containerSize) : undefined
+            };
+
             if (product) {
-                await updateProduct(product.id, {
-                    name,
-                    description,
-                    unit,
-                    usageDescription,
-                    stock: Number(stock),
-                    price: Number(price),
-                    cost: Number(cost),
-                    division,
-                    type,
-                    isCommissionEligible,
-                    warrantyInfo,
-                    durationMinutes,
-                    minTechnicians,
-                    materials: validMaterials
-                });
+                await updateProduct(product.id, productData);
                 toast.success("Product updated successfully");
             } else {
+                // @ts-ignore
                 await createProduct({
-                    name,
-                    description,
-                    unit,
-                    usageDescription,
+                    ...productData,
                     activeIngredient,
-                    recommendedConcentration,
-                    stock: Number(stock),
-                    price: Number(price),
-                    cost: Number(cost),
-                    division,
-                    type,
-                    isCommissionEligible,
-                    warrantyInfo,
-                    durationMinutes,
-                    minTechnicians,
-                    materials: validMaterials
+                    recommendedConcentration
                 });
                 toast.success("Product created successfully");
             }
@@ -281,6 +355,227 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                     </div>
                 )}
 
+                {/* Material Requirements (Forecasting) */}
+                {type === 'SERVICE' && (
+                    <div className="space-y-4 border-t pt-4 mt-4 bg-orange-50 p-2 rounded border border-orange-100">
+                        <h4 className="font-medium text-sm text-orange-900 flex items-center gap-2">
+                            <span>Required Materials (Forecasting)</span>
+                        </h4>
+                        <p className="text-xs text-orange-700">
+                            Define what consumables are used per 1 unit of this service. Used for inventory forecasting.
+                        </p>
+
+                        <div className="space-y-2">
+                            {materials.map((mat, index) => {
+                                const matInfo = availableConsumables.find(c => c.id === mat.id);
+                                return (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <select
+                                            value={mat.id}
+                                            onChange={(e) => {
+                                                const newMaterials = [...materials];
+                                                newMaterials[index].id = e.target.value;
+                                                setMaterials(newMaterials);
+                                            }}
+                                            className="flex-1 rounded-md border p-1 text-sm"
+                                        >
+                                            <option value="">Select Material...</option>
+                                            {availableConsumables.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name} ({c.unit})</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            value={mat.quantity}
+                                            onChange={(e) => {
+                                                const newMaterials = [...materials];
+                                                newMaterials[index].quantity = Number(e.target.value);
+                                                setMaterials(newMaterials);
+                                            }}
+                                            className="w-20 rounded-md border p-1 text-sm"
+                                            placeholder="Qty"
+                                            step="0.01"
+                                        />
+                                        <span className="text-xs text-gray-500 w-8">
+                                            {matInfo?.unit || ''}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newMaterials = materials.filter((_, i) => i !== index);
+                                                setMaterials(newMaterials);
+                                            }}
+                                            className="text-red-500 hover:text-red-700"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                );
+                            })}
+
+                            <button
+                                type="button"
+                                onClick={() => setMaterials([...materials, { id: "", quantity: 0 }])}
+                                className="flex items-center gap-1 text-xs font-medium text-orange-700 hover:text-orange-900"
+                            >
+                                <Plus className="h-3 w-3" /> Add Material
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Service Blueprint: Recurring & Seasonality */}
+                {type === 'SERVICE' && (
+                    <div className="space-y-4 border-t pt-4 mt-4">
+                        <h4 className="font-medium text-sm text-gray-900 border-b pb-2 mb-2">Service Blueprint & Automation</h4>
+
+                        {/* PDS Link */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Preparation Sheet URL (PDS)</label>
+                            <input
+                                type="url"
+                                value={preparationListUrl}
+                                onChange={(e) => setPreparationListUrl(e.target.value)}
+                                className="w-full rounded-md border text-black border-gray-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                placeholder="https://drive.google.com/file/d/..."
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                If set, this link will be automatically emailed to the client when they accept a quote containing this service.
+                            </p>
+                        </div>
+
+                        {/* Recurring Toggle */}
+                        <div className="flex items-center gap-2 bg-indigo-50 p-2 rounded-md border border-indigo-100">
+                            <input
+                                type="checkbox"
+                                id="isRecurring"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <label htmlFor="isRecurring" className="text-sm font-medium text-indigo-900">Enable Recurring Follow-ups (Multi-Visit Treatment)</label>
+                        </div>
+
+                        {/* Recurrence Settings */}
+                        {isRecurring && (
+                            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-md border border-gray-200">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Total Visits in Cycle</label>
+                                    <input
+                                        type="number"
+                                        value={numberOfVisits}
+                                        onChange={(e) => setNumberOfVisits(Number(e.target.value))}
+                                        className="w-full rounded-md border p-2 text-sm bg-white"
+                                        min="2"
+                                        placeholder="e.g. 3"
+                                    />
+                                    <p className="text-[10px] text-gray-500 mt-1">1 Initial + {numberOfVisits - 1} Follow-ups</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Interval Between Visits (Days)</label>
+                                    <input
+                                        type="number"
+                                        value={recurrenceIntervalDays}
+                                        onChange={(e) => setRecurrenceIntervalDays(Number(e.target.value))}
+                                        className="w-full rounded-md border p-2 text-sm bg-white"
+                                        min="1"
+                                        placeholder="e.g. 14"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Seasonality */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Season Start (Allowed from)</label>
+                                <select
+                                    value={seasonStartMonth || ""}
+                                    onChange={(e) => setSeasonStartMonth(e.target.value ? Number(e.target.value) : undefined)}
+                                    className="w-full rounded-md border p-2 text-sm bg-background text-foreground"
+                                >
+                                    <option value="">Any Month</option>
+                                    {Array.from({ length: 12 }, (_, i) => (
+                                        <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">Season End (Until)</label>
+                                <select
+                                    value={seasonEndMonth || ""}
+                                    onChange={(e) => setSeasonEndMonth(e.target.value ? Number(e.target.value) : undefined)}
+                                    className="w-full rounded-md border p-2 text-sm bg-background text-foreground"
+                                >
+                                    <option value="">Any Month</option>
+                                    {Array.from({ length: 12 }, (_, i) => (
+                                        <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Package / Bundle Configuration */}
+                        <div className="space-y-4 border-t pt-4 mt-4 bg-yellow-50 p-2 rounded border border-yellow-100">
+                            <h4 className="font-medium text-sm text-yellow-900 flex items-center gap-2">
+                                <span className={isPackage ? "font-bold" : ""}>Service Bundling</span>
+                            </h4>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="isPackage"
+                                    checked={isPackage}
+                                    onChange={(e) => setIsPackage(e.target.checked)}
+                                    className="h-4 w-4 rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                                />
+                                <label htmlFor="isPackage" className="text-sm font-medium text-yellow-900">
+                                    Is this a Package? (Includes other services)
+                                </label>
+                            </div>
+
+                            {isPackage && (
+                                <div className="mt-2 bg-white border rounded p-2 max-h-40 overflow-y-auto">
+                                    <p className="text-xs text-gray-500 mb-2">Select Included Services (e.g. Deferred Treatments):</p>
+                                    {availableServices.filter(s => s.id !== product?.id).map(service => (
+                                        <div key={service.id} className="flex items-center gap-2 py-1">
+                                            <input
+                                                type="checkbox"
+                                                id={`pkg-${service.id}`}
+                                                checked={includedServices.includes(service.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setIncludedServices([...includedServices, service.id]);
+                                                    } else {
+                                                        setIncludedServices(includedServices.filter(id => id !== service.id));
+                                                    }
+                                                }}
+                                                className="h-3 w-3 rounded text-yellow-600"
+                                            />
+                                            <label htmlFor={`pkg-${service.id}`} className="text-sm text-gray-700">{service.name}</label>
+                                        </div>
+                                    ))}
+                                    {availableServices.length === 0 && <p className="text-xs text-gray-400">No other services found.</p>}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Warranty */}
+                        <div className="bg-green-50 p-3 rounded-md border border-green-100">
+                            <label className="block text-sm font-medium text-green-900 mb-1">Warranty Extension (Months)</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={warrantyMonths || ""}
+                                    onChange={(e) => setWarrantyMonths(e.target.value ? Number(e.target.value) : undefined)}
+                                    placeholder="e.g. 12"
+                                    className="w-24 rounded-md border p-2 text-sm"
+                                />
+                                <span className="text-xs text-green-700">Months added to Property Warranty upon completion.</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {type !== 'SERVICE' && (
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -305,44 +600,127 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                     </div>
                 )}
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {type !== 'SERVICE' && (
+                        <div className="md:col-span-2 bg-gray-900/50 p-4 rounded-lg border border-gray-800">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-sm font-medium text-white">Inventory Management Mode</h3>
+                                <div className="flex gap-2 text-xs">
+                                    <button
+                                        type="button"
+                                        onClick={() => setContainerSize(undefined)}
+                                        className={`px-3 py-1 rounded-md border ${!containerSize ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
+                                    >
+                                        By Unit ({unit})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setContainerSize(1)} // Default start value
+                                        className={`px-3 py-1 rounded-md border ${containerSize ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400'}`}
+                                    >
+                                        By Container
+                                    </button>
+                                </div>
+                            </div>
+
+                            {containerSize ? (
+                                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Container Volume ({unit})</label>
+                                        <input
+                                            type="number"
+                                            value={containerSize}
+                                            onChange={(e) => {
+                                                const newSize = Number(e.target.value);
+                                                setContainerSize(newSize);
+                                                // Adjust cost per unit based on same container price?
+                                                // current cost is per unit.
+                                                // container price = cost * oldSize.
+                                                // cost = container price / newSize.
+                                                // Actually let's just keep cost as is, user will update price.
+                                            }}
+                                            className="w-full bg-gray-800 border-gray-700 rounded px-2 py-1 text-sm text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Containers in Stock</label>
+                                        <input
+                                            type="number"
+                                            value={stock && containerSize ? (stock / containerSize).toFixed(2) : 0}
+                                            onChange={(e) => {
+                                                const bottles = Number(e.target.value);
+                                                setStock(Math.round(bottles * containerSize));
+                                            }}
+                                            className="w-full bg-gray-800 border-gray-700 rounded px-2 py-1 text-sm text-white"
+                                        />
+                                        <p className="text-[10px] text-gray-500 mt-1">Total: {stock} {unit}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Price per Container ($)</label>
+                                        <input
+                                            type="number"
+                                            value={cost && containerSize ? (cost * containerSize).toFixed(2) : 0}
+                                            onChange={(e) => {
+                                                const containerPrice = Number(e.target.value);
+                                                setCost(containerPrice / containerSize);
+                                            }}
+                                            className="w-full bg-gray-800 border-gray-700 rounded px-2 py-1 text-sm text-white"
+                                        />
+                                        <p className="text-[10px] text-gray-500 mt-1">Unit Cost: ${cost.toFixed(4)}/{unit}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 text-foreground">Stock ({unit})</label>
+                                        <input
+                                            type="number"
+                                            value={stock}
+                                            onChange={(e) => setStock(Number(e.target.value))}
+                                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                                            required
+                                            min="0"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="block text-sm font-medium text-foreground">
+                                                Cost ($) / {unit}
+                                            </label>
+                                            <UnitCostCalculator
+                                                unit={unit}
+                                                onApply={(newCost) => setCost(newCost)}
+                                            />
+                                        </div>
+                                        <input
+                                            type="number"
+                                            value={cost}
+                                            onChange={(e) => setCost(Number(e.target.value))}
+                                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                                            required
+                                            min="0"
+                                            step="0.0001"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {!(division === "EXTERMINATION" && type !== "SERVICE") && (
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-foreground">Stock</label>
+                            <label className="block text-sm font-medium mb-1 text-foreground">Selling Price ($)</label>
                             <input
                                 type="number"
-                                value={stock}
-                                onChange={(e) => setStock(Number(e.target.value))}
+                                value={price}
+                                onChange={(e) => setPrice(Number(e.target.value))}
                                 className="w-full rounded-md border p-2 bg-background text-foreground"
                                 required
                                 min="0"
+                                step="0.01"
                             />
                         </div>
                     )}
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Price ($)</label>
-                        <input
-                            type="number"
-                            value={price}
-                            onChange={(e) => setPrice(Number(e.target.value))}
-                            className="w-full rounded-md border p-2 bg-background text-foreground"
-                            required
-                            min="0"
-                            step="0.01"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-foreground">Cost ($)</label>
-                        <input
-                            type="number"
-                            value={cost}
-                            onChange={(e) => setCost(Number(e.target.value))}
-                            className="w-full rounded-md border p-2 bg-background text-foreground"
-                            required
-                            min="0"
-                            step="0.01"
-                        />
-                    </div>
                 </div>
 
                 {type !== 'SERVICE' && (

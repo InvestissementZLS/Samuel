@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
 import { Invoice, Product, Client, Property } from '@prisma/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -23,9 +23,17 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textTransform: 'uppercase',
     },
+    logo: {
+        width: 100,
+        height: 80,
+        marginBottom: 10,
+        objectFit: 'contain',
+        alignSelf: 'flex-end'
+    },
     companyInfo: {
         fontSize: 10,
         color: '#555',
+        alignItems: 'flex-end', // Ensure right alignment for all elements including logo
     },
     clientInfo: {
         marginTop: 20,
@@ -122,7 +130,7 @@ const t = {
         billTo: "Bill To",
         date: "Date",
         dueDate: "Due Date",
-        item: "Item",
+        item: "Service",
         description: "Description",
         quantity: "Qty",
         price: "Price",
@@ -131,13 +139,16 @@ const t = {
         tax: "Tax",
         grandTotal: "Grand Total",
         thankYou: "Thank you for your business!",
+        warranty: "Warranty",
+        phone: "Phone",
+        email: "Email"
     },
     FR: {
         invoice: "FACTURE",
         billTo: "Facturé à",
         date: "Date",
         dueDate: "Échéance",
-        item: "Article",
+        item: "Service",
         description: "Description",
         quantity: "Qté",
         price: "Prix",
@@ -146,6 +157,9 @@ const t = {
         tax: "Taxes",
         grandTotal: "Grand Total",
         thankYou: "Merci de votre confiance !",
+        warranty: "Garantie",
+        phone: "Tél",
+        email: "Courriel"
     }
 };
 
@@ -172,13 +186,27 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                         <Text style={styles.text}>#{String(invoice.number || invoice.id.slice(0, 8))}</Text>
                     </View>
                     <View style={styles.companyInfo}>
+                        {invoice.division === "EXTERMINATION" && (
+                            <Image style={styles.logo} src="/zls-logo.png" />
+                        )}
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
                             {invoice.division === "EXTERMINATION" ? "Extermination ZLS" : "Les Entreprises ZLS"}
                         </Text>
-                        <Text>123 Business St.</Text>
-                        <Text>City, State, Zip</Text>
-                        <Text>Phone: (555) 123-4567</Text>
-                        <Text>Email: info@zls.com</Text>
+                        {invoice.division === "EXTERMINATION" ? (
+                            <>
+                                <Text>1267 rue Des Chênes</Text>
+                                <Text>Prévost, Québec, Canada J0R 1T0</Text>
+                                <Text>{labels.phone}: (514) 963-4010</Text>
+                                <Text>{labels.email}: exterminationzls@gmail.com</Text>
+                            </>
+                        ) : (
+                            <>
+                                <Text>123 Business St.</Text>
+                                <Text>City, State, Zip</Text>
+                                <Text>{labels.phone}: (555) 123-4567</Text>
+                                <Text>{labels.email}: info@zls.com</Text>
+                            </>
+                        )}
                     </View>
                 </View>
 
@@ -222,8 +250,23 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                         <View style={styles.tableRow} key={index}>
                             <View style={styles.tableColDesc}>
                                 <Text style={styles.tableCell}>
-                                    {`${item.product.name}${item.description ? ` - ${item.description}` : ''}`}
+                                    {item.product?.name || item.description || "Item"}
                                 </Text>
+                                {item.description && item.product?.name && item.description !== item.product.name && (
+                                    <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
+                                        {item.description}
+                                    </Text>
+                                )}
+                                {item.product.description && (
+                                    <Text style={[styles.text, { color: '#666', fontSize: 8, marginTop: 2 }]}>
+                                        {item.product.description}
+                                    </Text>
+                                )}
+                                {item.product.warrantyInfo && (
+                                    <Text style={[styles.text, { color: '#444', fontSize: 8, fontWeight: 'bold', marginTop: 4 }]}>
+                                        {item.product.warrantyInfo}
+                                    </Text>
+                                )}
                             </View>
                             <View style={styles.tableCol}>
                                 <Text style={styles.tableCell}>{String(item.quantity)}</Text>
@@ -244,9 +287,14 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                         <Text style={styles.totalLabel}>{labels.subtotal}:</Text>
                         <Text style={styles.totalValue}>${Number(invoice.total - (invoice.tax || 0)).toFixed(2)}</Text>
                     </View>
+                    {/* Split Taxes */}
                     <View style={styles.totalRow}>
-                        <Text style={styles.totalLabel}>{labels.tax}:</Text>
-                        <Text style={styles.totalValue}>${Number(invoice.tax || 0).toFixed(2)}</Text>
+                        <Text style={styles.totalLabel}>TPS (5%):</Text>
+                        <Text style={styles.totalValue}>${(Number(invoice.total - (invoice.tax || 0)) * 0.05).toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.totalRow}>
+                        <Text style={styles.totalLabel}>TVQ (9.975%):</Text>
+                        <Text style={styles.totalValue}>${(Number(invoice.total - (invoice.tax || 0)) * 0.09975).toFixed(2)}</Text>
                     </View>
                     <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: '#000', paddingTop: 5 }]}>
                         <Text style={[styles.totalLabel, { fontSize: 12 }]}>{labels.grandTotal}:</Text>
@@ -271,7 +319,14 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                 </View>
 
                 {/* Footer */}
-                <Text style={styles.footer}>{labels.thankYou}</Text>
+                <View style={styles.footer}>
+                    <Text>{labels.thankYou}</Text>
+                    {invoice.division === "EXTERMINATION" && (
+                        <Text style={{ marginTop: 4, fontSize: 8, color: '#999' }}>
+                            TPS: 789615226RT0001 | TVQ: 1231249636TQ0001
+                        </Text>
+                    )}
+                </View>
             </Page>
         </Document>
     );

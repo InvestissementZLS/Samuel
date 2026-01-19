@@ -36,7 +36,9 @@ export async function calculateCommissions(jobId: string) {
         const commissionsToCreate = [];
 
         // Sales Commission
-        if (job.salesRep && job.salesRep.commissionPercentageSales > 0) {
+        // RULE: Only if the job originated from a Quote (has quoteId) 
+        // AND there is a salesRep assigned.
+        if (job.quoteId && job.salesRep && job.salesRep.commissionPercentageSales > 0) {
             const amount = profit * (job.salesRep.commissionPercentageSales / 100);
             commissionsToCreate.push({
                 jobId,

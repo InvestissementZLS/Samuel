@@ -2,7 +2,8 @@ import { Resend } from 'resend';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { InvoicePDF } from '@/components/pdf/invoice-pdf';
 import { QuotePDF } from '@/components/pdf/quote-pdf';
-import { Invoice, Quote, Client, Product } from '@prisma/client';
+import { ServiceReportPDF } from '@/components/pdf/service-report-pdf';
+import { Invoice, Quote, Client, Product, Job, User, UsedProduct, Division } from '@prisma/client';
 
 // Initialize Resend Clients
 const resendEntreprises = process.env.RESEND_API_KEY_ENTREPRISES
@@ -210,5 +211,112 @@ export async function sendPasswordResetEmail(email: string, token: string) {
         console.error('Failed to send email:', error);
         // Fallback to logging for development if email fails
         console.log(`[EMAIL FALLBACK] Password reset link for ${email}: ${getAppUrl()}/reset-password?token=${token}`);
+    }
+}
+
+export async function sendPreparationListEmail(client: Client, division: Division, items: any[]) {
+    // items must be list of { listUrl: string, serviceName: string }
+    const config = getEmailConfig(division);
+
+    if (!config.resend) return;
+
+    try {
+        const isEn = (client as any).language === 'EN';
+        const subject = isEn
+            ? `Preparation for your upcoming service - ${division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
+            : `Préparation pour votre service à venir - ${division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+
+        const listHtml = items.map(item => `
+            <div style="margin-bottom: 12px; padding: 12px; border: 1px solid #ddd; rounded: 4px;">
+                <strong>${item.serviceName}</strong><br/>
+                <a href="${item.listUrl}" style="color: #4F46E5;">${isEn ? 'View Preparation Sheet' : 'Voir la fiche de préparation'}</a>
+            </div>
+        `).join('');
+
+        const html = isEn
+            ? `
+                <div style="font-family: sans-serif;">
+                    <h2>Hello ${client.name},</h2>
+                    <p>Thank you for booking with us. Please review the preparation instructions below for your upcoming service(s).</p>
+                    <p>It is important to complete these steps to ensure the effectiveness of the treatment.</p>
+                    <br/>
+                    ${listHtml}
+                    <br/>
+                    <p>If you have any questions, please contact us.</p>
+                </div>
+            ` : `
+                <div style="font-family: sans-serif;">
+                    <h2>Bonjour ${client.name},</h2>
+                    <p>Merci de faire affaire avec nous. Veuillez consulter les instructions de préparation ci-dessous pour votre service.</p>
+                    <p>Il est important de suivre ces étapes pour assurer l'efficacité du traitement.</p>
+                    <br/>
+                    ${listHtml}
+                    <br/>
+                    <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+                </div>
+            `;
+
+        await config.resend.emails.send({
+            from: config.from,
+            to: [client.email || ''],
+            subject: subject,
+            html: html,
+        });
+
+    } catch (error) {
+        console.error("Failed to send PDS email:", error);
+    }
+}
+
+export async function sendServiceReportEmail(job: Job & { client: Client; property: any; products: (UsedProduct & { product: Product })[]; technicians: User[] }) {
+    const config = getEmailConfig(job.division);
+
+    if (!config.resend) return;
+
+    try {
+        const pdfBuffer = await renderToBuffer(<ServiceReportPDF job={job} language={(job.client as any).language || 'EN'} />);
+
+        const isEn = (job.client as any).language === 'EN';
+        const subject = isEn
+            ? `Service Report - ${job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
+            : `Rapport de Service - ${job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+
+        const html = isEn
+            ? `
+                <div style="font-family: sans-serif;">
+                    <h2>Hello ${job.client.name},</h2>
+                    <p>Your service has been completed.</p>
+                    <p>Please find the attached service report for your records.</p>
+                    <br/>
+                    <p>Thank you!</p>
+                </div>
+            ` : `
+                <div style="font-family: sans-serif;">
+                    <h2>Bonjour ${job.client.name},</h2>
+                    <p>Votre service a été complété.</p>
+                    <p>Veuillez trouver ci-joint le rapport de service.</p>
+                    <br/>
+                    <p>Merci !</p>
+                </div>
+            `;
+
+        await config.resend.emails.send({
+            from: config.from,
+            to: [job.client.email || ''],
+            subject: subject,
+            html: html,
+            attachments: [
+                {
+                    filename: isEn ? `ServiceReport-${job.id.slice(0, 8)}.pdf` : `RapportService-${job.id.slice(0, 8)}.pdf`,
+                    content: pdfBuffer
+                }
+            ]
+        });
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Failed to send service report email:", error);
+        return { success: false, error };
     }
 }

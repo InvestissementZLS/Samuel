@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Product } from "@prisma/client";
+import { StockManagerDialog } from "@/components/inventory/stock-manager-dialog";
+import { Pencil, Filter, Users } from "lucide-react";
 import { ProductDialog } from "./product-dialog";
-import { Pencil, Filter } from "lucide-react";
 
 interface ProductListProps {
     products: Product[];
@@ -14,9 +15,19 @@ import { useDivision } from "@/components/providers/division-provider";
 export function ProductList({ products }: ProductListProps) {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    // Stock Manager State
+    const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
+    const [productToManage, setProductToManage] = useState<Product | null>(null);
+
     const { division } = useDivision();
 
     const [activeTab, setActiveTab] = useState<'INVENTORY' | 'EQUIPMENT' | 'SERVICES'>('INVENTORY');
+
+    const handleManageStock = (product: Product) => {
+        setProductToManage(product);
+        setIsStockDialogOpen(true);
+    };
 
     const handleAdd = () => {
         setSelectedProduct(null);
@@ -158,6 +169,18 @@ export function ProductList({ products }: ProductListProps) {
                                     >
                                         <Pencil className="h-4 w-4" />
                                     </button>
+                                    {(activeTab === 'EQUIPMENT' || activeTab === 'INVENTORY') && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleManageStock(product);
+                                            }}
+                                            className="text-emerald-600 hover:text-emerald-900 ml-3"
+                                            title="Manage Distribution"
+                                        >
+                                            <Users className="h-4 w-4" />
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -182,6 +205,13 @@ export function ProductList({ products }: ProductListProps) {
                             'SERVICE'
                 }
             />
+
+            <StockManagerDialog
+                isOpen={isStockDialogOpen}
+                onClose={() => setIsStockDialogOpen(false)}
+                product={productToManage}
+            />
         </div>
     );
 }
+

@@ -4,16 +4,18 @@ import { useState } from 'react';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { useDivision } from '@/components/providers/division-provider';
 
 export function Sidebar() {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { t } = useLanguage();
+    const { division } = useDivision();
 
     const navigation = [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
@@ -24,9 +26,12 @@ export function Sidebar() {
         { name: t.sidebar.clients, href: '/clients', icon: Users },
         { name: t.sidebar.technicians, href: '/technicians', icon: Users },
         { name: t.sidebar.products, href: '/products', icon: Package },
+        { name: t.sidebar.inventory, href: '/inventory', icon: Box },
+        { name: t.sidebar.recurring, href: '/recurring', icon: ShieldCheck },
         { name: t.sidebar.commissions, href: '/commissions', icon: DollarSign },
         { name: t.sidebar.reports, href: '/reports', icon: BarChart },
-        { name: t.sidebar.timesheets, href: '/timesheets', icon: Calendar },
+        { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
+        { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
 
@@ -42,7 +47,11 @@ export function Sidebar() {
 
                 {!isCollapsed ? (
                     <>
-                        <img src="/logo.png" alt="ZLS Logo" className="h-16 w-auto object-contain" />
+                        <img
+                            src={division === 'EXTERMINATION' ? "/zls-logo.png" : "/logo.png"}
+                            alt="ZLS Logo"
+                            className="h-16 w-auto object-contain"
+                        />
                         <DivisionSwitcher />
                     </>
                 ) : (

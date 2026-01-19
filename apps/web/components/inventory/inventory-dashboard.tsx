@@ -6,6 +6,7 @@ import { getTechnicians } from '@/app/actions/technician-actions';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { StockTransferModal } from './stock-transfer-modal';
+import { TechnicianInventoryView } from './technician-inventory-view';
 
 export function InventoryDashboard() {
     const [activeTab, setActiveTab] = useState<'WAREHOUSE' | 'TECHNICIANS' | 'AUDITS'>('WAREHOUSE');
@@ -160,81 +161,35 @@ export function InventoryDashboard() {
                 </div>
             )}
 
-            {!loading && activeTab === 'TECHNICIANS' && (
-                <div className="space-y-4">
-                    <select
-                        className="w-full md:w-64 rounded-md border p-2 bg-white text-gray-900"
-                        value={selectedTech}
-                        onChange={(e) => setSelectedTech(e.target.value)}
-                    >
-                        <option value="">Select Technician</option>
+            <div className="space-y-4">
+                <select
+                    className="w-full md:w-64 rounded-md border p-2 bg-white text-gray-900"
+                    value={selectedTech}
+                    onChange={(e) => setSelectedTech(e.target.value)}
+                >
+                    <option value="">Select Technician</option>
+                    {technicians.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                </select>
+
+                {selectedTech ? (
+                    <TechnicianInventoryView technicianId={selectedTech} />
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {technicians.map(t => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
+                            <button
+                                key={t.id}
+                                onClick={() => setSelectedTech(t.id)}
+                                className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow text-left group"
+                            >
+                                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">{t.name}</h3>
+                                <p className="text-sm text-gray-500 mt-1">Click to view inventory</p>
+                            </button>
                         ))}
-                    </select>
-
-                    {selectedTech && (
-                        <div className="space-y-8">
-                            {/* Consumables */}
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">Consumables</h3>
-                                <div className="bg-white rounded-lg shadow overflow-hidden">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity On Hand</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {inventory.filter(i => i.product.type === 'CONSUMABLE').length > 0 ? (
-                                                inventory.filter(i => i.product.type === 'CONSUMABLE').map((item) => (
-                                                    <tr key={item.id}>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product.name}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">{item.quantity}</td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">No consumables found.</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            {/* Equipment */}
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">Equipment (Tools & Machines)</h3>
-                                <div className="bg-white rounded-lg shadow overflow-hidden">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity On Hand</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {inventory.filter(i => i.product.type === 'EQUIPMENT').length > 0 ? (
-                                                inventory.filter(i => i.product.type === 'EQUIPMENT').map((item) => (
-                                                    <tr key={item.id}>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product.name}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">{item.quantity}</td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">No equipment found.</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                    </div>
+                )}
+            </div>
             )}
 
             {!loading && activeTab === 'AUDITS' && (

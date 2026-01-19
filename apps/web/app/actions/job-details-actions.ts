@@ -26,6 +26,14 @@ export async function updateJobStatus(id: string, status: JobStatus) {
         data: { status },
     });
     await logJobActivity(id, 'STATUS_CHANGE', `Status updated to ${status}`);
+
+    // Recurring Automation
+    if (status === 'SCHEDULED' || status === 'COMPLETED') {
+        // Dynamically import to avoid circular dep if any (though unlikely here)
+        const { generateFollowUpJobs } = await import('@/app/actions/recurring-actions');
+        await generateFollowUpJobs(id).catch(err => console.error("Recurrence Auto-Gen Error:", err));
+    }
+
     revalidatePath(`/jobs/${id}`);
 }
 
