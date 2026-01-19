@@ -418,13 +418,31 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                                 newMaterials[index].quantity = Number(e.target.value);
                                                 setMaterials(newMaterials);
                                             }}
-                                            className="w-20 rounded-md border p-1 text-sm"
+                                            className={`w-20 rounded-md border p-1 text-sm ${mat.quantity === 0 ? 'bg-gray-100 text-gray-400' : 'bg-white'}`}
                                             placeholder={t.productDialog.qty}
                                             step="0.01"
+                                            disabled={mat.quantity === 0}
                                         />
                                         <span className="text-xs text-gray-500 w-8">
                                             {matInfo?.unit || ''}
                                         </span>
+
+                                        <div className="flex items-center gap-1 mx-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={mat.quantity === 0}
+                                                onChange={(e) => {
+                                                    const newMaterials = [...materials];
+                                                    // If checked, set to 0 (Variable). If unchecked, set to 1 default
+                                                    newMaterials[index].quantity = e.target.checked ? 0 : 1;
+                                                    setMaterials(newMaterials);
+                                                }}
+                                                className="h-3 w-3 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                                                title={t.productDialog.variableDesc}
+                                            />
+                                            <label className="text-[10px] text-gray-500 cursor-pointer">{t.productDialog.variable}</label>
+                                        </div>
+
                                         <button
                                             type="button"
                                             onClick={() => {

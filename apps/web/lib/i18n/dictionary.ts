@@ -269,6 +269,8 @@ export const dictionary = {
             confirmDelete: "Are you sure you want to delete this product?",
             qty: "Qty",
             months: "Months",
+            variable: "Variable",
+            variableDesc: "Quantity determined on job",
         },
         jobs: {
             title: "Jobs",
@@ -793,6 +795,8 @@ export const dictionary = {
             confirmDelete: "Êtes-vous sûr de vouloir supprimer ce produit ?",
             qty: "Qté",
             months: "Mois",
+            variable: "Variable",
+            variableDesc: "Quantité déterminée sur place",
         },
         jobs: {
             title: "Jobs",
