@@ -33,7 +33,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
 
 
     // Form State
@@ -110,13 +110,13 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
 
     const handleSave = async () => {
         if (!selectedClientId) {
-            toast.error("Please select a client");
+            toast.error(t.invoices.selectClientError);
             return;
         }
 
         const validItems = items.filter(item => item.productId);
         if (validItems.length === 0 && items.length > 0) {
-            toast.error("Please select products for all items or remove empty rows");
+            toast.error(t.invoices.selectProductsError);
             return;
         }
 
@@ -126,7 +126,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
 
         const hasInvalidItems = items.some(item => !item.productId);
         if (hasInvalidItems) {
-            toast.error("Please select a product for all items");
+            toast.error(t.invoices.selectProductsError);
             return;
         }
 
@@ -182,7 +182,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         <FileText className="w-6 h-6 text-indigo-400" />
                     </div>
                     <h1 className="text-xl font-semibold text-white">
-                        {invoice ? "Edit Invoice" : "New Invoice"}
+                        {invoice ? t.invoices.editInvoice : t.invoices.createInvoice}
                     </h1>
                 </div>
                 <div className="flex gap-2">
@@ -191,10 +191,10 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         className="bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800"
                         onClick={() => setIsPreviewOpen(true)}
                     >
-                        Preview
+                        {t.common.preview}
                     </Button>
                     <Button onClick={handleSave} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                        {loading ? "Saving..." : "Save Invoice"}
+                        {loading ? t.common.saving : (invoice ? t.common.save : t.invoices.createInvoice)}
                     </Button>
                 </div>
             </div>
@@ -243,7 +243,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                 {/* Client Info */}
                 <div className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Bill To</label>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t.invoices.billTo}</label>
                         {selectedClientId && selectedClient ? (
                             <div className="group relative">
                                 <div className="text-white font-medium">{selectedClient.name}</div>
@@ -254,7 +254,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                         onClick={() => setSelectedClientId("")}
                                         className="text-xs text-indigo-400 hover:text-indigo-300 mt-1"
                                     >
-                                        Change Client
+                                        {t.invoices.changeClient}
                                     </button>
                                 )}
                             </div>
@@ -264,7 +264,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                     items={clientOptions}
                                     value={selectedClientId}
                                     onSelect={setSelectedClientId}
-                                    placeholder="Select Client..."
+                                    placeholder={t.common.select}
                                     className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 hover:text-white justify-between w-full"
                                     popoverClassName="bg-gray-800 border-gray-700 text-white"
                                     itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
@@ -276,21 +276,21 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                     onClick={() => setIsClientDialogOpen(true)}
                                 >
                                     <Plus className="w-4 h-4 mr-2" />
-                                    New Client
+                                    {t.clientDialog.newClient}
                                 </Button>
                             </div>
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Division</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t.products.division}</label>
                         <select
                             value={division}
                             onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
                             className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
                         >
-                            <option value="EXTERMINATION">Extermination ZLS</option>
-                            <option value="ENTREPRISES">Les Entreprises ZLS</option>
+                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
+                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
                         </select>
                     </div>
                 </div>
@@ -299,7 +299,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                 <div className="space-y-4 col-span-2">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Invoice #</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t.invoices.invoiceNumber}</label>
                             <input
                                 type="text"
                                 value={invoice?.number || "Auto-generated"}
@@ -308,7 +308,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">PO Number</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t.invoices.poNumber}</label>
                             <input
                                 type="text"
                                 value={poNumber}
@@ -318,7 +318,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Date Issued</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t.invoices.dateIssued}</label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -329,7 +329,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                         )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {issuedDate ? format(issuedDate, "PPP") : <span>Pick a date</span>}
+                                        {issuedDate ? format(issuedDate, "PPP") : <span>{t.invoices.pickDate}</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700 text-white">
@@ -343,7 +343,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                             </Popover>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Due Date</label>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">{t.invoices.dueDate}</label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -354,7 +354,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                         )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dueDate ? format(dueDate, "PPP") : <span>Due on receipt</span>}
+                                        {dueDate ? format(dueDate, "PPP") : <span>{t.invoices.dueOnReceipt}</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700 text-white">
@@ -378,11 +378,11 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         <thead className="bg-gray-800 text-gray-400 font-medium uppercase text-xs">
                             <tr>
                                 <th className="px-4 py-3 w-10"></th>
-                                <th className="px-4 py-3">Service</th>
-                                <th className="px-4 py-3 w-24 text-right">Cost</th>
-                                <th className="px-4 py-3 w-24 text-right">Qty</th>
-                                <th className="px-4 py-3 w-32 text-right">Price</th>
-                                <th className="px-4 py-3 w-32 text-right">Total</th>
+                                <th className="px-4 py-3">{t.products.services}</th>
+                                <th className="px-4 py-3 w-24 text-right">{t.products.cost}</th>
+                                <th className="px-4 py-3 w-24 text-right">{t.common.quantity}</th>
+                                <th className="px-4 py-3 w-32 text-right">{t.products.price}</th>
+                                <th className="px-4 py-3 w-32 text-right">{t.quotes.total}</th>
                                 <th className="px-4 py-3 w-10"></th>
                             </tr>
                         </thead>
@@ -398,7 +398,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                                 items={productOptions}
                                                 value={item.productId}
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
-                                                placeholder="Select Service"
+                                                placeholder={t.common.select}
                                                 className="bg-transparent border-none text-white hover:bg-gray-800 hover:text-white aria-expanded:text-white justify-between w-full p-0 h-auto"
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
                                                 itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
@@ -453,7 +453,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     </table>
                     <div className="p-2 border-t border-gray-800">
                         <Button variant="ghost" onClick={handleAddItem} className="text-indigo-400 hover:text-indigo-300 hover:bg-gray-800">
-                            <Plus className="w-4 h-4 mr-2" /> Add Service
+                            <Plus className="w-4 h-4 mr-2" /> {t.invoices.addService}
                         </Button>
                     </div>
                 </div>
@@ -465,27 +465,27 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     {/* Terms & Notes */}
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
                         <div className="flex justify-between items-center mb-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Terms</label>
-                            <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500">Insert</Button>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">{t.invoices.terms}</label>
+                            <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500">{t.common.insert}</Button>
                         </div>
                         <textarea
                             value={terms}
                             onChange={(e) => setTerms(e.target.value)}
                             className="w-full bg-transparent border-none text-sm text-gray-300 resize-none focus:ring-0 placeholder:text-gray-700"
-                            placeholder="Enter terms and conditions..."
+                            placeholder={t.invoices.termsPlaceholder}
                             rows={3}
                         />
                     </div>
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
                         <div className="flex justify-between items-center mb-2">
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Notes</label>
-                            <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500">Insert</Button>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">{t.invoices.notes}</label>
+                            <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500">{t.common.insert}</Button>
                         </div>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             className="w-full bg-transparent border-none text-sm text-gray-300 resize-none focus:ring-0 placeholder:text-gray-700"
-                            placeholder="Enter notes visible to client..."
+                            placeholder={t.invoices.notesPlaceholder}
                             rows={3}
                         />
                     </div>
@@ -493,11 +493,11 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
 
                 <div className="w-full md:w-80 space-y-4">
                     <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Subtotal</span>
+                        <span className="text-gray-400">{t.invoices.subtotal}</span>
                         <span className="text-white">${subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-400">Discount</span>
+                        <span className="text-gray-400">{t.invoices.discount}</span>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
@@ -520,7 +520,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     <div className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-400">Tax</span>
+                                <span className="text-gray-400">{t.invoices.tax}</span>
                                 <label className="flex items-center gap-1 text-xs text-indigo-400 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -535,7 +535,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                                         }}
                                         className="rounded border-gray-700 bg-gray-800 text-indigo-500 focus:ring-0"
                                     />
-                                    QC Taxes
+                                    {t.invoices.qcTaxes}
                                 </label>
                             </div>
                             {!isQuebecTax && (
@@ -554,32 +554,32 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         {isQuebecTax ? (
                             <>
                                 <div className="flex justify-between text-xs text-gray-500">
-                                    <span>GST (5%)</span>
+                                    <span>{t.invoices.gst}</span>
                                     <span>${(taxableAmount * 0.05).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500">
-                                    <span>QST (9.975%)</span>
+                                    <span>{t.invoices.qst}</span>
                                     <span>${(taxableAmount * 0.09975).toFixed(2)}</span>
                                 </div>
                             </>
                         ) : (
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-400">Tax Amount</span>
+                                <span className="text-gray-400">{t.invoices.taxAmount}</span>
                                 <span className="text-white">${taxAmount.toFixed(2)}</span>
                             </div>
                         )}
                     </div>
 
                     <div className="border-t border-gray-700 pt-4 flex justify-between items-end">
-                        <span className="text-gray-400 font-medium">Total</span>
+                        <span className="text-gray-400 font-medium">{t.quotes.total}</span>
                         <span className="text-2xl font-bold text-white">${total.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-indigo-400 font-medium">
-                        <span>Balance Due</span>
+                        <span>{t.invoices.balanceDue}</span>
                         <span>${balanceDue.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-500">
-                        <span>Paid to Date</span>
+                        <span>{t.invoices.paidToDate}</span>
                         <span>${amountPaid.toFixed(2)}</span>
                     </div>
 
@@ -587,7 +587,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                     {/* @ts-ignore */}
                     {invoice?.transactions && invoice.transactions.length > 0 && (
                         <div className="border-t border-gray-700 pt-4 mt-4">
-                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">History</h4>
+                            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t.invoices.history}</h4>
                             <div className="space-y-2">
                                 {/* @ts-ignore */}
                                 {invoice.transactions.map((t: any) => (

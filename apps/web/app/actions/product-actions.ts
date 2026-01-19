@@ -54,7 +54,14 @@ interface CreateProductData {
     materials?: { id: string; quantity: number }[];
     // New
     isPackage?: boolean;
-    includedServices?: string[]; // IDs of services included in this package
+    isPackage?: boolean;
+    includedServices?: {
+        id: string;
+        delayDays?: number;
+        order?: number;
+        seasonality?: "ALL_YEAR" | "SPRING_ONLY";
+        isWeatherDependent?: boolean
+    }[]; // IDs and config of services included
     containerSize?: number;
     preparationListUrl?: string;
 }
@@ -114,9 +121,14 @@ export async function createProduct(data: CreateProductData) {
                 }),
                 ...(data.includedServices && data.includedServices.length > 0 && {
                     includedServices: {
-                        create: data.includedServices.map(childId => ({
-                            childProductId: childId,
-                            quantity: 1
+                        create: data.includedServices.map((service, index) => ({
+                            childProductId: service.id,
+                            quantity: 1,
+                            // New Timeline Fields
+                            order: service.order || index + 1,
+                            delayDays: service.delayDays || 0,
+                            seasonality: service.seasonality || 'ALL_YEAR',
+                            isWeatherDependent: service.isWeatherDependent || false
                         }))
                     }
                 })
@@ -198,11 +210,17 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
                 prisma.includedService.deleteMany({ where: { parentProductId: id } }),
                 // Create new
                 // @ts-ignore
+                // @ts-ignore
                 prisma.includedService.createMany({
-                    data: data.includedServices.map(childId => ({
+                    data: data.includedServices.map((service, index) => ({
                         parentProductId: id,
-                        childProductId: childId,
-                        quantity: 1
+                        childProductId: service.id,
+                        quantity: 1,
+                        // New Timeline Fields
+                        order: service.order || index + 1,
+                        delayDays: service.delayDays || 0,
+                        seasonality: service.seasonality || 'ALL_YEAR',
+                        isWeatherDependent: service.isWeatherDependent || false
                     }))
                 })
             ] : []),

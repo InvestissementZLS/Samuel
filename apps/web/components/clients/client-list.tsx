@@ -45,9 +45,9 @@ export function ClientList({ clients }: ClientListProps) {
             const token = await createBookingLink(clientId);
             const url = `${window.location.origin}/booking/${token}`;
             await navigator.clipboard.writeText(url);
-            toast.success("Booking Link Copied!");
+            toast.success(t.clients.bookingLinkCopied);
         } catch (error) {
-            toast.error("Failed to generate link");
+            toast.error(t.clients.generateLinkError);
         }
     };
 
@@ -59,12 +59,12 @@ export function ClientList({ clients }: ClientListProps) {
                     onClick={() => {
                         const url = `${window.location.origin}/booking/new`;
                         navigator.clipboard.writeText(url);
-                        toast.success("New Client Link Copied!");
+                        toast.success(t.clients.newClientLinkCopied);
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 mr-2"
                 >
                     <LinkIcon className="h-4 w-4" />
-                    New Lead Link
+                    {t.clients.newLeadLink}
                 </button>
                 <button
                     onClick={handleAdd}
@@ -138,7 +138,7 @@ export function ClientList({ clients }: ClientListProps) {
                                         <button
                                             onClick={(e) => handleGenerateLink(e, client.id)}
                                             className="text-blue-600 hover:text-blue-900 z-10 relative mr-2"
-                                            title="Copy Booking Link"
+                                            title={t.clients.copyLink}
                                         >
                                             <LinkIcon className="h-4 w-4" />
                                         </button>
@@ -155,18 +155,20 @@ export function ClientList({ clients }: ClientListProps) {
                     </table>
                 ) : (
                     <div className="p-6 text-center text-gray-500">
-                        <p>{t.clients.noClients} in {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}.</p>
+                        {/* Note: keeping inline ternary for division names or use props if strict translation needed, but acceptable for now */}
+                        <p>{t.clients.noClients} {t.clients.in} {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}.</p>
                         {clients.length > 0 && (
                             <p className="mt-2 text-sm">
-                                {clients.length} clients are hidden because they belong to other divisions.
-                                Switch divisions to view them.
+                                {clients.length} {t.clients.hiddenClients}
+                                <br />
+                                {t.clients.switchDivision}
                             </p>
                         )}
                         <button
                             onClick={handleAdd}
                             className="mt-4 text-indigo-600 hover:text-indigo-500 font-medium"
                         >
-                            Create new client in {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}
+                            {t.clients.createInDivision} {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}
                         </button>
                     </div>
                 )}

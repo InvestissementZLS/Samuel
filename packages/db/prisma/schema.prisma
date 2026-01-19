@@ -386,10 +386,17 @@ model IncludedService {
   childProductId  String
   quantity        Int     @default(1)
   
+  // Timeline Blueprint fields
+  order           Int           @default(1)
+  delayDays       Int           @default(0)
+  seasonality     Seasonality   @default(ALL_YEAR)
+  isWeatherDependent Boolean    @default(false)
+  
   parentProduct   Product @relation("ParentService", fields: [parentProductId], references: [id])
   childProduct    Product @relation("ChildService", fields: [childProductId], references: [id])
 
-  @@unique([parentProductId, childProductId])
+  // Removed unique constraint to allow multiple of same service (e.g. 4 treatments of same type)
+  @@index([parentProductId])
 }
 
 model ServiceMaterial {

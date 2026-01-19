@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { SeriesBuilder } from '@/components/settings/series-builder';
+import { SeriesView } from '@/components/settings/series-view';
 
 export default async function SeriesPage() {
     // @ts-ignore
@@ -14,12 +14,5 @@ export default async function SeriesPage() {
         orderBy: { name: 'asc' }
     });
 
-    return (
-        <div className="max-w-5xl mx-auto p-4 md:p-8">
-            <h1 className="text-2xl font-bold mb-2">Service Series / Packages</h1>
-            <p className="text-gray-500 mb-8">Create multi-step service plans (e.g. Mice Treatment: 3 Visits).</p>
-
-            <SeriesBuilder initialSeries={seriesList} availableProducts={products} />
-        </div>
-    );
+    return <SeriesView seriesList={seriesList} products={products} />;
 }

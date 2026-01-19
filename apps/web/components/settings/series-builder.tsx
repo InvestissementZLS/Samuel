@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createProductSeries, addSeriesStep, deleteProductSeries } from "@/app/actions/series-actions";
 import { toast } from "sonner";
 import { Plus, Trash2, Calendar, Cloud, Sun } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface SeriesBuilderProps {
     initialSeries: any[];
@@ -14,6 +15,7 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
     const [seriesList, setSeriesList] = useState(initialSeries);
     const [isCreating, setIsCreating] = useState(false);
     const [name, setName] = useState("");
+    const { t } = useLanguage();
     const [description, setDescription] = useState("");
 
     // Step State
@@ -31,9 +33,9 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
             setIsCreating(false);
             setName("");
             setDescription("");
-            toast.success("Series created");
+            toast.success(t.settings.seriesCreated);
         } catch (error) {
-            toast.error("Failed to create series");
+            toast.error(t.settings.seriesCreateError);
         }
     };
 
@@ -41,22 +43,22 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
         if (!stepProduct) return;
         try {
             await addSeriesStep(seriesId, stepProduct, stepDelay, stepSeason as any, stepWeather);
-            toast.success("Step added (refresh to see details)");
+            toast.success(t.settings.stepAdded);
             // Ideally we'd update optimistic state here, but revalidatePath handles the reload usually
             window.location.reload();
         } catch (error) {
-            toast.error("Failed to add step");
+            toast.error(t.settings.stepAddError);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Delete this series?")) return;
+        if (!confirm(t.settings.deleteSeriesConfirm)) return;
         try {
             await deleteProductSeries(id);
             setSeriesList(seriesList.filter(s => s.id !== id));
-            toast.success("Deleted");
+            toast.success(t.settings.seriesDeleted);
         } catch (error) {
-            toast.error("Failed to delete");
+            toast.error(t.settings.seriesDeleteError);
         }
     };
 
@@ -64,23 +66,23 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
         <div className="space-y-8">
             {/* Create Series Form */}
             <div className="bg-white p-6 rounded-lg border shadow-sm">
-                <h3 className="font-medium text-lg mb-4">Create New Package</h3>
+                <h3 className="font-medium text-lg mb-4">{t.settings.newPackage}</h3>
                 <div className="flex gap-4 items-end">
                     <div className="flex-1">
-                        <label className="text-sm font-medium">Package Name</label>
+                        <label className="text-sm font-medium">{t.settings.packageName}</label>
                         <input
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            placeholder="e.g. Carpenter Ant Program (3 Visits)"
+                            placeholder={t.settings.packageNamePlaceholder}
                             className="w-full border p-2 rounded"
                         />
                     </div>
                     <div className="flex-1">
-                        <label className="text-sm font-medium">Description</label>
+                        <label className="text-sm font-medium">{t.settings.packageDesc}</label>
                         <input
                             value={description}
                             onChange={e => setDescription(e.target.value)}
-                            placeholder="Optional notes"
+                            placeholder={t.settings.packageDescPlaceholder}
                             className="w-full border p-2 rounded"
                         />
                     </div>
@@ -88,7 +90,7 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                         onClick={handleCreateSeries}
                         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                     >
-                        Create
+                        {t.common.create}
                     </button>
                 </div>
             </div>
@@ -108,7 +110,7 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                         </div>
 
                         <div className="p-4">
-                            <h4 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Timeline</h4>
+                            <h4 className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">{t.settings.timeline}</h4>
                             <div className="space-y-4">
                                 {series.steps.map((step: any, index: number) => (
                                     <div key={step.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded border">
@@ -120,16 +122,16 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                                             <div className="flex gap-4 text-xs text-gray-500 mt-1">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar size={12} />
-                                                    {step.delayDays === 0 ? "Starts Immediately" : `Wait ${step.delayDays} days`}
+                                                    {step.delayDays === 0 ? t.settings.startsImmediately : t.settings.waitDays.replace('{days}', step.delayDays)}
                                                 </span>
                                                 {step.seasonality === 'SPRING_ONLY' && (
                                                     <span className="flex items-center gap-1 text-green-600">
-                                                        <Sun size={12} /> Spring Only
+                                                        <Sun size={12} /> {t.settings.springOnly}
                                                     </span>
                                                 )}
                                                 {step.isWeatherDependent && (
                                                     <span className="flex items-center gap-1 text-amber-600">
-                                                        <Cloud size={12} /> No Rain
+                                                        <Cloud size={12} /> {t.settings.noRain}
                                                     </span>
                                                 )}
                                             </div>
@@ -139,13 +141,13 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
 
                                 {/* Add Step Form */}
                                 <div className="mt-4 pt-4 border-t flex gap-2 items-center flex-wrap">
-                                    <span className="text-sm font-medium text-gray-500">Next Step:</span>
+                                    <span className="text-sm font-medium text-gray-500">{t.settings.nextStep}</span>
                                     <select
                                         className="border rounded p-2 text-sm"
                                         value={stepProduct}
                                         onChange={e => { setStepProduct(e.target.value); setSelectedSeriesId(series.id); }}
                                     >
-                                        <option value="">Select Service...</option>
+                                        <option value="">{t.settings.selectService}</option>
                                         {availableProducts.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
@@ -154,7 +156,7 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                                     <input
                                         type="number"
                                         className="border rounded p-2 w-24 text-sm"
-                                        placeholder="Days after"
+                                        placeholder={t.settings.daysAfter}
                                         value={stepDelay} // This state is shared, bug potential if multiple forms used at once. Simplified for now.
                                         onChange={e => setStepDelay(Number(e.target.value))}
                                     />
@@ -164,8 +166,8 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                                         value={stepSeason}
                                         onChange={e => setStepSeason(e.target.value)}
                                     >
-                                        <option value="ALL_YEAR">All Year</option>
-                                        <option value="SPRING_ONLY">Spring Only</option>
+                                        <option value="ALL_YEAR">{t.settings.allYear}</option>
+                                        <option value="SPRING_ONLY">{t.settings.springOnly}</option>
                                     </select>
 
                                     <label className="flex items-center gap-1 text-sm">
@@ -174,14 +176,14 @@ export function SeriesBuilder({ initialSeries, availableProducts }: SeriesBuilde
                                             checked={stepWeather}
                                             onChange={e => setStepWeather(e.target.checked)}
                                         />
-                                        No Rain
+                                        {t.settings.noRain}
                                     </label>
 
                                     <button
                                         onClick={() => handleAddStep(series.id)}
                                         className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
                                     >
-                                        Add Step
+                                        {t.settings.addStep}
                                     </button>
                                 </div>
                             </div>

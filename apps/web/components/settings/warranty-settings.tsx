@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { createWarrantyTemplate, updateWarrantyTemplate, deleteWarrantyTemplate } from "@/app/actions/warranty-actions";
 import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface Warranty {
     id: string;
@@ -19,6 +20,7 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
     const [warranties, setWarranties] = useState<Warranty[]>(initialWarranties);
     const [isCreating, setIsCreating] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const { t } = useLanguage();
 
     // Form State
     const [name, setName] = useState("");
@@ -34,9 +36,9 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
             setIsCreating(false);
             setName("");
             setText("");
-            toast.success("Warranty template created");
+            toast.success(t.settings.warrantyCreated);
         } catch (error) {
-            toast.error("Failed to create warranty");
+            toast.error(t.settings.warrantyCreateError);
         } finally {
             setLoading(false);
         }
@@ -51,22 +53,22 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
             setEditingId(null);
             setName("");
             setText("");
-            toast.success("Warranty updated");
+            toast.success(t.settings.warrantyUpdated);
         } catch (error) {
-            toast.error("Failed to update warranty");
+            toast.error(t.settings.warrantyUpdateError);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Delete this template?")) return;
+        if (!confirm(t.settings.deleteTemplateConfirm)) return;
         try {
             await deleteWarrantyTemplate(id);
             setWarranties(warranties.filter(w => w.id !== id));
-            toast.success("Warranty deleted");
+            toast.success(t.settings.warrantyDeleted);
         } catch (error) {
-            toast.error("Failed to delete warranty");
+            toast.error(t.settings.warrantyDeleteError);
         }
     };
 
@@ -84,30 +86,30 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
                     onClick={() => { setIsCreating(true); setName(""); setText(""); }}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                    <Plus size={16} /> New Template
+                    <Plus size={16} /> {t.settings.newTemplate}
                 </button>
             )}
 
             {(isCreating || editingId) && (
                 <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-                    <h3 className="font-medium text-lg text-gray-900">{isCreating ? "New Template" : "Edit Template"}</h3>
+                    <h3 className="font-medium text-lg text-gray-900">{isCreating ? t.settings.newTemplate : t.settings.editTemplate}</h3>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.warrantyName}</label>
                         <input
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            placeholder="e.g. 6 Months Standard"
+                            placeholder={t.settings.warrantyNamePlaceholder}
                             className="w-full rounded border p-2 text-gray-900"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Warranty Text</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.warrantyText}</label>
                         <textarea
                             value={text}
                             onChange={e => setText(e.target.value)}
                             rows={4}
-                            placeholder="Detailed warranty terms..."
+                            placeholder={t.settings.warrantyTextPlaceholder}
                             className="w-full rounded border p-2 text-gray-900"
                         />
                     </div>
@@ -117,14 +119,14 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
                             className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                             disabled={loading}
                         >
-                            Cancel
+                            {t.common.cancel}
                         </button>
                         <button
                             onClick={isCreating ? handleCreate : handleUpdate}
                             disabled={loading}
                             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                         >
-                            {loading ? "Saving..." : "Save Template"}
+                            {loading ? t.common.saving : t.settings.saveTemplate}
                         </button>
                     </div>
                 </div>

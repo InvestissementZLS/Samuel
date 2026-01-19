@@ -7,6 +7,7 @@ import { addProductUsed } from '@/app/actions/job-details-actions';
 import { getTreatmentOptions, createTreatmentLocation, createTargetPest, createApplicationMethod } from '@/app/actions/treatment-actions';
 import { getAllProducts } from '@/app/actions/inventory-actions';
 import { Plus, Check } from 'lucide-react';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface MaterialUsageDialogProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
     const [locations, setLocations] = useState<any[]>([]);
     const [pests, setPests] = useState<any[]>([]);
     const [methods, setMethods] = useState<any[]>([]);
+    const { t } = useLanguage();
 
     const [selectedProduct, setSelectedProduct] = useState<string>('');
     const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -51,11 +53,11 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
 
     const handleSubmit = async () => {
         if (!selectedProduct) {
-            toast.error("Please select a product");
+            toast.error(t.jobs.selectProductError);
             return;
         }
         if (quantity <= 0) {
-            toast.error("Quantity must be positive");
+            toast.error(t.jobs.quantityError);
             return;
         }
 
@@ -69,7 +71,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
                 selectedPests,
                 selectedMethods
             );
-            toast.success("Material usage recorded");
+            toast.success(t.jobs.usageRecorded);
             onClose();
             // Reset selections
             setSelectedProduct('');
@@ -79,7 +81,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
             setQuantity(1);
         } catch (error) {
             console.error(error);
-            toast.error("Failed to record usage");
+            toast.error(t.jobs.recordUsageError);
         } finally {
             setLoading(false);
         }
@@ -91,9 +93,9 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
         if (res.success) {
             setLocations([...locations, res.data]);
             setNewLocation('');
-            toast.success("Location added");
+            toast.success(t.jobs.locationAdded);
         } else {
-            toast.error("Failed to add location");
+            toast.error(t.jobs.locationAddError);
         }
     };
 
@@ -103,9 +105,9 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
         if (res.success) {
             setPests([...pests, res.data]);
             setNewPest('');
-            toast.success("Pest added");
+            toast.success(t.jobs.pestAdded);
         } else {
-            toast.error("Failed to add pest");
+            toast.error(t.jobs.pestAddError);
         }
     };
 
@@ -115,9 +117,9 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
         if (res.success) {
             setMethods([...methods, res.data]);
             setNewMethod('');
-            toast.success("Method added");
+            toast.success(t.jobs.methodAdded);
         } else {
-            toast.error("Failed to add method");
+            toast.error(t.jobs.methodAddError);
         }
     };
 
@@ -130,12 +132,12 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Add Material Usage" maxWidth="max-w-6xl">
+        <Modal isOpen={isOpen} onClose={onClose} title={t.jobs.addMaterialUsage} maxWidth="max-w-6xl">
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px]">
                     {/* Column 1: Chemicals (Products) */}
                     <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">Chemicals</div>
+                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.chemicals}</div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {products.filter(p => p.type === 'CONSUMABLE').map(p => (
                                 <div
@@ -152,7 +154,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
 
                     {/* Column 2: Locations */}
                     <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">Locations</div>
+                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.locations}</div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {locations.map(l => (
                                 <div
@@ -170,7 +172,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
                                 type="text"
                                 value={newLocation}
                                 onChange={(e) => setNewLocation(e.target.value)}
-                                placeholder="Add New..."
+                                placeholder={t.jobs.addNew}
                                 className="flex-1 text-sm border rounded px-2 py-1"
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddLocation()}
                             />
@@ -182,7 +184,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
 
                     {/* Column 3: Target Pests */}
                     <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">Target Pests</div>
+                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.targetPests}</div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {pests.map(p => (
                                 <div
@@ -200,7 +202,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
                                 type="text"
                                 value={newPest}
                                 onChange={(e) => setNewPest(e.target.value)}
-                                placeholder="Add New..."
+                                placeholder={t.jobs.addNew}
                                 className="flex-1 text-sm border rounded px-2 py-1"
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddPest()}
                             />
@@ -212,7 +214,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
 
                     {/* Column 4: Methods */}
                     <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">Method</div>
+                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.methods}</div>
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {methods.map(m => (
                                 <div
@@ -230,7 +232,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
                                 type="text"
                                 value={newMethod}
                                 onChange={(e) => setNewMethod(e.target.value)}
-                                placeholder="Add New..."
+                                placeholder={t.jobs.addNew}
                                 className="flex-1 text-sm border rounded px-2 py-1"
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddMethod()}
                             />
@@ -243,7 +245,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
 
                 <div className="flex items-center justify-between border-t pt-4">
                     <div className="flex items-center gap-4">
-                        <label className="font-medium">Quantity Used:</label>
+                        <label className="font-medium">{t.jobs.quantityUsed}:</label>
                         <input
                             type="number"
                             value={quantity}
@@ -254,13 +256,13 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
                         />
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50">Cancel</button>
+                        <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50">{t.common.cancel}</button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading || !selectedProduct}
                             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                         >
-                            {loading ? 'Saving...' : 'Save Usage'}
+                            {loading ? t.common.saving : t.jobs.saveUsage}
                         </button>
                     </div>
                 </div>

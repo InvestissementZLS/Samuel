@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { changePassword } from "@/app/actions/auth-actions";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function PasswordSettings() {
+    const { t } = useLanguage();
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,12 +16,12 @@ export function PasswordSettings() {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
-            toast.error("New passwords do not match");
+            toast.error(t.settings.passwordsNoMatch);
             return;
         }
 
         if (newPassword.length < 5) {
-            toast.error("Password must be at least 5 characters");
+            toast.error(t.settings.passwordMinLength);
             return;
         }
 
@@ -27,16 +29,16 @@ export function PasswordSettings() {
         try {
             const result = await changePassword(currentPassword, newPassword);
             if (result.success) {
-                toast.success("Password changed successfully");
+                toast.success(t.settings.passwordChanged);
                 setCurrentPassword("");
                 setNewPassword("");
                 setConfirmPassword("");
             } else {
-                toast.error(result.message || "Failed to change password");
+                toast.error(result.message || t.settings.passwordChangeError);
             }
         } catch (error) {
             console.error("Change password error:", error);
-            toast.error("An unexpected error occurred");
+            toast.error(t.jobs.unexpectedError);
         } finally {
             setLoading(false);
         }
@@ -44,10 +46,10 @@ export function PasswordSettings() {
 
     return (
         <div className="bg-white shadow rounded-lg p-6 max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t.settings.changePassword}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.currentPassword}</label>
                     <input
                         type="password"
                         value={currentPassword}
@@ -57,7 +59,7 @@ export function PasswordSettings() {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.newPassword}</label>
                     <input
                         type="password"
                         value={newPassword}
@@ -67,7 +69,7 @@ export function PasswordSettings() {
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.confirmPassword}</label>
                     <input
                         type="password"
                         value={confirmPassword}
@@ -81,7 +83,7 @@ export function PasswordSettings() {
                     disabled={loading}
                     className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 >
-                    {loading ? "Updating..." : "Update Password"}
+                    {loading ? t.settings.updating : t.settings.updatePassword}
                 </button>
             </form>
         </div>

@@ -9,6 +9,7 @@ import { completeJob } from '@/app/actions/report-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface CompleteJobDialogProps {
     jobId: string;
@@ -21,6 +22,7 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
     const [internalNotes, setInternalNotes] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
+    const { t } = useLanguage();
 
     const techSigRef = useRef<SignatureCanvas>(null);
     const clientSigRef = useRef<SignatureCanvas>(null);
@@ -30,7 +32,7 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
 
     const handleSubmit = async () => {
         if (techSigRef.current?.isEmpty()) {
-            toast.error("Technician signature is required");
+            toast.error(t.jobs.signatureRequired);
             return;
         }
 
@@ -47,14 +49,14 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
             });
 
             if (result.success) {
-                toast.success("Job completed and report sent!");
+                toast.success(t.jobs.compAndReport);
                 onClose();
                 router.refresh();
             } else {
-                toast.error("Failed to complete job: " + result.error);
+                toast.error(t.jobs.compError + ": " + result.error);
             }
         } catch (error) {
-            toast.error("An unexpected error occurred");
+            toast.error(t.jobs.unexpectedError);
         } finally {
             setIsSubmitting(false);
         }
@@ -64,11 +66,11 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Complete Job & Send Report"
+            title={t.jobs.completeTitle}
             maxWidth="max-w-2xl"
         >
             <div className="mb-4 text-sm text-gray-500">
-                Review notes and capture signatures. A report will be sent to the client.
+                {t.jobs.reviewNotes}
             </div>
 
             <div className="space-y-6 py-4">
@@ -76,11 +78,11 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label htmlFor="reportNotes" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Report Notes (Client Visible)
+                            {t.jobs.reportNotes}
                         </label>
                         <Textarea
                             id="reportNotes"
-                            placeholder="Observations, recommendations..."
+                            placeholder={t.jobs.reportNotesPlaceholder}
                             value={reportNotes}
                             onChange={(e) => setReportNotes(e.target.value)}
                             className="min-h-[100px]"
@@ -88,11 +90,11 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                     </div>
                     <div className="space-y-2">
                         <label htmlFor="internalNotes" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Internal Notes (Private)
+                            {t.jobs.internalNotes}
                         </label>
                         <Textarea
                             id="internalNotes"
-                            placeholder="Hidden from client..."
+                            placeholder={t.jobs.internalNotesPlaceholder}
                             value={internalNotes}
                             onChange={(e) => setInternalNotes(e.target.value)}
                             className="min-h-[100px]"
@@ -106,9 +108,9 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Technician Signature *
+                                {t.jobs.techSignature} *
                             </label>
-                            <Button variant="ghost" size="sm" onClick={handleClearTech} className="h-6 text-xs text-red-500">Clear</Button>
+                            <Button variant="ghost" size="sm" onClick={handleClearTech} className="h-6 text-xs text-red-500">{t.jobs.clear}</Button>
                         </div>
                         <div className="border rounded-md shadow-sm bg-gray-50 h-40 w-full overflow-hidden">
                             <SignatureCanvas
@@ -123,9 +125,9 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Client Signature
+                                {t.jobs.clientSignature}
                             </label>
-                            <Button variant="ghost" size="sm" onClick={handleClearClient} className="h-6 text-xs text-red-500">Clear</Button>
+                            <Button variant="ghost" size="sm" onClick={handleClearClient} className="h-6 text-xs text-red-500">{t.jobs.clear}</Button>
                         </div>
                         <div className="border rounded-md shadow-sm bg-gray-50 h-40 w-full overflow-hidden">
                             <SignatureCanvas
@@ -134,21 +136,21 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                                 backgroundColor="rgba(0,0,0,0)"
                             />
                         </div>
-                        <p className="text-xs text-gray-500">Optional if client is not present.</p>
+                        <p className="text-xs text-gray-500">{t.jobs.optionalSignature}</p>
                     </div>
                 </div>
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+                <Button variant="outline" onClick={onClose} disabled={isSubmitting}>{t.common.cancel}</Button>
                 <Button onClick={handleSubmit} disabled={isSubmitting}>
                     {isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
+                            {t.jobs.processing}
                         </>
                     ) : (
-                        'Complete Job'
+                        t.jobs.complete
                     )}
                 </Button>
             </div>

@@ -6,10 +6,13 @@ import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminde
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
 import { cookies } from 'next/headers';
+import { dictionary, Locale } from '@/lib/i18n/dictionary';
 
 export default async function DashboardPage() {
     const cookieStore = cookies();
     const userId = cookieStore.get('userId')?.value;
+    const lang = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'fr';
+    const t = dictionary[lang];
 
     const user = userId ? await prisma.user.findUnique({
         where: { id: userId },
@@ -63,7 +66,7 @@ export default async function DashboardPage() {
             )}
 
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
             </div>
 
             <DashboardStats stats={stats} />
@@ -71,27 +74,27 @@ export default async function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-4 rounded-xl border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">
-                        <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
+                        <h3 className="font-semibold leading-none tracking-tight">{t.dashboard.recentActivity}</h3>
                         <p className="text-sm text-muted-foreground">
-                            Latest actions in the system.
+                            {t.dashboard.latestActions}
                         </p>
                     </div>
                     <div className="p-6 pt-0">
                         <div className="text-sm text-gray-500">
-                            No recent activity to show.
+                            {t.dashboard.noActivity}
                         </div>
                     </div>
                 </div>
                 <div className="col-span-3 rounded-xl border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">
-                        <h3 className="font-semibold leading-none tracking-tight">Quick Actions</h3>
+                        <h3 className="font-semibold leading-none tracking-tight">{t.dashboard.quickActions}</h3>
                     </div>
                     <div className="p-6 pt-0 space-y-2">
                         <Link href="/jobs/new" className="block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
-                            Create New Job
+                            {t.dashboard.createJob}
                         </Link>
                         <Link href="/clients" className="block w-full rounded-md bg-secondary px-3 py-2 text-center text-sm font-semibold text-secondary-foreground shadow-sm hover:bg-secondary/80">
-                            Manage Clients
+                            {t.dashboard.manageClients}
                         </Link>
                     </div>
                 </div>

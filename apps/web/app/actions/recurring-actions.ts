@@ -102,29 +102,28 @@ export async function generateFollowUpJobs(parentJobId: string) {
         // Fetch full package details including included services
         const fullPackage = await prisma.product.findUnique({
             where: { id: packageProduct.productId },
-            include: { includedServices: { include: { childProduct: true } } }
+            where: { id: packageProduct.productId },
+            include: { includedServices: { include: { childProduct: true }, orderBy: { order: 'asc' } } }
         });
 
         if (fullPackage && fullPackage.includedServices.length > 0) {
             for (const item of fullPackage.includedServices) {
                 const service = item.childProduct;
-                // Determine Schedule Date (Deferred logic)
-                let targetDate = new Date(); // Default now
-                const currentMonth = targetDate.getMonth() + 1;
+                const service = item.childProduct;
+                // Timeline Logic
+                // Base date is parent job date + delay
+                let targetDate = addDays(parentJob.scheduledAt, item.delayDays || 0);
 
-                // If seasonal and currently out of season (e.g. Winter vs Summer service)
-                if (service.seasonStartMonth) {
-                    // If we are before the start month, schedule for start month this year
-                    if (currentMonth < service.seasonStartMonth) {
-                        targetDate = new Date(targetDate.getFullYear(), service.seasonStartMonth - 1, 1);
+                // Seasonality Check (Simple Spring logic: April-June)
+                if (item.seasonality === 'SPRING_ONLY') {
+                    const month = targetDate.getMonth() + 1; // 1-12
+                    // If before April, move to April same year
+                    if (month < 4) {
+                        targetDate = new Date(targetDate.getFullYear(), 3, 1); // April 1st
                     }
-                    // If we are AFTER end month, schedule for start month NEXT year
-                    else if (service.seasonEndMonth && currentMonth > service.seasonEndMonth) {
-                        targetDate = new Date(targetDate.getFullYear() + 1, service.seasonStartMonth - 1, 1);
-                    }
-                    // If we are IN season, schedule it Pending for now (Backlog)
-                    else {
-                        // Keep it PENDING for manual scheduling
+                    // If after June, move to April NEXT year
+                    else if (month > 6) {
+                        targetDate = new Date(targetDate.getFullYear() + 1, 3, 1); // April 1st next year
                     }
                 }
 
@@ -160,19 +159,39 @@ export async function generateFollowUpJobs(parentJobId: string) {
 /**
  * Updates or Extends warranty on a property.
  */
-export async function updateWarranty(propertyId: string, monthsToAdd: number) {
+export async function updateWarranty(propertyId: string, monthsToAdd: number, fromDate?: Date) {
     const property = await prisma.property.findUnique({ where: { id: propertyId } });
     if (!property) return;
 
-    let newExpiry = property.warrantyExpiresAt
-        ? (property.warrantyExpiresAt > new Date() ? property.warrantyExpiresAt : new Date())
-        : new Date();
+    // Use provided date (e.g. Invoice Date) or current date/existing expiry
+    const baseDate = fromDate || new Date();
 
-    newExpiry = addMonths(newExpiry, monthsToAdd);
+    // Calculate new potential expiry
+    // If fromDate is provided (e.g. Invoice Sent), we calculate STRICTLY from that date (Contract Start + Duration)
+    // Otherwise we use legacy logic (Extend existing or start from now)
+    let calculatedExpiry: Date;
+
+    if (fromDate) {
+        calculatedExpiry = addMonths(fromDate, monthsToAdd);
+    } else {
+        // Legacy/Default: Extend from existing active warranty OR from now
+        const currentExpiry = property.warrantyExpiresAt;
+        const startPoint = currentExpiry && currentExpiry > new Date() ? currentExpiry : new Date();
+        calculatedExpiry = addMonths(startPoint, monthsToAdd);
+    }
+
+    // Safety: Don't reduce an existing warranty if it's already longer (unless explicit override? No, usually beneficial to keep longer)
+    // But user asked to "start from invoice". If invoice is old, it might be in past? No, assumes new invoice.
+    // If client has warranty until 2030, and we send new invoice for 1 year, we probably shouldn't reduce it.
+    const currentExpiry = property.warrantyExpiresAt;
+    if (currentExpiry && currentExpiry > calculatedExpiry) {
+        // Keep existing if longer
+        return;
+    }
 
     await prisma.property.update({
         where: { id: propertyId },
-        data: { warrantyExpiresAt: newExpiry }
+        data: { warrantyExpiresAt: calculatedExpiry }
     });
 }
 

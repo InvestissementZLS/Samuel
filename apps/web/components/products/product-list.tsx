@@ -11,8 +11,10 @@ interface ProductListProps {
 }
 
 import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function ProductList({ products }: ProductListProps) {
+    const { t } = useLanguage();
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -60,7 +62,7 @@ export function ProductList({ products }: ProductListProps) {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        {activeTab === 'INVENTORY' ? 'Consumables' : activeTab === 'EQUIPMENT' ? 'Equipment & Tools' : 'Service Templates'}
+                        {activeTab === 'INVENTORY' ? t.products.consumables : activeTab === 'EQUIPMENT' ? t.products.equipment : t.products.serviceTemplates}
                     </h2>
                     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg inline-block">
                         <button
@@ -70,7 +72,7 @@ export function ProductList({ products }: ProductListProps) {
                                 : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            Inventory
+                            {t.products.inventory}
                         </button>
                         <button
                             onClick={() => setActiveTab('EQUIPMENT')}
@@ -79,7 +81,7 @@ export function ProductList({ products }: ProductListProps) {
                                 : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            Equipment
+                            {t.products.equipment}
                         </button>
                         <button
                             onClick={() => setActiveTab('SERVICES')}
@@ -88,7 +90,7 @@ export function ProductList({ products }: ProductListProps) {
                                 : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >
-                            Services
+                            {t.products.services}
                         </button>
                     </div>
                 </div>
@@ -97,7 +99,7 @@ export function ProductList({ products }: ProductListProps) {
                         onClick={handleAdd}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
                     >
-                        + Add {activeTab === 'INVENTORY' ? 'Consumable' : activeTab === 'EQUIPMENT' ? 'Equipment' : 'Service'}
+                        + {activeTab === 'INVENTORY' ? t.products.addConsumable : activeTab === 'EQUIPMENT' ? t.products.addEquipment : t.products.addService}
                     </button>
                 </div>
             </div>
@@ -106,20 +108,20 @@ export function ProductList({ products }: ProductListProps) {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Division</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.division}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.name}</th>
                             {activeTab !== 'SERVICES' && (
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.unit}</th>
                             )}
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.price}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.cost}</th>
                             {activeTab !== 'SERVICES' && (
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.stock}</th>
                             )}
                             {activeTab === 'SERVICES' && (
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t.products.duration}</th>
                             )}
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t.common.actions}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -176,7 +178,7 @@ export function ProductList({ products }: ProductListProps) {
                                                 handleManageStock(product);
                                             }}
                                             className="text-emerald-600 hover:text-emerald-900 ml-3"
-                                            title="Manage Distribution"
+                                            title={t.products.manageStock}
                                         >
                                             <Users className="h-4 w-4" />
                                         </button>
@@ -187,7 +189,7 @@ export function ProductList({ products }: ProductListProps) {
                         {filteredProducts.length === 0 && (
                             <tr>
                                 <td colSpan={7} className="px-6 py-8 text-center text-gray-500 italic">
-                                    No items found.
+                                    {t.products.noItems}
                                 </td>
                             </tr>
                         )}

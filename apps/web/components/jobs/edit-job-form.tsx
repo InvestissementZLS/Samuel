@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useDivision } from "@/components/providers/division-provider";
 import { Plus, X, Search, Sparkles } from "lucide-react";
 import { findSmartSlots, SmartSlot } from "@/app/actions/scheduling-actions";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type ClientWithProperties = Client & { properties: Property[] };
 
@@ -27,6 +28,7 @@ interface EditJobFormProps {
 export function EditJobForm({ job, initialDate, clients, technicians, onSuccess, onCancel, redirectOnSuccess }: EditJobFormProps) {
     const router = useRouter();
     const { division } = useDivision();
+    const { t } = useLanguage();
 
     // Form State
     const [clientId, setClientId] = useState("");
@@ -131,8 +133,9 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                     setPropertyId(newClient.properties[0].id);
                 }
             }
+            toast.success(t.jobs.clientCreated);
         } catch (error) {
-            toast.error("Failed to create client");
+            toast.error(t.jobs.clientCreationError);
         } finally {
             setLoading(false);
         }
@@ -162,9 +165,9 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
         try {
             const newService = await createQuickService(productSearch);
             addProduct(newService);
-            toast.success(`Service "${newService.name}" created`);
+            toast.success(`${t.jobs.serviceCreated}: "${newService.name}"`);
         } catch (error) {
-            toast.error("Failed to create service");
+            toast.error(t.jobs.serviceCreationError);
         } finally {
             setLoading(false);
         }
@@ -172,11 +175,11 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
     const handleSmartAnalyze = async () => {
         if (!propertyId) {
-            toast.error("Please select a property first");
+            toast.error(t.jobs.selectPropertyError);
             return;
         }
         if (selectedProducts.length === 0) {
-            toast.error("Please add a service first (to estimate duration)");
+            toast.error(t.jobs.addServiceError);
             return;
         }
 
@@ -189,7 +192,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
             setSmartSlots(slots);
         } catch (error) {
             console.error(error);
-            toast.error("Analysis failed");
+            toast.error(t.jobs.analysisFailed);
         } finally {
             setAnalyzing(false);
         }
@@ -200,7 +203,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
         setTime(slot.startTime);
         setTechIds([slot.technicianId]);
         setIsSmartModalOpen(false);
-        toast.success("Schedule optimized!");
+        toast.success(t.jobs.scheduleOptimized);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -222,15 +225,15 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
             if (job) {
                 await updateCalendarJob(job.id, payload);
-                toast.success("Job updated");
+                toast.success(t.jobs.jobUpdated);
             } else {
                 await createCalendarJob({ ...payload, division });
-                toast.success("Job created");
+                toast.success(t.jobs.jobCreated);
             }
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error(error);
-            toast.error("Failed to save job");
+            toast.error(t.jobs.saveError);
         } finally {
             setLoading(false);
         }
@@ -245,11 +248,11 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                     {/* Client Selection */}
                     <div>
                         <div className="flex justify-between items-center mb-1">
-                            <label className="block text-sm font-medium text-gray-700">Client</label>
+                            <label className="block text-sm font-medium text-gray-700">{t.common.client}</label>
                             <div className="flex gap-2">
                                 {!job && (
                                     <button type="button" onClick={() => setIsCreatingClient(!isCreatingClient)} className="text-xs text-indigo-600 hover:underline">
-                                        {isCreatingClient ? "Cancel" : "+ New Client"}
+                                        {isCreatingClient ? t.common.cancel : `+ ${t.clientDialog.newClient}`}
                                     </button>
                                 )}
                             </div>
@@ -257,14 +260,14 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
                         {isCreatingClient ? (
                             <div className="space-y-2 p-3 bg-gray-50 rounded-md border text-gray-900">
-                                <input className="w-full rounded border p-2 text-sm" placeholder="Client Name" value={newClientName} onChange={e => setNewClientName(e.target.value)} />
-                                <input className="w-full rounded border p-2 text-sm" placeholder="Email" value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
-                                <input className="w-full rounded border p-2 text-sm" placeholder="Address" value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} />
-                                <button type="button" onClick={handleCreateClient} disabled={loading} className="w-full bg-indigo-600 text-white rounded py-1.5 text-sm">Create Client</button>
+                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.name} value={newClientName} onChange={e => setNewClientName(e.target.value)} />
+                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.email} value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
+                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.address} value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} />
+                                <button type="button" onClick={handleCreateClient} disabled={loading} className="w-full bg-indigo-600 text-white rounded py-1.5 text-sm">{t.clientDialog.createClient}</button>
                             </div>
                         ) : (
                             <select className="w-full rounded border p-2 text-sm text-gray-900" value={clientId} onChange={(e) => { setClientId(e.target.value); setPropertyId(""); }} required disabled={!!job}>
-                                <option value="">Select Client</option>
+                                <option value="">{t.common.select}</option>
                                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         )}
@@ -272,9 +275,9 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
                     {/* Property Selection */}
                     <div className={isCreatingClient ? "hidden" : "block"}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Property</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.property}</label>
                         <select className="w-full rounded border p-2 text-sm text-gray-900" value={propertyId} onChange={(e) => setPropertyId(e.target.value)} required disabled={!clientId}>
-                            <option value="">Select Property</option>
+                            <option value="">{t.common.select}</option>
                             {selectedClient?.properties.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
                         </select>
                     </div>
@@ -283,19 +286,19 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                 {/* Date & Time */}
                 <div>
                     <div className="flex justify-between items-end mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Schedule</label>
+                        <label className="block text-sm font-medium text-gray-700">{t.jobs.schedule}</label>
                         <button
                             type="button"
                             onClick={handleSmartAnalyze}
                             className="text-xs flex items-center gap-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-2 py-1 rounded shadow-sm hover:opacity-90 transition-all"
                         >
                             <Sparkles size={12} />
-                            AI Suggest
+                            {t.jobs.aiSuggest}
                         </button>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">Date</label>
+                            <label className="block text-xs text-gray-500 mb-1">{t.common.date}</label>
                             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full rounded border p-2 text-sm text-gray-900" required />
                         </div>
                         <div>
@@ -307,14 +310,14 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
                 {/* Description */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.description}</label>
                     <textarea value={description} onChange={e => setDescription(e.target.value)} className="w-full rounded border p-2 text-sm text-gray-900" rows={2} />
                 </div>
 
                 {/* Technicians & Status */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Technicians</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.technicians}</label>
                         <div className="border rounded max-h-32 overflow-y-auto p-2 bg-white text-gray-900">
                             {technicians.map(tech => (
                                 <label key={tech.id} className="flex items-center gap-2 p-1 hover:bg-gray-50 cursor-pointer text-sm">
@@ -327,25 +330,25 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.jobs.status}</label>
                         <select value={status} onChange={e => setStatus(e.target.value as JobStatus)} className="w-full rounded border p-2 text-sm text-gray-900">
-                            <option value="SCHEDULED">Scheduled</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="CANCELLED">Cancelled</option>
+                            <option value="SCHEDULED">{t.jobs.statuses.SCHEDULED}</option>
+                            <option value="PENDING">{t.jobs.statuses.PENDING}</option>
+                            <option value="IN_PROGRESS">{t.jobs.statuses.IN_PROGRESS}</option>
+                            <option value="COMPLETED">{t.jobs.statuses.COMPLETED}</option>
+                            <option value="CANCELLED">{t.jobs.statuses.CANCELLED}</option>
                         </select>
                     </div>
                 </div>
 
                 {/* Services / Products */}
                 <div className="border-t pt-4">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Services & Products</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">{t.jobs.servicesAndProducts}</label>
 
                     <div className="relative mb-3">
                         <input
                             type="text"
-                            placeholder="Search service or product..."
+                            placeholder={t.common.search}
                             className="w-full rounded border p-2 text-sm pl-8 text-gray-900"
                             value={productSearch}
                             onChange={e => setProductSearch(e.target.value)}
@@ -356,7 +359,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                         {productSearch && (
                             <div className="absolute right-2 top-1.5">
                                 <button type="button" onClick={createAndAddService} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-100 border border-indigo-200">
-                                    + Create "{productSearch}"
+                                    + {t.common.create} "{productSearch}"
                                 </button>
                             </div>
                         )}
@@ -382,7 +385,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {p.type !== 'SERVICE' && (
-                                        <span className="text-xs text-gray-500">Qty: {p.quantity}</span>
+                                        <span className="text-xs text-gray-500">{t.common.quantity}: {p.quantity}</span>
                                     )}
                                     <button type="button" onClick={() => setSelectedProducts(selectedProducts.filter(x => x.productId !== p.productId))} className="text-red-500 hover:text-red-700">
                                         <X size={16} />
@@ -395,10 +398,10 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
                 <div className="flex justify-end gap-3 pt-4 border-t">
                     {onCancel && (
-                        <button type="button" onClick={onCancel} className="px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="button" onClick={onCancel} className="px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50">{t.common.cancel}</button>
                     )}
                     <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 shadow-sm">
-                        {loading ? "Saving..." : (job ? "Update Work Order" : "Create Work Order")}
+                        {loading ? t.common.saving : (job ? t.jobs.updateWorkOrder : t.jobs.createWorkOrder)}
                     </button>
                 </div>
             </form>
@@ -411,7 +414,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                             <div className="p-4 border-b flex justify-between items-center bg-gray-50">
                                 <h3 className="font-semibold flex items-center gap-2">
                                     <Sparkles className="text-purple-600" size={18} />
-                                    Optimization Assistant
+                                    {t.jobs.optimizationAssistant}
                                 </h3>
                                 <button onClick={() => setIsSmartModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                                     <X size={20} />
@@ -421,10 +424,10 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                                 {analyzing ? (
                                     <div className="py-8 text-center text-gray-500">
                                         <div className="animate-spin h-6 w-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                        Analyzing routes & schedules...
+                                        {t.jobs.analyzing}
                                     </div>
                                 ) : smartSlots.length === 0 ? (
-                                    <p className="text-center text-gray-500 py-4">No optimized slots found for this week.</p>
+                                    <p className="text-center text-gray-500 py-4">{t.jobs.noSlotsFound}</p>
                                 ) : (
                                     <div className="space-y-3">
                                         {smartSlots.map((slot, idx) => (
@@ -450,7 +453,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                                                         slot.score > 60 ? 'bg-yellow-100 text-yellow-700' :
                                                             'bg-gray-100 text-gray-700'
                                                         }`}>
-                                                        {slot.score}% Efficient
+                                                        {slot.score}% {t.jobs.efficient}
                                                     </span>
                                                 </div>
                                             </button>

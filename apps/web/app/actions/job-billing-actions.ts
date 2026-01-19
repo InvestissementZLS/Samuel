@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { InvoiceStatus } from '@prisma/client';
+import { updateWarranty } from './recurring-actions';
 import { calculateJobCosts } from './cost-actions';
 
 // Generate invoice number helper (reused logic, ideally shared)
@@ -176,6 +177,28 @@ export async function ensureJobInvoiceFinalized(jobId: string) {
                 total: job.netSellingPrice
             }
         });
+    }
+
+    // Trigger Warranty Update if Invoice is SENT
+    // Iterate through items, if product has warrantyMonths, trigger updateWarranty
+    // We need to fetch items with product details
+    const fullInvoice = await prisma.invoice.findUnique({
+        where: { id: invoice.id },
+        include: {
+            items: {
+                include: { product: true }
+            }
+        }
+    });
+
+    if (fullInvoice && fullInvoice.status === 'SENT') {
+        for (const item of fullInvoice.items) {
+            // @ts-ignore
+            if (item.product.warrantyMonths) {
+                // @ts-ignore
+                await updateWarranty(job.propertyId, item.product.warrantyMonths, fullInvoice.issuedDate);
+            }
+        }
     }
 
     return invoice;

@@ -54,14 +54,14 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
         try {
             if (data.id) {
                 await updateInvoice(data);
-                toast.success("Invoice updated");
+                toast.success(t.invoices.updated);
             } else {
                 await createInvoice(data);
-                toast.success("Invoice created");
+                toast.success(t.invoices.created);
             }
             setIsEditing(false);
         } catch (error) {
-            toast.error("Failed to save invoice");
+            toast.error(t.invoices.failedSave);
             console.error(error);
         }
     };
@@ -83,7 +83,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
         return (
             <div>
                 <Button variant="ghost" onClick={() => setIsEditing(false)} className="mb-4">
-                    &larr; Back to Invoices
+                    &larr; {t.invoices.backToInvoices}
                 </Button>
                 <InvoiceForm
                     invoice={selectedInvoice}
@@ -99,7 +99,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">{t.invoices.title}</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t.invoices.title} ({filteredInvoices.length})</h3>
                 <div className="flex gap-2">
                     <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-1.5">
                         <Filter className="w-4 h-4 text-gray-500" />
@@ -108,9 +108,9 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                             onChange={(e) => setDivisionFilter(e.target.value as any)}
                             className="border-none text-sm focus:ring-0 cursor-pointer text-gray-900 bg-white"
                         >
-                            <option value="ALL">All Divisions</option>
-                            <option value="EXTERMINATION">Extermination</option>
-                            <option value="ENTREPRISES">Entreprises</option>
+                            <option value="ALL">{t.common.allDivisions}</option>
+                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
+                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
                         </select>
                     </div>
 
@@ -133,7 +133,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                         <div className="flex items-center gap-2">
                                             <p className="font-medium text-gray-900">
                                                 {/* @ts-ignore */}
-                                                {invoice.number || (invoice.poNumber ? `PO #${invoice.poNumber}` : "Invoice")}
+                                                {invoice.number || (invoice.poNumber ? `PO #${invoice.poNumber}` : t.invoices.createInvoice)}
                                             </p>
                                             {!clientId && (
                                                 <Link href={`/clients/${invoice.clientId}`} className="text-xs text-indigo-600 hover:underline">
@@ -165,10 +165,11 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                                 invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
                                                     invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
                                                         'bg-gray-100 text-gray-800'}`}>
-                                        {invoice.status === 'PARTIALLY_PAID' ? 'PARTIAL' : invoice.status}
+                                        {/* @ts-ignore */}
+                                        {t.invoices.statuses[invoice.status] || invoice.status}
                                     </span>
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(invoice)}>
-                                        Edit
+                                        {t.common.edit}
                                     </Button>
                                     <div className="flex gap-1">
                                         <DownloadPdfButton invoice={invoice} />
@@ -176,21 +177,21 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                             variant="outline"
                                             size="sm"
                                             onClick={async () => {
-                                                const toastId = toast.loading("Sending email...");
+                                                const toastId = toast.loading(t.invoices.sending);
                                                 try {
                                                     const { sendInvoice } = await import("@/app/actions/email-actions");
                                                     const result = await sendInvoice(invoice.id);
                                                     if (result.success) {
-                                                        toast.success("Email sent!", { id: toastId });
+                                                        toast.success(t.invoices.emailSent, { id: toastId });
                                                     } else {
-                                                        toast.error("Failed to send email: " + (result.error || "Unknown error"), { id: toastId });
+                                                        toast.error(t.invoices.emailError + ": " + (result.error || "Unknown error"), { id: toastId });
                                                     }
                                                 } catch (error) {
-                                                    toast.error("Error sending email", { id: toastId });
+                                                    toast.error(t.invoices.emailError, { id: toastId });
                                                 }
                                             }}
                                         >
-                                            Email
+                                            {t.invoices.sendEmail}
                                         </Button>
                                     </div>
 
@@ -202,7 +203,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                             className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                                         >
                                             <DollarSign className="w-4 h-4 mr-1" />
-                                            Pay
+                                            {t.invoices.pay}
                                         </Button>
                                     )}
 
@@ -212,7 +213,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                             size="sm"
                                             onClick={() => openPaymentModal(invoice, "REFUND")}
                                             className="text-gray-500 hover:text-gray-700"
-                                            title="Refund"
+                                            title={t.invoices.refund}
                                         >
                                             <RefreshCcw className="w-4 h-4" />
                                         </Button>
@@ -222,15 +223,15 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                         variant="ghost"
                                         size="sm"
                                         disabled={invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID' || (invoice as any).amountPaid > 0}
-                                        title={invoice.status === 'PAID' || (invoice as any).amountPaid > 0 ? "Cannot delete invoice with payments" : "Delete invoice"}
+                                        title={invoice.status === 'PAID' || (invoice as any).amountPaid > 0 ? t.invoices.cannotDeletePaid : t.invoices.deleteConfirm}
                                         onClick={async () => {
-                                            if (confirm("Are you sure you want to delete this invoice?")) {
-                                                const toastId = toast.loading("Deleting invoice...");
+                                            if (confirm(t.invoices.deleteConfirm)) {
+                                                const toastId = toast.loading(t.invoices.deleting);
                                                 try {
                                                     await deleteInvoice(invoice.id);
-                                                    toast.success("Invoice deleted", { id: toastId });
+                                                    toast.success(t.invoices.deleted, { id: toastId });
                                                 } catch (error) {
-                                                    toast.error("Failed to delete invoice", { id: toastId });
+                                                    toast.error(t.invoices.deleteError, { id: toastId });
                                                 }
                                             }
                                         }}
@@ -248,7 +249,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                     ))}
                     {filteredInvoices.length === 0 && (
                         <div className="p-8 text-center text-gray-500 italic">
-                            No invoices found for this selection.
+                            {t.invoices.noInvoices}
                         </div>
                     )}
                 </div>

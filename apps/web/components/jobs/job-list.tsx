@@ -1,6 +1,7 @@
 "use client";
 
 import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { Job, Property, Client, User, Product, UsedProduct } from "@prisma/client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -21,6 +22,7 @@ interface JobListProps {
 }
 
 export function JobList({ jobs, services = [] }: JobListProps) {
+    const { t } = useLanguage();
     const { division } = useDivision();
     const [filteredData, setFilteredData] = useState<JobWithDetails[]>(jobs);
 
@@ -53,7 +55,7 @@ export function JobList({ jobs, services = [] }: JobListProps) {
             <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
                 <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                     <h2 className="font-semibold text-gray-700">
-                        {division === "EXTERMINATION" ? "Extermination" : "Entreprises"} Jobs ({displayedJobs.length})
+                        {division === "EXTERMINATION" ? t.divisions.extermination : t.divisions.entreprises} {t.jobs.title} ({displayedJobs.length})
                     </h2>
                 </div>
                 {/* Mobile Card View */}
@@ -71,7 +73,8 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                             job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
                                                 job.status === 'CANCELLED' ? 'bg-orange-100 text-orange-800' :
                                                     'bg-gray-100 text-gray-800'}`}>
-                                    {job.status}
+                                    {/* @ts-ignore */}
+                                    {t.jobs.statuses[job.status] || job.status}
                                 </span>
                             </div>
 
@@ -81,11 +84,11 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                     <div>{format(new Date(job.scheduledAt), 'HH:mm')}</div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-medium">Technician</div>
+                                    <div className="font-medium">{t.jobs.technician}</div>
                                     <div>
                                         {job.technicians.length > 0
                                             ? job.technicians.map(t => t.name).join(", ")
-                                            : <span className="italic text-gray-400">Unassigned</span>
+                                            : <span className="italic text-gray-400">{t.jobs.unassigned}</span>
                                         }
                                     </div>
                                 </div>
@@ -96,19 +99,19 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                     href={`/jobs/${job.id}`}
                                     className="text-sm font-medium text-indigo-600 hover:text-indigo-900"
                                 >
-                                    View Details
+                                    {t.jobs.viewDetails}
                                 </Link>
                                 {job.status === 'COMPLETED' && (
                                     <button
                                         onClick={async () => {
-                                            if (confirm("Create an invoice from this job?")) {
+                                            if (confirm(t.jobs.convertConfirm)) {
                                                 const { convertJobToInvoice } = await import("@/app/actions/workflow-actions");
                                                 await convertJobToInvoice(job.id);
                                             }
                                         }}
                                         className="text-sm font-medium text-green-600 hover:text-green-900"
                                     >
-                                        Convert to Invoice
+                                        {t.jobs.convertToInvoice}
                                     </button>
                                 )}
                             </div>
@@ -121,19 +124,19 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Date
+                                {t.jobs.date}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Client / Property
+                                {t.jobs.clientProperty}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Technician
+                                {t.jobs.technician}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
+                                {t.jobs.status}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
+                                {t.common.actions}
                             </th>
                         </tr>
                     </thead>
@@ -162,7 +165,7 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                             {job.technicians.map(t => t.name).join(", ")}
                                         </span>
                                     ) : (
-                                        <span className="text-sm text-gray-400 italic">Unassigned</span>
+                                        <span className="text-sm text-gray-400 italic">{t.jobs.unassigned}</span>
                                     )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -172,7 +175,8 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                                 job.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
                                                     job.status === 'CANCELLED' ? 'bg-orange-100 text-orange-800' :
                                                         'bg-gray-100 text-gray-800'}`}>
-                                        {job.status}
+                                        {/* @ts-ignore */}
+                                        {t.jobs.statuses[job.status] || job.status}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -180,19 +184,19 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                                         href={`/jobs/${job.id}`}
                                         className="text-indigo-600 hover:text-indigo-900"
                                     >
-                                        View
+                                        {t.common.view}
                                     </Link>
                                     {job.status === 'COMPLETED' && (
                                         <button
                                             onClick={async () => {
-                                                if (confirm("Create an invoice from this job?")) {
+                                                if (confirm(t.jobs.convertConfirm)) {
                                                     const { convertJobToInvoice } = await import("@/app/actions/workflow-actions");
                                                     await convertJobToInvoice(job.id);
                                                 }
                                             }}
                                             className="ml-4 text-green-600 hover:text-green-900"
                                         >
-                                            Convert to Invoice
+                                            {t.jobs.convertToInvoice}
                                         </button>
                                     )}
                                 </td>
@@ -202,7 +206,7 @@ export function JobList({ jobs, services = [] }: JobListProps) {
                 </table>
                 {displayedJobs.length === 0 && (
                     <div className="text-center py-10 text-gray-500">
-                        No jobs scheduled for this division.
+                        {t.jobs.noJobs}
                     </div>
                 )}
             </div>

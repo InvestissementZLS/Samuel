@@ -7,6 +7,7 @@ import { addBillableService } from '@/app/actions/job-billing-actions';
 import { Product } from '@prisma/client';
 import { Check, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useLanguage } from '@/components/providers/language-provider';
 
 interface BillableServiceDialogProps {
     isOpen: boolean;
@@ -20,14 +21,15 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
     const [quantity, setQuantity] = useState<number>(1);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const { t } = useLanguage();
 
     const handleSubmit = async () => {
         if (!selectedProduct) {
-            toast.error("Please select a service");
+            toast.error(t.jobs.selectServiceError);
             return;
         }
         if (quantity <= 0) {
-            toast.error("Quantity must be positive");
+            toast.error(t.jobs.quantityError);
             return;
         }
 
@@ -35,16 +37,16 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
         try {
             const res = await addBillableService(jobId, selectedProduct, quantity);
             if (res.success) {
-                toast.success("Service added to invoice");
+                toast.success(t.jobs.serviceAdded);
                 onClose();
                 setSelectedProduct('');
                 setQuantity(1);
             } else {
-                toast.error(res.error || "Failed to add service");
+                toast.error(res.error || t.jobs.addServiceError);
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to add service");
+            toast.error(t.jobs.addServiceError);
         } finally {
             setLoading(false);
         }
@@ -55,12 +57,12 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
     );
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Add Billable Service" maxWidth="max-w-2xl">
+        <Modal isOpen={isOpen} onClose={onClose} title={t.jobs.addBillableService} maxWidth="max-w-2xl">
             <div className="space-y-4">
                 <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
-                        placeholder="Search services..."
+                        placeholder={t.jobs.searchServices}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9"
@@ -69,7 +71,7 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
 
                 <div className="border rounded-lg h-64 overflow-y-auto">
                     {filteredServices.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500 text-sm">No services found.</div>
+                        <div className="p-4 text-center text-gray-500 text-sm">{t.jobs.noServicesFound}</div>
                     ) : (
                         <div className="divide-y">
                             {filteredServices.map(p => (
@@ -92,7 +94,7 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
 
                 <div className="flex items-center justify-between pt-4 border-t">
                     <div className="flex items-center gap-3">
-                        <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                        <label className="text-sm font-medium text-gray-700">{t.common.quantity}:</label>
                         <input
                             type="number"
                             value={quantity}
@@ -102,13 +104,13 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
                         />
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50 text-sm font-medium">Cancel</button>
+                        <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50 text-sm font-medium">{t.common.cancel}</button>
                         <button
                             onClick={handleSubmit}
                             disabled={loading || !selectedProduct}
                             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium"
                         >
-                            {loading ? 'Adding...' : 'Add Service'}
+                            {loading ? t.jobs.adding : t.invoices.addService}
                         </button>
                     </div>
                 </div>

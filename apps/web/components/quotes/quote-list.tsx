@@ -45,14 +45,14 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
         try {
             if (data.id) {
                 await updateQuote(data);
-                toast.success("Quote updated");
+                toast.success(t.quotes.updated);
             } else {
                 await createQuote(data);
-                toast.success("Quote created");
+                toast.success(t.quotes.created);
             }
             setIsEditing(false);
         } catch (error) {
-            toast.error("Failed to save quote");
+            toast.error(t.quotes.failedSave);
             console.error(error);
         }
     };
@@ -67,7 +67,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
         return (
             <div>
                 <Button variant="ghost" onClick={() => setIsEditing(false)} className="mb-4">
-                    &larr; Back to Quotes
+                    &larr; {t.quotes.backToQuotes}
                 </Button>
                 <QuoteForm
                     quote={selectedQuote}
@@ -83,7 +83,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">{t.quotes.title}</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t.quotes.title} ({filteredQuotes.length})</h3>
                 <div className="flex gap-2">
                     <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-1.5">
                         <Filter className="w-4 h-4 text-gray-500" />
@@ -92,9 +92,9 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                             onChange={(e) => setDivisionFilter(e.target.value as any)}
                             className="border-none text-sm focus:ring-0 cursor-pointer text-gray-900 bg-white"
                         >
-                            <option value="ALL">All Divisions</option>
-                            <option value="EXTERMINATION">Extermination</option>
-                            <option value="ENTREPRISES">Entreprises</option>
+                            <option value="ALL">{t.common.allDivisions}</option>
+                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
+                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
                         </select>
                     </div>
 
@@ -117,7 +117,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                         <div className="flex items-center gap-2">
                                             <p className="font-medium text-gray-900">
                                                 {/* @ts-ignore */}
-                                                {quote.number || (quote.poNumber ? `PO #${quote.poNumber}` : "Quote")}
+                                                {quote.number || (quote.poNumber ? `PO #${quote.poNumber}` : t.quotes.createQuote)}
                                             </p>
                                             {!clientId && (
                                                 <Link href={`/clients/${quote.clientId}`} className="text-xs text-indigo-600 hover:underline">
@@ -141,18 +141,18 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                         <div className="flex gap-4 mt-2">
                                             <Link href={`/quotes/${quote.id}`} className="text-xs text-indigo-600 hover:text-indigo-900 flex items-center gap-1 hover:underline">
                                                 <FileText className="w-3 h-3" />
-                                                View Details
+                                                {t.quotes.viewDetails}
                                             </Link>
                                             <button
                                                 onClick={() => {
                                                     const url = `${window.location.origin}/portal/quotes/${quote.id}`;
                                                     navigator.clipboard.writeText(url);
-                                                    toast.success("Portal link copied to clipboard");
+                                                    toast.success(t.quotes.linkCopied);
                                                 }}
                                                 className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 hover:underline"
                                             >
                                                 <LinkIcon className="w-3 h-3" />
-                                                Copy Link
+                                                {t.quotes.copyLink}
                                             </button>
                                         </div>
                                     </div>
@@ -163,10 +163,11 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                             quote.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
                                                 quote.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
                                                     'bg-gray-100 text-gray-800'}`}>
-                                        {quote.status}
+                                        {/* @ts-ignore */}
+                                        {t.quotes.statuses[quote.status] || quote.status}
                                     </span>
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(quote)}>
-                                        Edit
+                                        {t.common.edit}
                                     </Button>
                                     <div className="flex gap-1">
                                         <a
@@ -174,40 +175,40 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                             target="_blank"
                                             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
                                         >
-                                            PDF
+                                            {t.common.pdf}
                                         </a>
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={async () => {
-                                                const toastId = toast.loading("Sending email...");
+                                                const toastId = toast.loading(t.invoices.sending);
                                                 try {
                                                     const { sendQuote } = await import("@/app/actions/email-actions");
                                                     const result = await sendQuote(quote.id);
                                                     if (result.success) {
-                                                        toast.success("Email sent!", { id: toastId });
+                                                        toast.success(t.invoices.emailSent, { id: toastId });
                                                     } else {
-                                                        toast.error("Failed to send email: " + (result.error || "Unknown error"), { id: toastId });
+                                                        toast.error(t.invoices.emailError + ": " + (result.error || "Unknown error"), { id: toastId });
                                                     }
                                                 } catch (error) {
-                                                    toast.error("Error sending email", { id: toastId });
+                                                    toast.error(t.invoices.emailError, { id: toastId });
                                                 }
                                             }}
                                         >
-                                            Email
+                                            {t.common.email}
                                         </Button>
                                     </div>
                                     <Button
                                         variant="secondary"
                                         size="sm"
                                         onClick={async () => {
-                                            if (confirm("Create a job from this quote?")) {
+                                            if (confirm(t.quotes.convertConfirm)) {
                                                 const { convertQuoteToJob } = await import("@/app/actions/workflow-actions");
                                                 await convertQuoteToJob(quote.id);
                                             }
                                         }}
                                     >
-                                        Convert to Job
+                                        {t.quotes.convertToJob}
                                     </Button>
                                 </div>
                             </div>
@@ -215,7 +216,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                     ))}
                     {filteredQuotes.length === 0 && (
                         <div className="p-8 text-center text-gray-500 italic">
-                            No quotes found for this selection.
+                            {t.quotes.noQuotes}
                         </div>
                     )}
                 </div>

@@ -13,8 +13,10 @@ interface ClientDialogProps {
 }
 
 import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
+    const { t } = useLanguage();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
@@ -50,7 +52,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
         setLoading(true);
 
         if (divisions.length === 0) {
-            toast.error("Please select at least one division");
+            toast.error(t.clientDialog.selectDivisionError);
             setLoading(false);
             return;
         }
@@ -58,30 +60,30 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
         try {
             if (client) {
                 await updateClient(client.id, { name, email, phone, billingAddress, language, divisions });
-                toast.success("Client updated successfully");
+                toast.success(t.clientDialog.updateSuccess);
             } else {
                 await createClient({ name, email, phone, billingAddress, divisions, language });
-                toast.success("Client created successfully");
+                toast.success(t.clientDialog.createSuccess);
             }
             onClose();
         } catch (error) {
             console.error("Failed to save client:", error);
-            toast.error("Failed to save client");
+            toast.error(t.clientDialog.saveError);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!client || !confirm("Are you sure you want to delete this client?")) return;
+        if (!client || !confirm(t.clientDialog.confirmDelete)) return;
         setLoading(true);
         try {
             await deleteClient(client.id);
-            toast.success("Client deleted successfully");
+            toast.success(t.clientDialog.deleteSuccess);
             onClose();
         } catch (error) {
             console.error("Failed to delete client:", error);
-            toast.error("Failed to delete client (May have associated properties/jobs)");
+            toast.error(t.clientDialog.deleteError);
         } finally {
             setLoading(false);
         }
@@ -91,11 +93,11 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={client ? "Edit Client" : "New Client"}
+            title={client ? t.clientDialog.editClient : t.clientDialog.newClient}
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Name</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.name}</label>
                     <input
                         type="text"
                         value={name}
@@ -106,7 +108,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Email</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.email}</label>
                     <input
                         type="email"
                         value={email}
@@ -116,7 +118,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Phone</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.phone}</label>
                     <input
                         type="tel"
                         value={phone}
@@ -126,7 +128,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Language</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.language}</label>
                     <select
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as "EN" | "FR")}
@@ -138,7 +140,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Divisions</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.divisions}</label>
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -153,7 +155,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-foreground">Extermination</span>
+                            <span className="text-sm text-foreground">{t.divisions.extermination}</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -168,13 +170,13 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                                 }}
                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
-                            <span className="text-sm text-foreground">Entreprises</span>
+                            <span className="text-sm text-foreground">{t.divisions.entreprises}</span>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Billing Address</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
                     <textarea
                         value={billingAddress}
                         onChange={(e) => setBillingAddress(e.target.value)}
@@ -191,7 +193,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                             className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
                             disabled={loading}
                         >
-                            Delete
+                            {t.clientDialog.delete}
                         </button>
                     )}
                     <button
@@ -200,14 +202,14 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                         className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
                         disabled={loading}
                     >
-                        Cancel
+                        {t.clientDialog.cancel}
                     </button>
                     <button
                         type="submit"
                         className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                         disabled={loading}
                     >
-                        {loading ? "Saving..." : "Save"}
+                        {loading ? t.clientDialog.saving : t.clientDialog.save}
                     </button>
                 </div>
             </form>
