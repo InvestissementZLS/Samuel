@@ -8,64 +8,85 @@ import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-wid
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
 
+import { getUserProfile } from '@/app/actions/user-actions';
+
 export default async function DashboardPage() {
+    let user = null;
+    let userId = undefined;
+
+    try {
+        user = await getUserProfile();
+        // @ts-ignore
+        userId = user?.id;
+    } catch (error) {
+        console.error("Dashboard: Failed to fetch user", error);
+    }
+
+    // Default safe stats
+    let stats = {
+        EXTERMINATION: { jobs: 0, pendingJobs: 0, clients: 0, revenue: 0 },
+        ENTREPRISES: { jobs: 0, pendingJobs: 0, clients: 0, revenue: 0 },
+        RENOVATION: { jobs: 0, pendingJobs: 0, clients: 0, revenue: 0 }
+    };
+
+    try {
+        // Fetch summary data for Extermination
+        const exoJobs = await prisma.job.count({ where: { division: 'EXTERMINATION' } });
+        const exoPendingJobs = await prisma.job.count({ where: { division: 'EXTERMINATION', status: 'PENDING' } });
+        const exoClients = await prisma.client.count({ where: { divisions: { has: 'EXTERMINATION' } } });
+        const exoRevenue = await prisma.invoice.aggregate({
+            where: { division: 'EXTERMINATION', status: 'PAID' },
+            _sum: { total: true }
+        });
+
+        // Fetch summary data for Entreprises
+        const entJobs = await prisma.job.count({ where: { division: 'ENTREPRISES' } });
+        const entPendingJobs = await prisma.job.count({ where: { division: 'ENTREPRISES', status: 'PENDING' } });
+        const entClients = await prisma.client.count({ where: { divisions: { has: 'ENTREPRISES' } } });
+        const entRevenue = await prisma.invoice.aggregate({
+            where: { division: 'ENTREPRISES', status: 'PAID' },
+            _sum: { total: true }
+        });
+
+        // Fetch summary data for Renovation
+        const renoJobs = await prisma.job.count({ where: { division: 'RENOVATION' } });
+        const renoPendingJobs = await prisma.job.count({ where: { division: 'RENOVATION', status: 'PENDING' } });
+        const renoClients = await prisma.client.count({ where: { divisions: { has: 'RENOVATION' } } });
+        const renoRevenue = await prisma.invoice.aggregate({
+            where: { division: 'RENOVATION', status: 'PAID' },
+            _sum: { total: true }
+        });
+
+        stats = {
+            EXTERMINATION: {
+                jobs: exoJobs,
+                pendingJobs: exoPendingJobs,
+                clients: exoClients,
+                revenue: exoRevenue._sum.total || 0
+            },
+            ENTREPRISES: {
+                jobs: entJobs,
+                pendingJobs: entPendingJobs,
+                clients: entClients,
+                revenue: entRevenue._sum.total || 0
+            },
+            RENOVATION: {
+                jobs: renoJobs,
+                pendingJobs: renoPendingJobs,
+                clients: renoClients,
+                revenue: renoRevenue._sum.total || 0
+            }
+        };
+    } catch (error) {
+        console.error("Dashboard: Failed to fetch stats", error);
+    }
+
+    // Dictionary is fetched client side usually but here it is server.
+    // We can keep dictionary logic but need safe fallback if dictionary hook not used? 
+    // dictionary.ts is imported.
     const cookieStore = cookies();
-    const userId = cookieStore.get('userId')?.value;
     const lang = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'fr';
     const t = dictionary[lang];
-
-    const user = userId ? await prisma.user.findUnique({
-        where: { id: userId },
-        select: { role: true }
-    }) : null;
-
-    // Fetch summary data for Extermination
-    const exoJobs = await prisma.job.count({ where: { division: 'EXTERMINATION' } });
-    const exoPendingJobs = await prisma.job.count({ where: { division: 'EXTERMINATION', status: 'PENDING' } });
-    const exoClients = await prisma.client.count({ where: { divisions: { has: 'EXTERMINATION' } } });
-    const exoRevenue = await prisma.invoice.aggregate({
-        where: { division: 'EXTERMINATION', status: 'PAID' },
-        _sum: { total: true }
-    });
-
-    // Fetch summary data for Entreprises
-    const entJobs = await prisma.job.count({ where: { division: 'ENTREPRISES' } });
-    const entPendingJobs = await prisma.job.count({ where: { division: 'ENTREPRISES', status: 'PENDING' } });
-    const entClients = await prisma.client.count({ where: { divisions: { has: 'ENTREPRISES' } } });
-    const entRevenue = await prisma.invoice.aggregate({
-        where: { division: 'ENTREPRISES', status: 'PAID' },
-        _sum: { total: true }
-    });
-
-    // Fetch summary data for Renovation
-    const renoJobs = await prisma.job.count({ where: { division: 'RENOVATION' } });
-    const renoPendingJobs = await prisma.job.count({ where: { division: 'RENOVATION', status: 'PENDING' } });
-    const renoClients = await prisma.client.count({ where: { divisions: { has: 'RENOVATION' } } });
-    const renoRevenue = await prisma.invoice.aggregate({
-        where: { division: 'RENOVATION', status: 'PAID' },
-        _sum: { total: true }
-    });
-
-    const stats = {
-        EXTERMINATION: {
-            jobs: exoJobs,
-            pendingJobs: exoPendingJobs,
-            clients: exoClients,
-            revenue: exoRevenue._sum.total || 0
-        },
-        ENTREPRISES: {
-            jobs: entJobs,
-            pendingJobs: entPendingJobs,
-            clients: entClients,
-            revenue: entRevenue._sum.total || 0
-        },
-        RENOVATION: {
-            jobs: renoJobs,
-            pendingJobs: renoPendingJobs,
-            clients: renoClients,
-            revenue: renoRevenue._sum.total || 0
-        }
-    };
 
     return (
         <div className="space-y-6">
