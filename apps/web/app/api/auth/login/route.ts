@@ -40,13 +40,16 @@ export async function POST(request: Request) {
         const response = NextResponse.json(userWithoutPassword);
 
         // Set a simple auth cookie
-        response.cookies.set('auth_token', user.id, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'lax' as const,
             maxAge: 60 * 60 * 24 * 7, // 1 week
             path: '/',
-        });
+        };
+
+        response.cookies.set('auth_token', user.id, cookieOptions);
+        response.cookies.set('userId', user.id, { ...cookieOptions, httpOnly: false }); // Allow client access for userId if needed by legacy stats
 
         return response;
     } catch (error) {

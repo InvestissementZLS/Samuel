@@ -5,6 +5,7 @@ import { DivisionProvider } from "@/components/providers/division-provider";
 import { UserProvider } from "@/components/providers/user-provider";
 import { MobileNav } from "@/components/MobileNav";
 import { getUserProfile } from "@/app/actions/user-actions";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
     title: "Field Service Admin",
@@ -26,7 +27,10 @@ export default async function DashboardLayout({
         user = await getUserProfile();
     } catch (error) {
         console.error("Layout: Failed to fetch user profile", error);
-        // user remains null
+    }
+
+    if (!user) {
+        redirect("/login");
     }
 
     return (
