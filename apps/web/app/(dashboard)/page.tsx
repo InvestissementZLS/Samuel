@@ -62,19 +62,19 @@ export default async function DashboardPage() {
                 jobs: exoJobs,
                 pendingJobs: exoPendingJobs,
                 clients: exoClients,
-                revenue: exoRevenue._sum.total || 0
+                revenue: Number(exoRevenue._sum.total || 0)
             },
             ENTREPRISES: {
                 jobs: entJobs,
                 pendingJobs: entPendingJobs,
                 clients: entClients,
-                revenue: entRevenue._sum.total || 0
+                revenue: Number(entRevenue._sum.total || 0)
             },
             RENOVATION: {
                 jobs: renoJobs,
                 pendingJobs: renoPendingJobs,
                 clients: renoClients,
-                revenue: renoRevenue._sum.total || 0
+                revenue: Number(renoRevenue._sum.total || 0)
             }
         };
     } catch (error) {
