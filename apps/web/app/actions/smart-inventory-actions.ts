@@ -125,15 +125,15 @@ export async function getTechnicianForecast(userId: string, days: number = 7): P
             alerts.push({
                 productId: id,
                 materialName: productName,
-                currentStock,
-                required: req.qty,
-                shortfall: req.qty - currentStock,
+                currentStock: Number(currentStock),
+                required: Number(req.qty),
+                shortfall: Number(req.qty - currentStock),
                 unit
             });
         }
     }
 
-    return alerts;
+    return JSON.parse(JSON.stringify(alerts)); // Double tap safety for any nested objects
 }
 
 export interface AdminForecastAlert {
