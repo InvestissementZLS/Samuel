@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { Quote, Product, Client } from '@prisma/client';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -104,6 +104,12 @@ const styles = StyleSheet.create({
         fontSize: 8,
         color: '#999',
     },
+    logo: {
+        width: 150,
+        height: 50,
+        marginBottom: 10,
+        objectFit: 'contain',
+    },
 });
 
 interface QuotePDFProps {
@@ -161,13 +167,38 @@ export const QuotePDF = ({ quote, language = "FR" }: QuotePDFProps) => {
                         <Text style={styles.text}>#{quote.number || quote.id.slice(0, 8)}</Text>
                     </View>
                     <View style={styles.companyInfo}>
+                        <Image
+                            style={styles.logo}
+                            src={quote.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                        />
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
-                            {quote.division === "EXTERMINATION" ? "Extermination ZLS" : "Les Entreprises ZLS"}
+                            {quote.division === "EXTERMINATION"
+                                ? "Extermination ZLS"
+                                : quote.division === "RENOVATION"
+                                    ? "Rénovation Esthéban"
+                                    : "Les Entreprises ZLS"}
                         </Text>
-                        <Text>123 Business St.</Text>
-                        <Text>City, State, Zip</Text>
-                        <Text>Phone: (555) 123-4567</Text>
-                        <Text>Email: info@zls.com</Text>
+                        {quote.division === "EXTERMINATION" ? (
+                            <>
+                                <Text>1267 rue Des Chênes</Text>
+                                <Text>Prévost, Québec, Canada J0R 1T0</Text>
+                                <Text>Tél: (514) 963-4010</Text>
+                                <Text>Courriel: exterminationzls@gmail.com</Text>
+                            </>
+                        ) : quote.division === "RENOVATION" ? (
+                            <>
+                                <Text>No de licence: 56084320-01</Text>
+                                <Text>TPS: 826459653RT0001</Text>
+                                <Text>TVQ: 1216098842TQ0001</Text>
+                            </>
+                        ) : (
+                            <>
+                                <Text>123 Business St.</Text>
+                                <Text>City, State, Zip</Text>
+                                <Text>Phone: (555) 123-4567</Text>
+                                <Text>Email: info@zls.com</Text>
+                            </>
+                        )}
                     </View>
                 </View>
 

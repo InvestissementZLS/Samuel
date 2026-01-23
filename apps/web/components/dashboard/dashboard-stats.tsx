@@ -18,6 +18,12 @@ interface DashboardStatsProps {
             clients: number;
             revenue: number;
         };
+        RENOVATION: {
+            jobs: number;
+            pendingJobs: number;
+            clients: number;
+            revenue: number;
+        };
     };
 }
 
@@ -26,15 +32,21 @@ import { useDivision } from "@/components/providers/division-provider";
 export function DashboardStats({ stats }: DashboardStatsProps) {
     const { division, setDivision } = useDivision();
 
-    const currentStats = stats[division];
+    const currentStats = stats[division] || {
+        jobs: 0,
+        pendingJobs: 0,
+        clients: 0,
+        revenue: 0
+    };
 
     return (
         <div className="space-y-4">
             <div className="flex justify-end">
-                <Tabs value={division} onValueChange={(v) => setDivision(v as any)} className="w-full md:w-[400px]">
-                    <TabsList className="grid w-full grid-cols-2">
+                <Tabs value={division} onValueChange={(v) => setDivision(v as any)} className="w-full md:w-[600px]">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="EXTERMINATION">Extermination ZLS</TabsTrigger>
                         <TabsTrigger value="ENTREPRISES">Les Entreprises ZLS</TabsTrigger>
+                        <TabsTrigger value="RENOVATION">Rénovation ZLS</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>

@@ -14,6 +14,7 @@ interface ClientDialogProps {
 
 import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useUser } from "@/components/providers/user-provider";
 
 export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
     const { t } = useLanguage();
@@ -22,9 +23,10 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
     const [phone, setPhone] = useState("");
     const [language, setLanguage] = useState<"EN" | "FR">("FR");
     const [billingAddress, setBillingAddress] = useState("");
-    const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES")[]>([]);
+    const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[]>([]);
     const [loading, setLoading] = useState(false);
     const { division } = useDivision();
+    const { user } = useUser();
 
     useEffect(() => {
         if (isOpen) {
@@ -141,78 +143,106 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
 
                 <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.divisions}</label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={divisions.includes("EXTERMINATION")}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setDivisions([...divisions, "EXTERMINATION"]);
-                                    } else {
-                                        setDivisions(divisions.filter(d => d !== "EXTERMINATION"));
-                                    }
-                                }}
-                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-sm text-foreground">{t.divisions.extermination}</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={divisions.includes("ENTREPRISES")}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setDivisions([...divisions, "ENTREPRISES"]);
-                                    } else {
-                                        setDivisions(divisions.filter(d => d !== "ENTREPRISES"));
-                                    }
-                                }}
-                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-sm text-foreground">{t.divisions.entreprises}</span>
-                        </label>
+                    <div className="flex gap-4 flex-wrap">
+                        {/* Extermination Option - Visible if user has access */}
+                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={divisions.includes("EXTERMINATION")}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setDivisions([...divisions, "EXTERMINATION"]);
+                                        } else {
+                                            setDivisions(divisions.filter(d => d !== "EXTERMINATION"));
+                                        }
+                                    }}
+                                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-sm text-foreground">{t.divisions.extermination}</span>
+                            </label>
+                        )}
+
+                        {/* Entreprises Option - Visible if user has access */}
+                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={divisions.includes("ENTREPRISES")}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setDivisions([...divisions, "ENTREPRISES"]);
+                                        } else {
+                                            setDivisions(divisions.filter(d => d !== "ENTREPRISES"));
+                                        }
+                                    }}
+                                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-sm text-foreground">{t.divisions.entreprises}</span>
+                            </label>
+                        )}
+
+                        {/* Renovation Option - Visible if user has access */}
+                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={divisions.includes("RENOVATION")}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setDivisions([...divisions, "RENOVATION"]);
+                                        } else {
+                                            setDivisions(divisions.filter(d => d !== "RENOVATION"));
+                                        }
+                                    }}
+                                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-sm text-foreground">Rénovation Esthéban</span>
+                            </label>
+                        )}
                     </div>
-                </div>
 
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
-                    <textarea
-                        value={billingAddress}
-                        onChange={(e) => setBillingAddress(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                        rows={3}
-                    />
                 </div>
+            </div>
 
-                <div className="flex justify-end gap-2 pt-4">
-                    {client && (
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
-                            disabled={loading}
-                        >
-                            {t.clientDialog.delete}
-                        </button>
-                    )}
+            <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
+                <textarea
+                    value={billingAddress}
+                    onChange={(e) => setBillingAddress(e.target.value)}
+                    className="w-full rounded-md border p-2 bg-background text-foreground"
+                    rows={3}
+                />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+                {client && (
                     <button
                         type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
+                        onClick={handleDelete}
+                        className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
                         disabled={loading}
                     >
-                        {t.clientDialog.cancel}
+                        {t.clientDialog.delete}
                     </button>
-                    <button
-                        type="submit"
-                        className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                        disabled={loading}
-                    >
-                        {loading ? t.clientDialog.saving : t.clientDialog.save}
-                    </button>
-                </div>
-            </form>
+                )}
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
+                    disabled={loading}
+                >
+                    {t.clientDialog.cancel}
+                </button>
+                <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                    disabled={loading}
+                >
+                    {loading ? t.clientDialog.saving : t.clientDialog.save}
+                </button>
+            </div>
+        </form>
         </Modal >
     );
 }

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type Division = "EXTERMINATION" | "ENTREPRISES";
+type Division = "EXTERMINATION" | "ENTREPRISES" | "RENOVATION";
 
 interface DivisionContextType {
     division: Division;
@@ -16,7 +16,7 @@ export function DivisionProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const stored = localStorage.getItem("division");
-        if (stored === "EXTERMINATION" || stored === "ENTREPRISES") {
+        if (stored === "EXTERMINATION" || stored === "ENTREPRISES" || stored === "RENOVATION") {
             setDivisionState(stored);
         }
     }, []);

@@ -7,12 +7,16 @@ import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, 
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
+import { useDivision } from '@/components/providers/division-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
 export function MobileNav() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useLanguage();
+    const { division } = useDivision();
+
+    const logoSrc = division === 'RENOVATION' ? "/renovation-logo.png" : "/zls-logo.png";
 
     const navigation = [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
@@ -38,7 +42,7 @@ export function MobileNav() {
                     >
                         <Menu size={24} />
                     </button>
-                    <img src="/logo.png" alt="ZLS Logo" className="h-8 w-auto object-contain" />
+                    <img src={logoSrc} alt="ZLS Logo" className="h-8 w-auto object-contain" />
                 </div>
                 <div className="flex items-center gap-2">
                     {/* Placeholder for search or other header items if needed */}
@@ -50,7 +54,7 @@ export function MobileNav() {
                 <div className="fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-sm">
                     <div className="flex flex-col h-full">
                         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                            <img src="/logo.png" alt="ZLS Logo" className="h-8 w-auto object-contain" />
+                            <img src={logoSrc} alt="ZLS Logo" className="h-8 w-auto object-contain" />
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="p-2 text-gray-400 hover:text-white rounded-md"

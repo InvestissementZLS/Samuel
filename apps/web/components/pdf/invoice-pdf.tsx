@@ -186,11 +186,16 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                         <Text style={styles.text}>#{String(invoice.number || invoice.id.slice(0, 8))}</Text>
                     </View>
                     <View style={styles.companyInfo}>
-                        {invoice.division === "EXTERMINATION" && (
-                            <Image style={styles.logo} src="/zls-logo.png" />
-                        )}
+                        <Image
+                            style={styles.logo}
+                            src={invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                        />
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
-                            {invoice.division === "EXTERMINATION" ? "Extermination ZLS" : "Les Entreprises ZLS"}
+                            {invoice.division === "EXTERMINATION"
+                                ? "Extermination ZLS"
+                                : invoice.division === "RENOVATION"
+                                    ? "Rénovation Esthéban"
+                                    : "Les Entreprises ZLS"}
                         </Text>
                         {invoice.division === "EXTERMINATION" ? (
                             <>
@@ -198,6 +203,12 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                                 <Text>Prévost, Québec, Canada J0R 1T0</Text>
                                 <Text>{labels.phone}: (514) 963-4010</Text>
                                 <Text>{labels.email}: exterminationzls@gmail.com</Text>
+                            </>
+                        ) : invoice.division === "RENOVATION" ? (
+                            <>
+                                <Text>No de licence: 56084320-01</Text>
+                                <Text>TPS: 826459653RT0001</Text>
+                                <Text>TVQ: 1216098842TQ0001</Text>
                             </>
                         ) : (
                             <>

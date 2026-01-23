@@ -21,6 +21,14 @@ model User {
   commissionPercentageUpsell      Float        @default(10) // Default 10% for upsells
   internalHourlyRate              Float        @default(0)
   canManageCommissions            Boolean      @default(false)
+  canManageDivisions              Boolean      @default(false)
+  
+  // Granular Permissions
+  canViewReports                  Boolean      @default(false)
+  canManageTimesheets             Boolean      @default(false)
+  canManageExpenses               Boolean      @default(false)
+  canManageUsers                  Boolean      @default(false)
+  
   isActive                        Boolean      @default(true)
   divisions                       Division[]   @default([EXTERMINATION])
   resetToken                      String?
@@ -35,6 +43,27 @@ model User {
   audits                          InventoryAudit[]
   timesheets                      TimesheetEntry[]
   language                        Language     @default(FR)
+  accesses                        UserDivisionAccess[]
+}
+
+model UserDivisionAccess {
+  id                  String   @id @default(uuid())
+  userId              String
+  division            Division
+  role                Role     @default(TECHNICIAN)
+
+  // Granular overrides (per division)
+  canViewReports      Boolean @default(false)
+  canManageTimesheets Boolean @default(false)
+  canManageExpenses   Boolean @default(false)
+  canManageUsers      Boolean @default(false)
+  canManageCommissions Boolean @default(false)
+  
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, division])
 }
 
 model Client {
@@ -486,6 +515,7 @@ enum PropertyType {
 enum Division {
   EXTERMINATION
   ENTREPRISES
+  RENOVATION
 }
 
 enum Language {

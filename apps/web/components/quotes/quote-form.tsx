@@ -1,6 +1,7 @@
 "use client";
 
 import { useDivision } from "@/components/providers/division-provider";
+import { useUser } from "@/components/providers/user-provider";
 
 import { useState } from "react";
 import { Quote, Product, QuoteItem, Client } from "@prisma/client";
@@ -37,7 +38,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
     const [issuedDate, setIssuedDate] = useState<Date>(quote?.issuedDate ? new Date(quote.issuedDate) : new Date());
     const [dueDate, setDueDate] = useState<Date | undefined>(quote?.dueDate ? new Date(quote.dueDate) : undefined);
     const { division: globalDivision } = useDivision();
-    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES">((quote?.division as "EXTERMINATION" | "ENTREPRISES") || globalDivision);
+    const { user } = useUser();
+    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">((quote?.division as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION") || globalDivision);
 
     const [items, setItems] = useState<any[]>(quote?.items.map(item => ({
         id: item.id,
@@ -144,7 +146,13 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
         })
         .map(p => ({ value: p.id, label: p.name }));
 
-    const clientOptions = clients.map(c => ({ value: c.id, label: c.name }));
+    const clientOptions = clients
+        .filter(c => {
+            // @ts-ignore
+            const divisions = c.divisions || ["EXTERMINATION"];
+            return divisions.includes(division);
+        })
+        .map(c => ({ value: c.id, label: c.name }));
     const selectedClient = clients.find(c => c.id === selectedClientId);
 
     return (
@@ -222,11 +230,18 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
                         <label className="block text-xs font-medium text-gray-500 mb-1">Division</label>
                         <select
                             value={division}
-                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
+                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION")}
                             className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
                         >
-                            <option value="EXTERMINATION">Extermination ZLS</option>
-                            <option value="ENTREPRISES">Les Entreprises ZLS</option>
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                                <option value="EXTERMINATION">Extermination ZLS</option>
+                            )}
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                                <option value="ENTREPRISES">Les Entreprises ZLS</option>
+                            )}
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                                <option value="RENOVATION">Rénovation Esthéban</option>
+                            )}
                         </select>
                     </div>
                 </div>

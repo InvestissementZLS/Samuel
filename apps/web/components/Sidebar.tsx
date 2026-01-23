@@ -10,12 +10,15 @@ import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useDivision } from '@/components/providers/division-provider';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function Sidebar() {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { t } = useLanguage();
     const { division } = useDivision();
+    const { user, checkPermission } = useCurrentUser();
+    const perms = checkPermission(division);
 
     const navigation = [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
@@ -48,7 +51,7 @@ export function Sidebar() {
                 {!isCollapsed ? (
                     <>
                         <img
-                            src={division === 'EXTERMINATION' ? "/zls-logo.png" : "/logo.png"}
+                            src={division === 'RENOVATION' ? "/renovation-logo.png" : "/zls-logo.png"}
                             alt="ZLS Logo"
                             className="h-16 w-auto object-contain"
                         />
@@ -71,10 +74,20 @@ export function Sidebar() {
                         {!isCollapsed && t.common.search}
                     </button>
                 } />
-                {navigation.map((item) => {
+                {navigation.filter(item => {
+                    if (item.href === '/reports' && !perms.canViewReports) return false;
+                    if (item.href === '/timesheets' && !perms.canManageTimesheets) return false;
+                    if (item.href === '/expenses' && !perms.canManageExpenses) return false;
+                    if (item.href === '/technicians' && !perms.canManageUsers) return false;
+                    if (item.href === '/commissions' && !perms.canManageCommissions) return false;
+                    // Always show Dashboard, Calendar, Jobs, Quotes, Invoices, Clients, Products, Inventory, Recurring, Settings
+                    // Unless we want to restrict those too? User didn't specify.
+                    return true;
+                }).map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                     return (
                         <Link
+
                             key={item.href}
                             href={item.href}
                             className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${isActive

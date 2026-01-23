@@ -1,10 +1,14 @@
 "use client";
 
+
 import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
 import { createTechnician, updateTechnician, deleteTechnician } from "@/app/actions/technician-actions";
-import { User } from "@prisma/client";
+
+import { User, Division, Role, UserDivisionAccess } from "@prisma/client";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { Plus, Trash, Shield } from "lucide-react";
 
 interface TechnicianDialogProps {
     isOpen: boolean;
@@ -19,10 +23,19 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
     const [commissionPercentageSales, setCommissionPercentageSales] = useState(0);
     const [commissionPercentageSupervision, setCommissionPercentageSupervision] = useState(0);
     const [canManageCommissions, setCanManageCommissions] = useState(false);
-    const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES")[]>([]);
+
+    // Legacy state for display reference, but we rely on divisionAccesses
+    const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[]>([]);
+
+    // New Access State
+    const [accesses, setAccesses] = useState<Partial<UserDivisionAccess>[]>([]);
+
     const [password, setPassword] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [loading, setLoading] = useState(false);
+
+    const { user: currentUser } = useCurrentUser();
+    const isMaster = currentUser?.canManageDivisions;
 
     useEffect(() => {
         if (isOpen) {
@@ -36,7 +49,27 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                 // @ts-ignore
                 setCommissionPercentageSupervision(technician.commissionPercentageSupervision || 0);
                 // @ts-ignore
+                // @ts-ignore
                 setCanManageCommissions(technician.canManageCommissions || false);
+
+                // Load Accesses
+                // @ts-ignore
+                if (technician.accesses) {
+                    // @ts-ignore
+                    setAccesses(technician.accesses);
+                } else if (technician.divisions) {
+                    // Backwards compat for display if accesses missing
+                    setAccesses(technician.divisions.map(d => ({
+                        division: d,
+                        role: technician.role,
+                        canViewReports: technician.canViewReports,
+                        canManageTimesheets: technician.canManageTimesheets,
+                        canManageExpenses: technician.canManageExpenses,
+                        canManageUsers: technician.canManageUsers,
+                        canManageCommissions: technician.canManageCommissions
+                    })));
+                }
+
                 // @ts-ignore
                 setDivisions(technician.divisions || ["EXTERMINATION"]);
                 // @ts-ignore
@@ -47,7 +80,9 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                 setInternalHourlyRate(0);
                 setCommissionPercentageSales(0);
                 setCommissionPercentageSupervision(0);
+                setCommissionPercentageSupervision(0);
                 setCanManageCommissions(false);
+                setAccesses([]);
                 setDivisions(["EXTERMINATION"]);
                 setIsActive(true);
             }
@@ -67,8 +102,11 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     commissionPercentageSales,
                     commissionPercentageSupervision,
                     canManageCommissions,
+                    // Pass legacy global flags as false/defaults or derived from first access
+                    // Ideally API should handle this translation
                     password: password || undefined,
                     divisions,
+                    accesses: accesses, // New field
                     isActive,
                 });
                 toast.success("Technician updated successfully");
@@ -82,6 +120,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     commissionPercentageSupervision,
                     canManageCommissions,
                     divisions,
+                    accesses: accesses, // New field
                     isActive
                 });
                 toast.success("Technician created successfully");
@@ -215,41 +254,143 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     </label>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">Divisions</label>
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={divisions.includes("EXTERMINATION")}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setDivisions([...divisions, "EXTERMINATION"]);
-                                    } else {
-                                        setDivisions(divisions.filter(d => d !== "EXTERMINATION"));
-                                    }
-                                }}
-                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-sm text-foreground">Extermination</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={divisions.includes("ENTREPRISES")}
-                                onChange={(e) => {
-                                    if (e.target.checked) {
-                                        setDivisions([...divisions, "ENTREPRISES"]);
-                                    } else {
-                                        setDivisions(divisions.filter(d => d !== "ENTREPRISES"));
-                                    }
-                                }}
-                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <span className="text-sm text-foreground">Entreprises</span>
-                        </label>
+                {/* Only Master Admin can manage Granular Permissions & Divisions */}
+                {isMaster && (
+                    <div className="border-t pt-4 mt-4">
+                        <h3 className="text-sm font-medium mb-4 text-foreground flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            Access & Permissions (Per Division)
+                        </h3>
+
+                        <div className="space-y-4">
+                            {accesses.map((access, index) => (
+                                <div key={access.division} className="p-4 border rounded-md bg-muted/20 relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newAccesses = [...accesses];
+                                            newAccesses.splice(index, 1);
+                                            setAccesses(newAccesses);
+                                        }}
+                                        className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                                    >
+                                        <Trash className="h-4 w-4" />
+                                    </button>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Division</label>
+                                            <div className="font-medium text-foreground">{access.division}</div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Role</label>
+                                            <select
+                                                value={access.role}
+                                                onChange={(e) => {
+                                                    const newAccesses = [...accesses];
+                                                    // @ts-ignore
+                                                    newAccesses[index].role = e.target.value;
+                                                    setAccesses(newAccesses);
+                                                }}
+                                                className="w-full text-sm border rounded p-1 bg-background text-foreground"
+                                            >
+                                                <option value="TECHNICIAN">Technician</option>
+                                                <option value="OFFICE">Office</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={access.canViewReports}
+                                                onChange={(e) => {
+                                                    const newAccesses = [...accesses];
+                                                    // @ts-ignore
+                                                    newAccesses[index].canViewReports = e.target.checked;
+                                                    setAccesses(newAccesses);
+                                                }}
+                                                className="rounded border-gray-300"
+                                            />
+                                            <span className="text-sm text-foreground">View Reports</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={access.canManageTimesheets}
+                                                onChange={(e) => {
+                                                    const newAccesses = [...accesses];
+                                                    // @ts-ignore
+                                                    newAccesses[index].canManageTimesheets = e.target.checked;
+                                                    setAccesses(newAccesses);
+                                                }}
+                                                className="rounded border-gray-300"
+                                            />
+                                            <span className="text-sm text-foreground">Manage Timesheets</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={access.canManageExpenses}
+                                                onChange={(e) => {
+                                                    const newAccesses = [...accesses];
+                                                    // @ts-ignore
+                                                    newAccesses[index].canManageExpenses = e.target.checked;
+                                                    setAccesses(newAccesses);
+                                                }}
+                                                className="rounded border-gray-300"
+                                            />
+                                            <span className="text-sm text-foreground">Manage Expenses</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={access.canManageUsers}
+                                                onChange={(e) => {
+                                                    const newAccesses = [...accesses];
+                                                    // @ts-ignore
+                                                    newAccesses[index].canManageUsers = e.target.checked;
+                                                    setAccesses(newAccesses);
+                                                }}
+                                                className="rounded border-gray-300"
+                                            />
+                                            <span className="text-sm text-foreground">Manage Users</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="flex gap-2">
+                                {["EXTERMINATION", "ENTREPRISES", "RENOVATION"]
+                                    .filter(d => !accesses.find(a => a.division === d))
+                                    .map(d => (
+                                        <button
+                                            key={d}
+                                            type="button"
+                                            onClick={() => {
+                                                setAccesses([...accesses, {
+                                                    // @ts-ignore
+                                                    division: d,
+                                                    role: "TECHNICIAN",
+                                                    canViewReports: false,
+                                                    canManageTimesheets: false,
+                                                    canManageExpenses: false,
+                                                    canManageUsers: false,
+                                                    canManageCommissions: false
+                                                }]);
+                                            }}
+                                            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border rounded-md hover:bg-gray-50 border-dashed"
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                            Add {d}
+                                        </button>
+                                    ))}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="flex justify-end gap-2 pt-4">
                     {technician && (

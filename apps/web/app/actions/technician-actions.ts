@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { Division, Role, UserDivisionAccess } from '@prisma/client';
 
 export async function createTechnician(data: {
     name: string;
@@ -11,10 +12,15 @@ export async function createTechnician(data: {
     commissionPercentageSales?: number;
     commissionPercentageSupervision?: number;
     canManageCommissions?: boolean;
-    divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    canViewReports?: boolean;
+    canManageTimesheets?: boolean;
+    canManageExpenses?: boolean;
+    canManageUsers?: boolean;
+    divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
+    accesses?: Partial<UserDivisionAccess>[];
     isActive?: boolean;
 }) {
-    await prisma.user.create({
+    const user = await prisma.user.create({
         data: {
             name: data.name,
             email: data.email,
@@ -23,11 +29,34 @@ export async function createTechnician(data: {
             internalHourlyRate: data.internalHourlyRate,
             commissionPercentageSales: data.commissionPercentageSales,
             commissionPercentageSupervision: data.commissionPercentageSupervision,
+            commissionPercentageSupervision: data.commissionPercentageSupervision,
             canManageCommissions: data.canManageCommissions,
+            canViewReports: data.canViewReports,
+            canManageTimesheets: data.canManageTimesheets,
+            canManageExpenses: data.canManageExpenses,
+            canManageUsers: data.canManageUsers,
             divisions: data.divisions || ["EXTERMINATION"],
             isActive: data.isActive,
         },
     });
+
+    if (data.accesses) {
+        for (const access of data.accesses) {
+            await prisma.userDivisionAccess.create({
+                data: {
+                    userId: user.id,
+                    division: access.division!,
+                    role: access.role || 'TECHNICIAN',
+                    canViewReports: access.canViewReports || false,
+                    canManageTimesheets: access.canManageTimesheets || false,
+                    canManageExpenses: access.canManageExpenses || false,
+                    canManageUsers: access.canManageUsers || false,
+                    canManageCommissions: access.canManageCommissions || false,
+                }
+            });
+        }
+    }
+
     revalidatePath('/technicians');
 }
 
@@ -38,8 +67,13 @@ export async function updateTechnician(id: string, data: {
     commissionPercentageSales?: number;
     commissionPercentageSupervision?: number;
     canManageCommissions?: boolean;
+    canViewReports?: boolean;
+    canManageTimesheets?: boolean;
+    canManageExpenses?: boolean;
+    canManageUsers?: boolean;
     password?: string;
-    divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
+    accesses?: Partial<UserDivisionAccess>[];
     isActive?: boolean;
 }) {
     const updateData: any = {
@@ -49,6 +83,10 @@ export async function updateTechnician(id: string, data: {
         commissionPercentageSales: data.commissionPercentageSales,
         commissionPercentageSupervision: data.commissionPercentageSupervision,
         canManageCommissions: data.canManageCommissions,
+        canViewReports: data.canViewReports,
+        canManageTimesheets: data.canManageTimesheets,
+        canManageExpenses: data.canManageExpenses,
+        canManageUsers: data.canManageUsers,
         divisions: data.divisions,
         isActive: data.isActive,
     };
@@ -61,6 +99,29 @@ export async function updateTechnician(id: string, data: {
         where: { id },
         data: updateData,
     });
+
+    if (data.accesses) {
+        // Delete all existing and recreate (simpler sync)
+        await prisma.userDivisionAccess.deleteMany({
+            where: { userId: id }
+        });
+
+        for (const access of data.accesses) {
+            await prisma.userDivisionAccess.create({
+                data: {
+                    userId: id,
+                    division: access.division!,
+                    role: access.role || 'TECHNICIAN',
+                    canViewReports: access.canViewReports || false,
+                    canManageTimesheets: access.canManageTimesheets || false,
+                    canManageExpenses: access.canManageExpenses || false,
+                    canManageUsers: access.canManageUsers || false,
+                    canManageCommissions: access.canManageCommissions || false,
+                }
+            });
+        }
+    }
+
     revalidatePath('/technicians');
 }
 
@@ -94,6 +155,9 @@ export async function getTechnicians() {
                 { role: 'OFFICE' },
                 { role: 'ADMIN' }
             ]
+        },
+        include: {
+            accesses: true
         },
         orderBy: { name: 'asc' }
     });

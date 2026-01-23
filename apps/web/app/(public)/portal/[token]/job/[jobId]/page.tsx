@@ -81,11 +81,11 @@ export default function JobReportPage() {
                 {/* Header */}
                 <header className="border-b-2 border-indigo-600 p-8 print:p-6 flex justify-between items-start">
                     <div>
-                        {isExtermination ? (
-                            <img src="/zls-logo.png" alt="ZLS" className="h-16 object-contain mb-2" />
-                        ) : (
-                            <img src="/logo.png" alt="Logo" className="h-16 object-contain mb-2" />
-                        )}
+                        <img
+                            src={job.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                            alt={job.division === "RENOVATION" ? "Rénovation Esthéban" : "ZLS"}
+                            className="h-16 object-contain mb-2"
+                        />
                         <h1 className="text-2xl font-bold text-gray-900 mt-4 uppercase tracking-wide">
                             Rapport de Service
                         </h1>

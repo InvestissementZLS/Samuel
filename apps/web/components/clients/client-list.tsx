@@ -156,7 +156,7 @@ export function ClientList({ clients }: ClientListProps) {
                 ) : (
                     <div className="p-6 text-center text-gray-500">
                         {/* Note: keeping inline ternary for division names or use props if strict translation needed, but acceptable for now */}
-                        <p>{t.clients.noClients} {t.clients.in} {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}.</p>
+                        <p>{t.clients.noClients} {t.clients.in} {division === "EXTERMINATION" ? "Extermination" : division === "RENOVATION" ? "Rénovation Esthéban" : "Entreprises"}.</p>
                         {clients.length > 0 && (
                             <p className="mt-2 text-sm">
                                 {clients.length} {t.clients.hiddenClients}
@@ -168,7 +168,7 @@ export function ClientList({ clients }: ClientListProps) {
                             onClick={handleAdd}
                             className="mt-4 text-indigo-600 hover:text-indigo-500 font-medium"
                         >
-                            {t.clients.createInDivision} {division === "EXTERMINATION" ? "Extermination" : "Entreprises"}
+                            {t.clients.createInDivision} {division === "EXTERMINATION" ? "Extermination" : division === "RENOVATION" ? "Rénovation Esthéban" : "Entreprises"}
                         </button>
                     </div>
                 )}

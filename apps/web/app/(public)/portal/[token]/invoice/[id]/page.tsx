@@ -81,13 +81,31 @@ export default function InvoicePreviewPage() {
             <div className="max-w-4xl mx-auto bg-white shadow-lg print:shadow-none rounded-xl overflow-hidden print:rounded-none">
                 <header className="border-b-2 border-indigo-600 p-8 flex justify-between items-start">
                     <div>
-                        {isExtermination ? (
-                            <img src="/zls-logo.png" alt="ZLS" className="h-16 object-contain mb-2" />
-                        ) : (
-                            <img src="/logo.png" alt="Logo" className="h-16 object-contain mb-2" />
-                        )}
+                        <img
+                            src={invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                            alt="Logo"
+                            className="h-16 object-contain mb-2"
+                        />
                         <h1 className="text-2xl font-bold text-gray-900 mt-4 uppercase tracking-wide">Facture</h1>
                         <p className="text-gray-500">#{invoice.number || invoice.id.slice(0, 8)}</p>
+                        <div className="mt-4 text-sm text-gray-500">
+                            {invoice.division === "EXTERMINATION" ? (
+                                <>
+                                    <p className="font-bold">Extermination ZLS</p>
+                                    <p>1267 rue Des Chênes</p>
+                                    <p>Prévost, Québec, Canada J0R 1T0</p>
+                                </>
+                            ) : invoice.division === "RENOVATION" ? (
+                                <>
+                                    <p className="font-bold">Rénovation Esthéban</p>
+                                    <p>No de licence: 56084320-01</p>
+                                    <p>TPS: 826459653RT0001</p>
+                                    <p>TVQ: 1216098842TQ0001</p>
+                                </>
+                            ) : (
+                                <p className="font-bold">Les Entreprises ZLS</p>
+                            )}
+                        </div>
                     </div>
                     <div className="text-right">
                         <div className="text-lg font-semibold">{format(new Date(invoice.createdAt), "d MMMM yyyy", { locale: fr })}</div>

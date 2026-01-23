@@ -1,6 +1,7 @@
 "use client";
 
 import { useDivision } from "@/components/providers/division-provider";
+import { useUser } from "@/components/providers/user-provider";
 
 import { useState } from "react";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
@@ -34,6 +35,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const { language, t } = useLanguage();
+    const { user } = useUser();
 
 
     // Form State
@@ -41,7 +43,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
     const [issuedDate, setIssuedDate] = useState<Date>(invoice?.issuedDate ? new Date(invoice.issuedDate) : new Date());
     const [dueDate, setDueDate] = useState<Date | undefined>(invoice?.dueDate ? new Date(invoice.dueDate) : undefined);
     const { division: globalDivision } = useDivision();
-    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES">((invoice?.division as "EXTERMINATION" | "ENTREPRISES") || globalDivision);
+    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">((invoice?.division as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION") || globalDivision);
 
     const [items, setItems] = useState<any[]>(invoice?.items.map(item => ({
         id: item.id,
@@ -170,7 +172,14 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
         })
         .map(p => ({ value: p.id, label: p.name }));
 
-    const clientOptions = clients.map(c => ({ value: c.id, label: c.name }));
+    // Filter clients based on division
+    const clientOptions = clients
+        .filter(c => {
+            // @ts-ignore
+            const divisions = c.divisions || ["EXTERMINATION"];
+            return divisions.includes(division);
+        })
+        .map(c => ({ value: c.id, label: c.name }));
     const selectedClient = clients.find(c => c.id === selectedClientId);
 
     return (
@@ -286,11 +295,18 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
                         <label className="block text-xs font-medium text-gray-500 mb-1">{t.products.division}</label>
                         <select
                             value={division}
-                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
+                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION")}
                             className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:border-indigo-500 outline-none"
                         >
-                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
-                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                                <option value="EXTERMINATION">{t.divisions.extermination}</option>
+                            )}
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                                <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            )}
+                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                                <option value="RENOVATION">Rénovation Esthéban</option>
+                            )}
                         </select>
                     </div>
                 </div>

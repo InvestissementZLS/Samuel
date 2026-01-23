@@ -8,7 +8,7 @@ export async function createClient(data: {
     email?: string;
     phone?: string;
     billingAddress?: string;
-    divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
     language?: "EN" | "FR";
 }) {
     const client = await prisma.client.create({
@@ -40,7 +40,7 @@ export async function updateClient(id: string, data: {
     email?: string;
     phone?: string;
     billingAddress?: string;
-    divisions?: ("EXTERMINATION" | "ENTREPRISES")[];
+    divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
     language?: "EN" | "FR";
 }) {
     await prisma.client.update({

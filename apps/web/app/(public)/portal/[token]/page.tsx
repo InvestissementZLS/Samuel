@@ -169,16 +169,16 @@ export default function ClientPortalPage() {
                             {client.name}
                         </p>
                     </div>
-                    {isExtermination ? (
+                    {client.divisions?.includes("RENOVATION") ? (
                         <img
-                            src="/zls-logo.png"
-                            alt="Extermination ZLS"
+                            src="/renovation-logo.png"
+                            alt="Rénovation Esthéban"
                             className="h-12 w-auto object-contain"
                         />
                     ) : (
                         <img
-                            src="/logo.png"
-                            alt="Logo"
+                            src="/zls-logo.png"
+                            alt="Extermination ZLS"
                             className="h-12 w-auto object-contain"
                         />
                     )}

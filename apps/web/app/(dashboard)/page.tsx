@@ -37,6 +37,15 @@ export default async function DashboardPage() {
         _sum: { total: true }
     });
 
+    // Fetch summary data for Renovation
+    const renoJobs = await prisma.job.count({ where: { division: 'RENOVATION' } });
+    const renoPendingJobs = await prisma.job.count({ where: { division: 'RENOVATION', status: 'PENDING' } });
+    const renoClients = await prisma.client.count({ where: { divisions: { has: 'RENOVATION' } } });
+    const renoRevenue = await prisma.invoice.aggregate({
+        where: { division: 'RENOVATION', status: 'PAID' },
+        _sum: { total: true }
+    });
+
     const stats = {
         EXTERMINATION: {
             jobs: exoJobs,
@@ -49,6 +58,12 @@ export default async function DashboardPage() {
             pendingJobs: entPendingJobs,
             clients: entClients,
             revenue: entRevenue._sum.total || 0
+        },
+        RENOVATION: {
+            jobs: renoJobs,
+            pendingJobs: renoPendingJobs,
+            clients: renoClients,
+            revenue: renoRevenue._sum.total || 0
         }
     };
 
@@ -61,7 +76,7 @@ export default async function DashboardPage() {
                 <InventoryForecast userId={userId} />
             )}
 
-            {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+            {(user?.role === 'ADMIN') && (
                 <InventoryAdminWidget />
             )}
 
