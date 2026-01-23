@@ -6,15 +6,15 @@ import { toast } from "sonner";
 import { createClient, updateClient, deleteClient } from "@/app/actions/client-actions";
 import { Client } from "@prisma/client";
 
+import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
+import { useUser } from "@/components/providers/user-provider";
+
 interface ClientDialogProps {
     isOpen: boolean;
     onClose: () => void;
     client?: Client | null;
 }
-
-import { useDivision } from "@/components/providers/division-provider";
-import { useLanguage } from "@/components/providers/language-provider";
-import { useUser } from "@/components/providers/user-provider";
 
 export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
     const { t } = useLanguage();
@@ -203,46 +203,45 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                     </div>
 
                 </div>
-            </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
-                <textarea
-                    value={billingAddress}
-                    onChange={(e) => setBillingAddress(e.target.value)}
-                    className="w-full rounded-md border p-2 bg-background text-foreground"
-                    rows={3}
-                />
-            </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
+                    <textarea
+                        value={billingAddress}
+                        onChange={(e) => setBillingAddress(e.target.value)}
+                        className="w-full rounded-md border p-2 bg-background text-foreground"
+                        rows={3}
+                    />
+                </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-                {client && (
+                <div className="flex justify-end gap-2 pt-4">
+                    {client && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
+                            disabled={loading}
+                        >
+                            {t.clientDialog.delete}
+                        </button>
+                    )}
                     <button
                         type="button"
-                        onClick={handleDelete}
-                        className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
+                        onClick={onClose}
+                        className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
                         disabled={loading}
                     >
-                        {t.clientDialog.delete}
+                        {t.clientDialog.cancel}
                     </button>
-                )}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium border rounded-md hover:bg-muted"
-                    disabled={loading}
-                >
-                    {t.clientDialog.cancel}
-                </button>
-                <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                    disabled={loading}
-                >
-                    {loading ? t.clientDialog.saving : t.clientDialog.save}
-                </button>
-            </div>
-        </form>
+                    <button
+                        type="submit"
+                        className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                        disabled={loading}
+                    >
+                        {loading ? t.clientDialog.saving : t.clientDialog.save}
+                    </button>
+                </div>
+            </form>
         </Modal >
     );
 }
