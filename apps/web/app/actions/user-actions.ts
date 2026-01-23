@@ -30,7 +30,11 @@ export async function getUserProfile() {
                 accesses: true
             }
         });
-        return user;
+
+        if (!user) return null;
+
+        // Serialize Date objects to strings for Client Component compatibility
+        return JSON.parse(JSON.stringify(user));
     } catch (error) {
         console.error("Error fetching user profile:", error);
         return null;
