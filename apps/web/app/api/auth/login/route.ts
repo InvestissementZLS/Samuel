@@ -13,9 +13,18 @@ export async function POST(request: Request) {
             );
         }
 
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+        let user;
+        try {
+            user = await prisma.user.findUnique({
+                where: { email },
+            });
+        } catch (dbError) {
+            console.error("Login DB Error:", dbError);
+            return NextResponse.json(
+                { error: "Database service unavailable" },
+                { status: 503 }
+            );
+        }
 
         if (!user) {
             return NextResponse.json(
@@ -37,7 +46,10 @@ export async function POST(request: Request) {
         // Return user info (excluding password)
         const { password: _, ...userWithoutPassword } = user;
 
-        const response = NextResponse.json(userWithoutPassword);
+        // Serialize Date objects to strings for Client Component compatibility
+        const safeUser = JSON.parse(JSON.stringify(userWithoutPassword));
+
+        const response = NextResponse.json(safeUser);
 
         // Set a simple auth cookie
         const cookieOptions = {
@@ -53,10 +65,11 @@ export async function POST(request: Request) {
 
         return response;
     } catch (error) {
-        console.error("Login error:", error);
+        console.error("Login parsing error:", error);
         return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
+            { error: "Invalid request body" },
+            { status: 400 }
         );
     }
 }
+
