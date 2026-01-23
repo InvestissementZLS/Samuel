@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { JobStatus } from '@prisma/client';
+import { JobStatus, Division } from '@prisma/client';
 
 export async function createCalendarJob(data: {
     propertyId: string;
@@ -11,7 +11,7 @@ export async function createCalendarJob(data: {
     scheduledEndAt?: Date;
     technicianIds?: string[];
     status?: JobStatus;
-    division?: "EXTERMINATION" | "ENTREPRISES";
+    division?: Division;
     products?: { productId: string; quantity: number }[];
 }) {
     await prisma.job.create({
@@ -45,7 +45,7 @@ export async function updateCalendarJob(id: string, data: {
     technicianIds?: string[];
     propertyId?: string;
     status?: JobStatus;
-    division?: "EXTERMINATION" | "ENTREPRISES";
+    division?: Division;
     products?: { productId: string; quantity: number }[]; // [NEW] Support products/services
 }) {
     const { technicianIds, products, ...rest } = data;
