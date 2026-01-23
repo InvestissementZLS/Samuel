@@ -599,6 +599,7 @@ export const dictionary = {
         divisions: {
             extermination: "Extermination",
             entreprises: "Entreprises",
+            renovation: "Rénovation",
         },
         jobDetails: {
             title: "Détails du Job",

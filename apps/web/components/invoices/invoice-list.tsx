@@ -29,7 +29,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
-    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
+    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES" | "RENOVATION">(division);
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [paymentModalType, setPaymentModalType] = useState<"PAYMENT" | "REFUND">("PAYMENT");
     const [paymentInvoice, setPaymentInvoice] = useState<any>(null);
@@ -111,6 +111,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                             <option value="ALL">{t.common.allDivisions}</option>
                             <option value="EXTERMINATION">{t.divisions.extermination}</option>
                             <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            <option value="RENOVATION">{t.divisions.renovation}</option>
                         </select>
                     </div>
 
@@ -151,7 +152,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                                     <span>•</span>
                                                     <span className="text-xs uppercase tracking-wider font-semibold">
                                                         {/* @ts-ignore */}
-                                                        {invoice.division === "EXTERMINATION" ? "EXO" : "ENT"}
+                                                        {invoice.division === "EXTERMINATION" ? "EXO" : invoice.division === "RENOVATION" ? "REN" : "ENT"}
                                                     </span>
                                                 </>
                                             )}
