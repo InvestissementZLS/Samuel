@@ -21,7 +21,13 @@ export default async function DashboardLayout({
     // const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
     // const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
 
-    const user = await getUserProfile();
+    let user = null;
+    try {
+        user = await getUserProfile();
+    } catch (error) {
+        console.error("Layout: Failed to fetch user profile", error);
+        // user remains null
+    }
 
     return (
         <UserProvider initialUser={user}>
