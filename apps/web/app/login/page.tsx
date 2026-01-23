@@ -23,8 +23,16 @@ export default function LoginPage() {
                 body: JSON.stringify({ email, password }),
             });
 
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.error("Login JSON parse error", e);
+                throw new Error(t.auth.error);
+            }
+
             if (!res.ok) {
-                const data = await res.json();
+                console.error("Login Server Error:", data);
                 throw new Error(data.error || t.auth.error);
             }
 
@@ -32,6 +40,7 @@ export default function LoginPage() {
             router.push("/");
             router.refresh();
         } catch (error: any) {
+            console.error("Login Handler Error:", error);
             toast.error(error.message);
         } finally {
             setLoading(false);
