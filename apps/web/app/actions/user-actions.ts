@@ -40,3 +40,25 @@ export async function getUserProfile() {
         return null;
     }
 }
+
+export async function updateUserLanguage(language: "EN" | "FR") {
+    const user = await getUserProfile();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    try {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { language }
+        });
+
+        // Revalidate to update UI immediately
+        // revalidatePath('/'); // Global revalidate might be too aggressive?
+        // Let's just return success and let client update state via provider if needed.
+        // Or revalidate layout?
+
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update language:", error);
+        return { success: false, error: "Update failed" };
+    }
+}
