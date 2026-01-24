@@ -226,39 +226,90 @@ export const QuotePDF = ({ quote, language = "FR" }: QuotePDFProps) => {
                     )}
                 </View>
 
-                {/* Items Table */}
-                <View style={styles.table}>
-                    <View style={[styles.tableRow, styles.tableHeader]}>
-                        <View style={styles.tableColDesc}>
-                            <Text style={styles.tableCell}>{labels.description}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.quantity}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.price}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.total}</Text>
-                        </View>
+                {/* Comments / Special Instructions (Renovation Only usually has extensive work scopes) */}
+                {quote.description && (
+                    <View style={{ marginTop: 20 }}>
+                        <Text style={styles.sectionTitle}>{language === 'FR' ? "Commentaires ou instructions spéciales" : "Comments or special instructions"}</Text>
+                        <Text style={styles.text}>{quote.description}</Text>
                     </View>
-                    {quote.items.map((item, index) => (
-                        <View style={styles.tableRow} key={index}>
-                            <View style={styles.tableColDesc}>
-                                <Text style={styles.tableCell}>{item.product.name} {item.description ? `- ${item.description}` : ''}</Text>
+                )}
+
+                {/* Items Table */}
+                {quote.division === "RENOVATION" ? (
+                    // RENOVATION LAYOUT: Qty | Desc | Price | Taxable | Total
+                    <View style={styles.table}>
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.quantity}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>{item.quantity}</Text>
+                            <View style={{ ...styles.tableColDesc, width: '45%' }}>
+                                <Text style={styles.tableCell}>{labels.description}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${item.price.toFixed(2)}</Text>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.price}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${(item.quantity * item.price).toFixed(2)}</Text>
+                            <View style={{ ...styles.tableCol, width: '10%' }}>
+                                <Text style={styles.tableCell}>Taxable</Text>
+                            </View>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.total}</Text>
                             </View>
                         </View>
-                    ))}
-                </View>
+                        {quote.items.map((item, index) => (
+                            <View style={styles.tableRow} key={index}>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>{String(item.quantity)}</Text>
+                                </View>
+                                <View style={{ ...styles.tableColDesc, width: '45%' }}>
+                                    <Text style={styles.tableCell}>{item.product.name} {item.description ? `- ${item.description}` : ''}</Text>
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>${Number(item.price).toFixed(2)} / {item.product?.unit}</Text>
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '10%' }}>
+                                    <Text style={styles.tableCell}>{item.taxRate > 0 || !item.taxRate ? (language === 'FR' ? "Oui" : "Yes") : (language === 'FR' ? "Non" : "No")}</Text>
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    // STANDARD LAYOUT
+                    <View style={styles.table}>
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <View style={styles.tableColDesc}>
+                                <Text style={styles.tableCell}>{labels.description}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.quantity}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.price}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.total}</Text>
+                            </View>
+                        </View>
+                        {quote.items.map((item, index) => (
+                            <View style={styles.tableRow} key={index}>
+                                <View style={styles.tableColDesc}>
+                                    <Text style={styles.tableCell}>{item.product.name} {item.description ? `- ${item.description}` : ''}</Text>
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>{item.quantity}</Text>
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>${item.price.toFixed(2)}</Text>
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>${(item.quantity * item.price).toFixed(2)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
 
                 {/* Totals */}
                 <View style={styles.totals}>
