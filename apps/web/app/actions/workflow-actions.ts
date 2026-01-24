@@ -36,7 +36,9 @@ export async function convertQuoteToJob(quoteId: string) {
             division: quote.division,
             status: 'PENDING',
             scheduledAt: new Date(),
-            description: `Converted from Quote #${quote.number || quote.poNumber || 'N/A'}. ${quote.description || ''}`,
+            status: 'PENDING',
+            scheduledAt: new Date(),
+            description: quote.description || '',
             products: {
                 create: quote.items.map(item => ({
                     productId: item.productId,
@@ -95,13 +97,13 @@ export async function convertJobToInvoice(jobId: string) {
         orderBy: { number: 'desc' }
     });
 
-    let nextSequence = 1;
+    let nextSequence = 5031; // Start at 5031 as requested
     if (lastInvoice && lastInvoice.number) {
         const parts = lastInvoice.number.split('-');
         if (parts.length === 3) {
             const lastSeq = parseInt(parts[2], 10);
             if (!isNaN(lastSeq)) {
-                nextSequence = lastSeq + 1;
+                nextSequence = Math.max(lastSeq + 1, 5031);
             }
         }
     }
