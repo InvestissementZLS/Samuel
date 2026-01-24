@@ -14,13 +14,21 @@ const resendExtermination = process.env.RESEND_API_KEY_EXTERMINATION
     ? new Resend(process.env.RESEND_API_KEY_EXTERMINATION)
     : null;
 
-function getEmailConfig(division: "EXTERMINATION" | "ENTREPRISES") {
+function getEmailConfig(division: "EXTERMINATION" | "ENTREPRISES" | "RENOVATION" | string) {
     if (division === "EXTERMINATION" && resendExtermination) {
         return {
             resend: resendExtermination,
             from: "Extermination ZLS <extermination@praxiszls.com>"
         };
     }
+
+    if (division === "RENOVATION") {
+        return {
+            resend: resendEntreprises, // Share API key with Entreprises for now
+            from: "Rénovation Esthéban <extermination@praxiszls.com>"
+        };
+    }
+
     // Default to Entreprises
     return {
         resend: resendEntreprises,
@@ -55,17 +63,23 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     }
 
     try {
-        const subject = (invoice.client as any).language === 'EN'
-            ? `Invoice #${invoice.number} from ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
-            : `Facture #${invoice.number} de ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+        const companyName = invoice.division === 'EXTERMINATION'
+            ? 'Extermination ZLS'
+            : invoice.division === 'RENOVATION'
+                ? 'Rénovation Esthéban'
+                : 'Les Entreprises ZLS';
 
-        const portalUrl = `${getAppUrl()}/portal/invoices/${invoice.id}`;
+        const subject = (invoice.client as any).language === 'EN'
+            ? `Invoice #${invoice.number} from ${companyName}`
+            : `Facture #${invoice.number} de ${companyName}`;
+
+        const portalUrl = `${getAppUrl()}/legacy-portal/invoices/${invoice.id}`;
 
         const html = (invoice.client as any).language === 'EN'
             ? `
                 <div style="font-family: sans-serif;">
                     <h2>Hello ${invoice.client.name},</h2>
-                    <p>You have received a new invoice from ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}.</p>
+                    <p>You have received a new invoice from ${companyName}.</p>
                     <p><strong>Invoice #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
                     <p>Total: $${invoice.total.toFixed(2)}</p>
                     <br/>
@@ -81,7 +95,7 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
             : `
                 <div style="font-family: sans-serif;">
                     <h2>Bonjour ${invoice.client.name},</h2>
-                    <p>Vous avez reçu une nouvelle facture de ${invoice.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}.</p>
+                    <p>Vous avez reçu une nouvelle facture de ${companyName}.</p>
                     <p><strong>Facture #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
                     <p>Total: $${invoice.total.toFixed(2)}</p>
                     <br/>
@@ -120,17 +134,23 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
     }
 
     try {
-        const subject = (quote.client as any).language === 'EN'
-            ? `Quote #${quote.number} from ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
-            : `Soumission #${quote.number} de ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+        const companyName = quote.division === 'EXTERMINATION'
+            ? 'Extermination ZLS'
+            : quote.division === 'RENOVATION'
+                ? 'Rénovation Esthéban'
+                : 'Les Entreprises ZLS';
 
-        const portalUrl = `${getAppUrl()}/portal/quotes/${quote.id}`;
+        const subject = (quote.client as any).language === 'EN'
+            ? `Quote #${quote.number} from ${companyName}`
+            : `Soumission #${quote.number} de ${companyName}`;
+
+        const portalUrl = `${getAppUrl()}/legacy-portal/quotes/${quote.id}`;
 
         const html = (quote.client as any).language === 'EN'
             ? `
                 <div style="font-family: sans-serif;">
                     <h2>Hello ${quote.client.name},</h2>
-                    <p>You have received a new quote from ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}.</p>
+                    <p>You have received a new quote from ${companyName}.</p>
                     <p><strong>Quote #${quote.number || quote.id.slice(0, 8)}</strong></p>
                     <p>Total: $${quote.total.toFixed(2)}</p>
                     <br/>
@@ -146,7 +166,7 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
             : `
                 <div style="font-family: sans-serif;">
                     <h2>Bonjour ${quote.client.name},</h2>
-                    <p>Vous avez reçu une nouvelle soumission de ${quote.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}.</p>
+                    <p>Vous avez reçu une nouvelle soumission de ${companyName}.</p>
                     <p><strong>Soumission #${quote.number || quote.id.slice(0, 8)}</strong></p>
                     <p>Total: $${quote.total.toFixed(2)}</p>
                     <br/>
