@@ -122,6 +122,7 @@ interface InvoicePDFProps {
         items: (any & { product: Product })[];
     };
     language?: "EN" | "FR";
+    logoPath?: string;
 }
 
 const t = {
@@ -163,7 +164,7 @@ const t = {
     }
 };
 
-export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
+export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFProps) => {
     const labels = t[language] || t.FR;
     const dateLocale = language === "FR" ? fr : enUS;
 
@@ -188,7 +189,7 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                     <View style={styles.companyInfo}>
                         <Image
                             style={styles.logo}
-                            src={invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                            src={logoPath || (invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png")}
                         />
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
                             {invoice.division === "EXTERMINATION"
@@ -241,56 +242,115 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                     </View>
                 </View>
 
-                {/* Items Table */}
-                <View style={styles.table}>
-                    <View style={[styles.tableRow, styles.tableHeader]}>
-                        <View style={styles.tableColDesc}>
-                            <Text style={styles.tableCell}>{labels.description}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.quantity}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.price}</Text>
-                        </View>
-                        <View style={styles.tableCol}>
-                            <Text style={styles.tableCell}>{labels.total}</Text>
-                        </View>
+                {/* Comments / Special Instructions (Renovation Only or if Note exists) */}
+                {invoice.note && (
+                    <View style={{ marginTop: 20 }}>
+                        <Text style={styles.sectionTitle}>{language === 'FR' ? "Commentaires ou instructions spéciales" : "Comments or special instructions"}</Text>
+                        <Text style={styles.text}>{invoice.note}</Text>
                     </View>
-                    {invoice.items.map((item, index) => (
-                        <View style={styles.tableRow} key={index}>
-                            <View style={styles.tableColDesc}>
-                                <Text style={styles.tableCell}>
-                                    {item.product?.name || item.description || "Item"}
-                                </Text>
-                                {item.description && item.product?.name && item.description !== item.product.name && (
-                                    <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
-                                        {item.description}
-                                    </Text>
-                                )}
-                                {item.product.description && (
-                                    <Text style={[styles.text, { color: '#666', fontSize: 8, marginTop: 2 }]}>
-                                        {item.product.description}
-                                    </Text>
-                                )}
-                                {item.product.warrantyInfo && (
-                                    <Text style={[styles.text, { color: '#444', fontSize: 8, fontWeight: 'bold', marginTop: 4 }]}>
-                                        {item.product.warrantyInfo}
-                                    </Text>
-                                )}
+                )}
+
+                {/* Items Table - Conditional Layout */}
+                {invoice.division === "RENOVATION" ? (
+                    // RENOVATION LAYOUT: Qty | Desc | Price | Taxable | Total
+                    <View style={styles.table}>
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.quantity}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>{String(item.quantity)}</Text>
+                            <View style={{ ...styles.tableColDesc, width: '45%' }}>
+                                <Text style={styles.tableCell}>{labels.description}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${Number(item.price).toFixed(2)}</Text>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.price}</Text>
                             </View>
-                            <View style={styles.tableCol}>
-                                <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                            <View style={{ ...styles.tableCol, width: '10%' }}>
+                                <Text style={styles.tableCell}>Taxable</Text>
+                            </View>
+                            <View style={{ ...styles.tableCol, width: '15%' }}>
+                                <Text style={styles.tableCell}>{labels.total}</Text>
                             </View>
                         </View>
-                    ))}
-                </View>
+                        {invoice.items.map((item, index) => (
+                            <View style={styles.tableRow} key={index}>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>{String(item.quantity)}</Text>
+                                </View>
+                                <View style={{ ...styles.tableColDesc, width: '45%' }}>
+                                    <Text style={styles.tableCell}>
+                                        {item.product?.name || item.description || "Item"}
+                                    </Text>
+                                    {item.description && item.product?.name && item.description !== item.product.name && (
+                                        <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
+                                            {item.description}
+                                        </Text>
+                                    )}
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>${Number(item.price).toFixed(2)} / {item.product?.unit ? (language === 'FR' && item.product.unit === 'sqft' ? 'pi²' : item.product.unit) : 'unit'}</Text>
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '10%' }}>
+                                    {/* Assume taxable if taxRate > 0 or default true if unknown, strictly strictly checking taxRate if available */}
+                                    <Text style={styles.tableCell}>{(item.taxRate && item.taxRate > 0) || !item.taxRate ? (language === 'FR' ? "Oui" : "Yes") : (language === 'FR' ? "Non" : "No")}</Text>
+                                </View>
+                                <View style={{ ...styles.tableCol, width: '15%' }}>
+                                    <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : (
+                    // STANDARD LAYOUT (Extermination / Default)
+                    <View style={styles.table}>
+                        <View style={[styles.tableRow, styles.tableHeader]}>
+                            <View style={styles.tableColDesc}>
+                                <Text style={styles.tableCell}>{labels.description}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.quantity}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.price}</Text>
+                            </View>
+                            <View style={styles.tableCol}>
+                                <Text style={styles.tableCell}>{labels.total}</Text>
+                            </View>
+                        </View>
+                        {invoice.items.map((item, index) => (
+                            <View style={styles.tableRow} key={index}>
+                                <View style={styles.tableColDesc}>
+                                    <Text style={styles.tableCell}>
+                                        {item.product?.name || item.description || "Item"}
+                                    </Text>
+                                    {item.description && item.product?.name && item.description !== item.product.name && (
+                                        <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
+                                            {item.description}
+                                        </Text>
+                                    )}
+                                    {item.product.description && (
+                                        <Text style={[styles.text, { color: '#666', fontSize: 8, marginTop: 2 }]}>
+                                            {item.product.description}
+                                        </Text>
+                                    )}
+                                    {item.product.warrantyInfo && (
+                                        <Text style={[styles.text, { color: '#444', fontSize: 8, fontWeight: 'bold', marginTop: 4 }]}>
+                                            {item.product.warrantyInfo}
+                                        </Text>
+                                    )}
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>{String(item.quantity)}</Text>
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>${Number(item.price).toFixed(2)}</Text>
+                                </View>
+                                <View style={styles.tableCol}>
+                                    <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
 
                 {/* Totals */}
                 <View style={styles.totals}>
@@ -311,31 +371,40 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                         <Text style={[styles.totalLabel, { fontSize: 12 }]}>{labels.grandTotal}:</Text>
                         <Text style={[styles.totalValue, { fontSize: 12, fontWeight: 'bold' }]}>${Number(invoice.total).toFixed(2)}</Text>
                     </View>
-
-                    {/* Amount Paid & Balance - Commented out for debugging base render */}
-                    {/* 
-                    {(invoice.amountPaid && Number(invoice.amountPaid) > 0) ? (
-                        <View>
-                            <View style={styles.totalRow}>
-                                <Text style={styles.totalLabel}>{language === 'FR' ? "Payé" : "Amount Paid"}:</Text>
-                                <Text style={[styles.totalValue, { color: 'green' }]}>-${Number(invoice.amountPaid).toFixed(2)}</Text>
-                            </View>
-                            <View style={[styles.totalRow, { marginTop: 5 }]}>
-                                <Text style={[styles.totalLabel, { fontSize: 12 }]}>{language === 'FR' ? "Solde Dû" : "Balance Due"}:</Text>
-                                <Text style={[styles.totalValue, { fontSize: 12, fontWeight: 'bold' }]}>${Math.max(0, invoice.total - Number(invoice.amountPaid)).toFixed(2)}</Text>
-                            </View>
-                        </View>
-                    ) : null}
-                    */}
                 </View>
 
                 {/* Footer */}
                 <View style={styles.footer}>
-                    <Text>{labels.thankYou}</Text>
-                    {invoice.division === "EXTERMINATION" && (
-                        <Text style={{ marginTop: 4, fontSize: 8, color: '#999' }}>
-                            TPS: 789615226RT0001 | TVQ: 1231249636TQ0001
-                        </Text>
+                    {invoice.division === "RENOVATION" ? (
+                        <View style={{ alignItems: 'flex-start', textAlign: 'left', width: '100%' }}>
+                            <Text style={{ fontSize: 9, marginBottom: 2 }}>
+                                {language === 'FR'
+                                    ? "*Veuillez noter que la facturation pour les travaux d'isolation sera émise par l'entrepreneur en isolation (prix discuté directement avec eux)."
+                                    : "*Please note that the billing for the insulation work will be issued by the insulation contractor (price discussed directly with them)."}
+                            </Text>
+                            <Text style={{ fontSize: 9, marginBottom: 2 }}>
+                                {language === 'FR'
+                                    ? "Garantie limitée à vie du fabricant sur l'isolant de cellulose"
+                                    : "Limited lifetime manufacturer's warranty on the cellulose insulation"}
+                            </Text>
+                            <Text style={{ fontSize: 9, marginBottom: 10 }}>
+                                {language === 'FR'
+                                    ? "Garantie de 2 ans sur la main-d'œuvre pour l'installation"
+                                    : "2-year workmanship warranty on the installation"}
+                            </Text>
+                            <Text style={{ textAlign: 'center', width: '100%', fontSize: 10, fontWeight: 'bold' }}>
+                                {language === 'FR' ? "Nous vous remercions de votre confiance." : "We thank you for your trust."}
+                            </Text>
+                        </View>
+                    ) : (
+                        <View>
+                            <Text>{labels.thankYou}</Text>
+                            {invoice.division === "EXTERMINATION" && (
+                                <Text style={{ marginTop: 4, fontSize: 8, color: '#999' }}>
+                                    TPS: 789615226RT0001 | TVQ: 1231249636TQ0001
+                                </Text>
+                            )}
+                        </View>
                     )}
                 </View>
             </Page>
