@@ -616,6 +616,7 @@ model WarrantyTemplate {
   id        String   @id @default(uuid())
   name      String
   text      String   @db.Text
+  division  Division @default(EXTERMINATION)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

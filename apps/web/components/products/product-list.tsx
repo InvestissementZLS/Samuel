@@ -134,7 +134,8 @@ export function ProductList({ products }: ProductListProps) {
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-xs font-semibold text-gray-500">
                                         {/* @ts-ignore */}
-                                        {product.division === "EXTERMINATION" ? "EXO" : "ENT"}
+                                        {/* @ts-ignore */}
+                                        {product.division === "EXTERMINATION" ? "EXO" : product.division === "RENOVATION" ? "REN" : "ENT"}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {product.name}

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { createWarrantyTemplate, updateWarrantyTemplate, deleteWarrantyTemplate } from "@/app/actions/warranty-actions";
 import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useDivision } from "@/components/providers/division-provider";
 
 interface Warranty {
     id: string;
@@ -21,6 +22,7 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
     const [isCreating, setIsCreating] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const { t } = useLanguage();
+    const { division } = useDivision();
 
     // Form State
     const [name, setName] = useState("");
@@ -31,7 +33,7 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
         if (!name || !text) return;
         setLoading(true);
         try {
-            const newWarranty = await createWarrantyTemplate(name, text);
+            const newWarranty = await createWarrantyTemplate(name, text, division);
             setWarranties([...warranties, newWarranty]);
             setIsCreating(false);
             setName("");
@@ -133,7 +135,11 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
             )}
 
             <div className="grid gap-4 md:grid-cols-2">
-                {warranties.map(w => (
+                {warranties.filter(w => {
+                    // @ts-ignore
+                    const wDiv = w.division || "EXTERMINATION";
+                    return wDiv === division;
+                }).map(w => (
                     <div key={w.id} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold text-gray-900">{w.name}</h3>

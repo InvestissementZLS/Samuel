@@ -27,7 +27,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [stock, setStock] = useState(0);
     const [price, setPrice] = useState(0);
     const [cost, setCost] = useState(0);
-    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES">("EXTERMINATION");
+    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">("EXTERMINATION");
     const [type, setType] = useState<"CONSUMABLE" | "EQUIPMENT" | "SERVICE">("CONSUMABLE");
     const [isCommissionEligible, setIsCommissionEligible] = useState(false);
     const [warrantyInfo, setWarrantyInfo] = useState("");
@@ -279,6 +279,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                         >
                             <option value="EXTERMINATION">{t.divisions.extermination}</option>
                             <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            <option value="RENOVATION">{t.divisions.renovation}</option>
                         </select>
                     </div>
                 </div>

@@ -14,6 +14,7 @@ import { CalendarSidebar } from "./calendar-sidebar";
 import { localizer } from "./localizer";
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useDivision } from "@/components/providers/division-provider";
 
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -36,6 +37,7 @@ interface CalendarViewProps {
 
 export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) {
     const { t } = useLanguage();
+    const { division } = useDivision();
 
     const [view, setView] = useState<View>(Views.MONTH);
     const [date, setDate] = useState(new Date());
@@ -73,7 +75,13 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     const filteredJobs = jobs.filter((job) => {
         const techMatch = selectedTechId === "all" || job.technicians.some(t => t.id === selectedTechId) || (selectedTechId === "" && job.technicians.length === 0);
         const statusMatch = selectedStatus === "all" || job.status === selectedStatus;
-        return techMatch && statusMatch;
+
+        // Division Isolation
+        // @ts-ignore
+        const jobDivision = job.division || "EXTERMINATION";
+        const divisionMatch = jobDivision === division;
+
+        return techMatch && statusMatch && divisionMatch;
     });
 
     const unassignedJobs = jobs.filter(job => job.technicians.length === 0 && job.status !== 'COMPLETED' && job.status !== 'CANCELLED');
