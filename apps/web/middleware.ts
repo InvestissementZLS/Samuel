@@ -7,7 +7,9 @@ export function middleware(request: NextRequest) {
     // Define public paths that don't require authentication
     const isPublicPath =
         path === '/login' ||
+        path === '/login' ||
         path.startsWith('/portal') ||
+        path.startsWith('/legacy-portal') ||
         path.startsWith('/api') ||
         path.startsWith('/_next') ||
         path.startsWith('/static') ||
