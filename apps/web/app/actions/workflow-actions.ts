@@ -119,7 +119,7 @@ export async function convertJobToInvoice(jobId: string) {
             total: total,
             description: `Invoice for Job on ${job.scheduledAt.toLocaleDateString()}`,
             // @ts-ignore
-            notes: items.map(i => i.warrantyInfo).filter(w => !!w).join("\n\n"),
+            notes: [job.description, items.map(i => i.warrantyInfo).filter(w => !!w).join("\n\n")].filter(Boolean).join("\n\n"),
             items: {
                 create: items.map(item => ({
                     productId: item.productId,
