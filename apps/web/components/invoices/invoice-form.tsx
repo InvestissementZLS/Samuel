@@ -180,7 +180,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
             return divisions.includes(division);
         })
         .map(c => ({ value: c.id, label: c.name }));
-    const selectedClient = clients.find(c => c.id === selectedClientId);
+    const selectedClient = clients.find(c => c.id === selectedClientId) ||
+        // @ts-ignore
+        (invoice?.client?.id === selectedClientId ? invoice.client : undefined);
 
     return (
         <div className="bg-[#1e1e1e] text-gray-300 p-6 rounded-lg shadow-xl max-w-5xl mx-auto font-sans">
