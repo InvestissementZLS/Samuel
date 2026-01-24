@@ -118,6 +118,7 @@ interface QuotePDFProps {
         items: (any & { product: Product })[];
     };
     language?: "EN" | "FR";
+    logoPath?: string;
 }
 
 const t = {
@@ -153,7 +154,7 @@ const t = {
     }
 };
 
-export const QuotePDF = ({ quote, language = "FR" }: QuotePDFProps) => {
+export const QuotePDF = ({ quote, language = "FR", logoPath }: QuotePDFProps) => {
     const labels = t[language];
     const dateLocale = language === "FR" ? fr : enUS;
 
@@ -169,7 +170,7 @@ export const QuotePDF = ({ quote, language = "FR" }: QuotePDFProps) => {
                     <View style={styles.companyInfo}>
                         <Image
                             style={styles.logo}
-                            src={quote.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                            src={logoPath || (quote.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png")}
                         />
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
                             {quote.division === "EXTERMINATION"

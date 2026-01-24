@@ -122,6 +122,7 @@ interface InvoicePDFProps {
         items: (any & { product: Product })[];
     };
     language?: "EN" | "FR";
+    logoPath?: string;
 }
 
 const t = {
@@ -163,7 +164,7 @@ const t = {
     }
 };
 
-export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
+export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFProps) => {
     const labels = t[language] || t.FR;
     const dateLocale = language === "FR" ? fr : enUS;
 
@@ -188,7 +189,7 @@ export const InvoicePDF = ({ invoice, language = "FR" }: InvoicePDFProps) => {
                     <View style={styles.companyInfo}>
                         <Image
                             style={styles.logo}
-                            src={invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png"}
+                            src={logoPath || (invoice.division === "RENOVATION" ? "/renovation-logo.png" : "/zls-logo.png")}
                         />
                         <Text style={{ fontWeight: 'bold', fontSize: 12 }}>
                             {invoice.division === "EXTERMINATION"

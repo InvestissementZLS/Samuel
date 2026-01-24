@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { renderToStream } from '@react-pdf/renderer';
 import { QuotePDF } from '@/components/pdf/quote-pdf';
 import { NextResponse } from 'next/server';
+import path from 'path';
 
 export async function GET(
     request: Request,
@@ -23,10 +24,14 @@ export async function GET(
         return new NextResponse('Quote not found', { status: 404 });
     }
 
+    const logoFilename = quote.division === "RENOVATION" ? "renovation-logo.png" : "zls-logo.png";
+    const logoPath = path.join(process.cwd(), 'public', logoFilename);
+
     const stream = await renderToStream(
         <QuotePDF
             quote={quote}
             language={(quote.client as any).language || "FR"}
+            logoPath={logoPath}
         />
     );
 
