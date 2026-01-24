@@ -29,18 +29,19 @@ export async function convertQuoteToJob(quoteId: string) {
         quote.propertyId = firstProperty.id;
     }
 
-    // Create Job
+    // Update convertQuoteToJob to save price
     const job = await prisma.job.create({
         data: {
             propertyId: quote.propertyId!,
             division: quote.division,
             status: 'PENDING',
-            scheduledAt: new Date(), // Default to now, user can reschedule
+            scheduledAt: new Date(),
             description: `Converted from Quote #${quote.number || quote.poNumber || 'N/A'}. ${quote.description || ''}`,
             products: {
                 create: quote.items.map(item => ({
                     productId: item.productId,
-                    quantity: item.quantity
+                    quantity: item.quantity,
+                    price: item.price // Persist the negotiated price
                 }))
             }
         }
@@ -72,15 +73,16 @@ export async function convertJobToInvoice(jobId: string) {
         throw new Error("Job not found");
     }
 
-    // Calculate total from used products
+    // Calculate total from used products, using the stored price if available
     const items = job.products.map(used => ({
         productId: used.productId,
         quantity: used.quantity,
-        price: used.product.price,
+        // Use stored price if > 0 (it should be if from Quote), otherwise fallback to current product price
+        price: used.price > 0 ? used.price : used.product.price,
         description: used.product.name,
         unitCost: 0,
         taxRate: 0,
-        warrantyInfo: used.product.warrantyInfo // Fetch warranty info
+        warrantyInfo: used.product.warrantyInfo
     }));
 
     const total = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -113,25 +115,22 @@ export async function convertJobToInvoice(jobId: string) {
             status: 'DRAFT',
             number: number,
             issuedDate: new Date(),
-            dueDate: new Date(), // Due on receipt
+            dueDate: new Date(),
             total: total,
             description: `Invoice for Job on ${job.scheduledAt.toLocaleDateString()}`,
             // @ts-ignore
-            notes: items.map(i => i.warrantyInfo).filter(w => !!w).join("\n\n"), // Append Warranty Info
+            notes: items.map(i => i.warrantyInfo).filter(w => !!w).join("\n\n"),
             items: {
                 create: items.map(item => ({
                     productId: item.productId,
                     quantity: item.quantity,
                     price: item.price,
                     description: item.description
-                    // Note: InvoiceItem model might not have unitCost/taxRate yet, relying on defaults
                 }))
             }
         }
     });
 
-    // Update Job status? Maybe not, job can be completed but not invoiced, or invoiced.
-    // But usually we mark it as completed if it wasn't.
     if (job.status !== 'COMPLETED') {
         await prisma.job.update({
             where: { id: jobId },
@@ -141,7 +140,5 @@ export async function convertJobToInvoice(jobId: string) {
 
     revalidatePath('/invoices');
     revalidatePath('/jobs');
-    redirect(`/invoices`); // Or to the specific invoice? redirect is tricky in server actions if we want to open a modal.
-    // Since we don't have a dedicated invoice page (we use the list with modal), redirecting to /invoices is fine.
-    // Ideally we would open the invoice, but that requires client-side state.
+    redirect(`/invoices`);
 }
