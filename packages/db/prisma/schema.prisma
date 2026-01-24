@@ -189,6 +189,7 @@ model UsedProduct {
   jobId     String
   productId String
   quantity  Float
+  price     Float    @default(0) // Store the agreed price per unit (snapshot)
   createdAt DateTime @default(now())
   job       Job      @relation(fields: [jobId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
