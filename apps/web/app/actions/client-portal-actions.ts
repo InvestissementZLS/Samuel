@@ -43,12 +43,16 @@ async function generateNextNumber(division: "EXTERMINATION" | "ENTREPRISES", typ
     }
 
     let nextSequence = 1;
+    if (type === "INVOICE") {
+        nextSequence = 5031;
+    }
+
     if (lastRecord && lastRecord.number) {
         const parts = lastRecord.number.split('-');
         if (parts.length === 3) {
             const lastSeq = parseInt(parts[2], 10);
             if (!isNaN(lastSeq)) {
-                nextSequence = lastSeq + 1;
+                nextSequence = Math.max(lastSeq + 1, nextSequence);
             }
         }
     }
