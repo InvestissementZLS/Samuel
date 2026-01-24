@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { renderToStream } from '@react-pdf/renderer';
+import { renderToBuffer } from '@react-pdf/renderer';
 import { QuotePDF } from '@/components/pdf/quote-pdf';
 import { NextResponse } from 'next/server';
 import path from 'path';
@@ -36,18 +36,23 @@ export async function GET(
         console.error("Error reading logo file:", e);
     }
 
-    const stream = await renderToStream(
-        <QuotePDF
-            quote={quote}
-            language={(quote.client as any).language || "FR"}
-            logoPath={logoData ? `data:image/png;base64,${logoData.toString('base64')}` : undefined}
-        />
-    );
+    try {
+        const buffer = await renderToBuffer(
+            <QuotePDF
+                quote={quote}
+                language={(quote.client as any).language || "FR"}
+                logoPath={logoData ? `data:image/png;base64,${logoData.toString('base64')}` : undefined}
+            />
+        );
 
-    return new NextResponse(stream as unknown as BodyInit, {
-        headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="Quote-${quote.number || quote.id.slice(0, 8)}.pdf"`,
-        },
-    });
+        return new NextResponse(buffer as unknown as BodyInit, {
+            headers: {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': `attachment; filename="Quote-${quote.number || quote.id.slice(0, 8)}.pdf"`,
+            },
+        });
+    } catch (error) {
+        console.error("Error generating Quote PDF:", error);
+        return new NextResponse('Error generating PDF', { status: 500 });
+    }
 }
