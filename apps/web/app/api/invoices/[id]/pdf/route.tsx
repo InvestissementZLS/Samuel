@@ -27,11 +27,20 @@ export async function GET(
     const logoFilename = invoice.division === "RENOVATION" ? "renovation-logo.png" : "zls-logo.png";
     const logoPath = path.join(process.cwd(), 'public', logoFilename);
 
+    // Read file to buffer to ensure react-pdf can render it
+    let logoData: Buffer | null = null;
+    try {
+        const fs = require('fs');
+        logoData = fs.readFileSync(logoPath);
+    } catch (e) {
+        console.error("Error reading logo file:", e);
+    }
+
     const stream = await renderToStream(
         <InvoicePDF
             invoice={invoice}
             language={(invoice.client as any).language || "FR"}
-            logoPath={logoPath}
+            logoPath={logoData ? `data:image/png;base64,${logoData.toString('base64')}` : undefined}
         />
     );
 
