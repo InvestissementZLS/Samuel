@@ -243,10 +243,10 @@ export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFPro
                 </View>
 
                 {/* Comments / Special Instructions (Renovation Only or if Note exists) */}
-                {invoice.note && (
+                {invoice.notes && (
                     <View style={{ marginTop: 20 }}>
                         <Text style={styles.sectionTitle}>{language === 'FR' ? "Commentaires ou instructions spéciales" : "Comments or special instructions"}</Text>
-                        <Text style={styles.text}>{invoice.note}</Text>
+                        <Text style={styles.text}>{invoice.notes}</Text>
                     </View>
                 )}
 
