@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    if (path === '/login' && token) {
+    if (path === '/login' && token && !request.nextUrl.searchParams.get('loggedOut')) {
         return NextResponse.redirect(new URL('/', request.url))
     }
 

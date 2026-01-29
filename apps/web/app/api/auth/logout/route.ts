@@ -26,7 +26,7 @@ export async function POST() {
 }
 
 export async function GET(request: Request) {
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    const response = NextResponse.redirect(new URL('/login?loggedOut=true', request.url));
 
     // Clear cookies with explicit options to ensure deletion
     // We must match the options used during creation (Path=/, Secure, etc.)
