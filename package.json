@@ -1,5 +1,5 @@
 {
-  "name": "field-service-system",
+  "name": "praxis-zls-system",
   "private": true,
   "scripts": {
     "postinstall": "turbo run generate",
@@ -19,7 +19,6 @@
   "packageManager": "npm@10.0.0",
   "workspaces": [
     "apps/web",
-    "apps/partners",
     "packages/*"
   ],
   "dependencies": {

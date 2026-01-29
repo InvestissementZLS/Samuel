@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "ZLS App",
-    description: "ZLS Field Service Application",
+    title: "PraxisZLS",
+    description: "PraxisZLS Field Service Application",
 };
 
 import { cookies } from "next/headers";

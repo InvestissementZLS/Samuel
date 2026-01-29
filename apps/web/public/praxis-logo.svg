@@ -1,0 +1,14 @@
+<svg width="300" height="100" viewBox="0 0 300 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="swoosh_gradient" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9" /> <!-- Sky Blue / Teal -->
+      <stop offset="100%" stop-color="#84CC16" /> <!-- Lime Green -->
+    </linearGradient>
+  </defs>
+  
+  <!-- Text -->
+  <text x="50%" y="65" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" font-size="64" fill="#111827" text-anchor="middle">Praxis</text>
+  
+  <!-- Swoosh -->
+  <path d="M 40 80 Q 150 60 260 85" stroke="url(#swoosh_gradient)" stroke-width="4" stroke-linecap="round" fill="none"/>
+</svg>
