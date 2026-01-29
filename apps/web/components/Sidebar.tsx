@@ -37,7 +37,6 @@ export function Sidebar() {
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
-        { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
 
     const handleLogout = async () => {
