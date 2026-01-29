@@ -3,8 +3,8 @@
 import { useState } from 'react';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -14,6 +14,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { t } = useLanguage();
     const { division } = useDivision();
@@ -36,7 +37,18 @@ export function Sidebar() {
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
+        { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/login');
+            router.refresh();
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
+    };
 
     return (
         <div className={`hidden md:flex h-full flex-col bg-gray-900 text-white z-50 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
@@ -51,8 +63,8 @@ export function Sidebar() {
                 {!isCollapsed ? (
                     <>
                         <img
-                            src={division === 'RENOVATION' ? "/renovation-logo.png" : "/zls-logo.png"}
-                            alt="ZLS Logo"
+                            src={division === 'RENOVATION' ? "/renovation-logo.png" : "/praxis-logo.svg"}
+                            alt="PraxisZLS Logo"
                             className="h-16 w-auto object-contain"
                         />
                         <DivisionSwitcher />
@@ -110,14 +122,29 @@ export function Sidebar() {
                 {!isCollapsed ? (
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
-                            <p className="text-xs font-medium text-gray-400">{t.common.viewProfile}</p>
+                            <div className="flex items-center gap-2 mb-2">
+                                <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center text-xs font-medium text-gray-400 hover:text-white transition-colors"
+                            >
+                                <LogOut size={12} className="mr-1" />
+                                {t.common.logout}
+                            </button>
                         </div>
                         <LanguageSwitcher />
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2 items-center">
-                        <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold">AU</div>
+                        <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold mb-2">AU</div>
+                        <button
+                            onClick={handleLogout}
+                            className="text-gray-400 hover:text-white transition-colors"
+                            title="Log Out"
+                        >
+                            <LogOut size={16} />
+                        </button>
                         <LanguageSwitcher />
                     </div>
                 )}

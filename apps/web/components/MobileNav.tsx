@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard, Box, Package, Clock, DollarSign } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard, Box, Package, Clock, DollarSign, LogOut } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -12,6 +12,7 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 
 export function MobileNav() {
     const pathname = usePathname();
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useLanguage();
     const { division } = useDivision();
@@ -31,6 +32,16 @@ export function MobileNav() {
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/login');
+            router.refresh();
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
+    };
 
     return (
         <div className="md:hidden bg-gray-900 text-white border-b border-gray-800">
@@ -110,7 +121,13 @@ export function MobileNav() {
                                 <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold">AU</div>
                                 <div className="ml-3">
                                     <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
-                                    <p className="text-xs font-medium text-gray-400">{t.common.viewProfile}</p>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-xs font-medium text-gray-400 flex items-center mt-1"
+                                    >
+                                        <LogOut size={12} className="mr-1" />
+                                        {t.common.logout}
+                                    </button>
                                 </div>
                             </div>
                         </div>

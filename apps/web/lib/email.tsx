@@ -294,7 +294,25 @@ export async function sendServiceReportEmail(job: Job & { client: Client; proper
     if (!config.resend) return;
 
     try {
-        const pdfBuffer = await renderToBuffer(<ServiceReportPDF job={job} language={(job.client as any).language || 'EN'} />);
+        const logoFilename = job.division === "RENOVATION" ? "renovation-logo.png" : "zls-logo.png";
+        // Use process.cwd() to get the project root in Next.js server actions / API routes
+        const logoPath = process.cwd() + '/public/' + logoFilename;
+
+        let logoData = null;
+        try {
+            const fs = require('fs');
+            if (fs.existsSync(logoPath)) {
+                logoData = fs.readFileSync(logoPath);
+            } else {
+                console.warn(`Logo not found at path: ${logoPath}`);
+            }
+        } catch (e) {
+            console.error("Error reading logo file:", e);
+        }
+
+        const logoDataUrl = logoData ? `data:image/png;base64,${logoData.toString('base64')}` : undefined;
+
+        const pdfBuffer = await renderToBuffer(<ServiceReportPDF job={{ ...job, logoPath: logoDataUrl }} language={(job.client as any).language || 'EN'} />);
 
         const isEn = (job.client as any).language === 'EN';
         const subject = isEn

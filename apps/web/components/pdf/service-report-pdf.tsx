@@ -137,6 +137,7 @@ interface ServiceReportProps {
         property: any;
         products: (UsedProduct & { product: Product })[];
         technicians: User[];
+        logoPath?: string;
     };
     language?: 'EN' | 'FR';
 }
@@ -170,9 +171,16 @@ export const ServiceReportPDF = ({ job, language = 'FR' }: ServiceReportProps) =
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.logoSection}>
-                        <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
-                            {job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}
-                        </Text>
+                        {job.logoPath ? (
+                            <Image
+                                src={job.logoPath}
+                                style={{ width: 150, height: 50, objectFit: 'contain' }}
+                            />
+                        ) : (
+                            <Text style={{ fontWeight: 'bold', fontSize: 14 }}>
+                                {job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}
+                            </Text>
+                        )}
                     </View>
                     <View style={styles.titleSection}>
                         <Text style={styles.title}>{t.title}</Text>

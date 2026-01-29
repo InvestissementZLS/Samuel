@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    if (path === '/login' && token) {
+    if (path === '/login' && token && !request.nextUrl.searchParams.get('loggedOut')) {
         return NextResponse.redirect(new URL('/', request.url))
     }
 
@@ -37,6 +37,6 @@ export const config = {
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

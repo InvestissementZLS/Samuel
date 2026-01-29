@@ -11,7 +11,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
 
     try {
         const data = await resend.emails.send({
-            from: 'ZLS Expert <extermination@praxiszls.com>',
+            from: 'PraxisZLS <extermination@praxiszls.com>',
             to,
             subject,
             html,
@@ -37,7 +37,7 @@ export async function sendBookingConfirmation(
         timeZone: 'America/New_York' // Adjust as needed
     }).format(scheduledAt);
 
-    const subject = `Confirmation de réservation - ZLS Expert`;
+    const subject = `Confirmation de réservation - PraxisZLS`;
 
     const html = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -51,7 +51,7 @@ export async function sendBookingConfirmation(
             <p>Un de nos techniciens se présentera à l'heure convenue.</p>
             <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
             <br/>
-            <p>Merci,<br/>L'équipe ZLS Expert</p>
+            <p>Merci,<br/>L'équipe PraxisZLS</p>
         </div>
     `;
 
