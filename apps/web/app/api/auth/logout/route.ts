@@ -4,9 +4,16 @@ export async function POST() {
     try {
         const response = NextResponse.json({ success: true });
 
-        // Clear cookies
-        response.cookies.delete('auth_token');
-        response.cookies.delete('userId');
+        // Clear cookies with explicit options
+        const cookieOptions = {
+            path: '/',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax' as const,
+            maxAge: 0,
+        };
+
+        response.cookies.set('auth_token', '', cookieOptions);
+        response.cookies.set('userId', '', { ...cookieOptions, httpOnly: false });
 
         return response;
     } catch (error) {
@@ -21,9 +28,17 @@ export async function POST() {
 export async function GET(request: Request) {
     const response = NextResponse.redirect(new URL('/login', request.url));
 
-    // Clear cookies
-    response.cookies.delete('auth_token');
-    response.cookies.delete('userId');
+    // Clear cookies with explicit options to ensure deletion
+    // We must match the options used during creation (Path=/, Secure, etc.)
+    const cookieOptions = {
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 0,
+    };
+
+    response.cookies.set('auth_token', '', cookieOptions);
+    response.cookies.set('userId', '', { ...cookieOptions, httpOnly: false });
 
     return response;
 }
