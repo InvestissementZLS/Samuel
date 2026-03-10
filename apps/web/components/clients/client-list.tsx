@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Client } from "@prisma/client";
 import { ClientDialog } from "./client-dialog";
-import { Plus, Pencil, MessageSquare, Link as LinkIcon, Loader2 } from "lucide-react";
+import { ClientImportDialog } from "./client-import-dialog";
+import { Plus, Pencil, MessageSquare, Link as LinkIcon, Loader2, UploadCloud } from "lucide-react";
 import { createBookingLink } from "@/app/actions/booking-actions";
 import { toast } from "sonner";
 
@@ -19,6 +20,7 @@ import { useUser } from "@/components/providers/user-provider";
 export function ClientList({ clients }: ClientListProps) {
     const { t } = useLanguage();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const router = useRouter();
     const { division } = useDivision();
@@ -68,6 +70,13 @@ export function ClientList({ clients }: ClientListProps) {
                 >
                     <LinkIcon className="h-4 w-4" />
                     {t.clients.newLeadLink}
+                </button>
+                <button
+                    onClick={() => setIsImportOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md hover:bg-emerald-100 mr-2"
+                >
+                    <UploadCloud className="h-4 w-4" />
+                    {t.clients.importCSV || "Import CSV"}
                 </button>
                 <button
                     onClick={handleAdd}
@@ -181,6 +190,12 @@ export function ClientList({ clients }: ClientListProps) {
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
                 client={selectedClient}
+            />
+
+            <ClientImportDialog
+                isOpen={isImportOpen}
+                onClose={() => setIsImportOpen(false)}
+                onSuccess={() => { router.refresh(); }}
             />
         </div>
     );
