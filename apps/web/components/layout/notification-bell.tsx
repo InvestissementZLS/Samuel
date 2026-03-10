@@ -42,7 +42,7 @@ export function NotificationBell() {
     const [mounted, setMounted] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const panelRef = useRef<HTMLDivElement>(null);
-    const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
+    const [panelPos, setPanelPos] = useState<{ top?: number; bottom?: number; left: number }>({ top: 0, left: 0 });
 
     // Load dismissed from localStorage after mount (safe from SSR)
     useEffect(() => {
@@ -70,12 +70,25 @@ export function NotificationBell() {
     const handleToggle = () => {
         if (!open && buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
-            // Position the panel to the right of the button, aligned to its bottom
-            // Use viewport coordinates — the portal renders in document body
-            setPanelPos({
-                top: Math.max(8, rect.bottom + 8),
-                left: Math.min(window.innerWidth - 400, rect.left),
-            });
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const left = Math.max(8, Math.min(window.innerWidth - 400, rect.left));
+
+            if (spaceBelow < 400 && spaceAbove > spaceBelow) {
+                // Open upwards
+                setPanelPos({
+                    top: undefined,
+                    bottom: window.innerHeight - rect.top + 8,
+                    left
+                });
+            } else {
+                // Open downwards
+                setPanelPos({
+                    top: rect.bottom + 8,
+                    bottom: undefined,
+                    left
+                });
+            }
         }
         setOpen(prev => !prev);
     };
@@ -114,9 +127,11 @@ export function NotificationBell() {
             ref={panelRef}
             style={{
                 position: 'fixed',
-                top: panelPos.top,
+                ...(panelPos.top !== undefined ? { top: panelPos.top } : {}),
+                ...(panelPos.bottom !== undefined ? { bottom: panelPos.bottom } : {}),
                 left: panelPos.left,
                 width: 384,
+                maxWidth: 'calc(100vw - 16px)',
                 maxHeight: '80vh',
                 zIndex: 9999,
             }}
