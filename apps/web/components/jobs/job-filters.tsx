@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Search, Calendar, Filter, X } from "lucide-react";
 import { Job, Property, Client, User, Product, UsedProduct } from "@prisma/client";

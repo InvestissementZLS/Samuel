@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { dictionary, Dictionary, Locale } from "@/lib/i18n/dictionary";
 import Cookies from "js-cookie";
 
