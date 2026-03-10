@@ -271,30 +271,30 @@ export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFPro
                                 <Text style={styles.tableCell}>{labels.total}</Text>
                             </View>
                         </View>
-                        {invoice.items.map((item, index) => (
+                        {(invoice.items || []).map((item, index) => (
                             <View style={styles.tableRow} key={index}>
                                 <View style={{ ...styles.tableCol, width: '15%' }}>
                                     <Text style={styles.tableCell}>{String(item.quantity)}</Text>
                                 </View>
                                 <View style={{ ...styles.tableColDesc, width: '45%' }}>
                                     <Text style={styles.tableCell}>
-                                        {item.product?.name || item.description || "Item"}
+                                    {item?.product?.name || item?.description || "Item"}
                                     </Text>
-                                    {item.description && item.product?.name && item.description !== item.product.name && (
+                                    {item?.description && item?.product?.name && item?.description !== item?.product?.name && (
                                         <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
                                             {item.description}
                                         </Text>
                                     )}
                                 </View>
                                 <View style={{ ...styles.tableCol, width: '15%' }}>
-                                    <Text style={styles.tableCell}>${Number(item.price).toFixed(2)} / {item.product?.unit ? (language === 'FR' && item.product.unit === 'sqft' ? 'pi²' : item.product.unit) : 'unit'}</Text>
+                                    <Text style={styles.tableCell}>${Number(item?.price || 0).toFixed(2)} / {item?.product?.unit ? (language === 'FR' && item.product.unit === 'sqft' ? 'pi²' : item.product.unit) : 'unit'}</Text>
                                 </View>
                                 <View style={{ ...styles.tableCol, width: '10%' }}>
                                     {/* Assume taxable if taxRate > 0 or default true if unknown, strictly strictly checking taxRate if available */}
-                                    <Text style={styles.tableCell}>{(item.taxRate && item.taxRate > 0) || !item.taxRate ? (language === 'FR' ? "Oui" : "Yes") : (language === 'FR' ? "Non" : "No")}</Text>
+                                    <Text style={styles.tableCell}>{(item?.taxRate && item?.taxRate > 0) || !item?.taxRate ? (language === 'FR' ? "Oui" : "Yes") : (language === 'FR' ? "Non" : "No")}</Text>
                                 </View>
                                 <View style={{ ...styles.tableCol, width: '15%' }}>
-                                    <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                                    <Text style={styles.tableCell}>${(Number(item?.quantity || 0) * Number(item?.price || 0)).toFixed(2)}</Text>
                                 </View>
                             </View>
                         ))}
@@ -316,36 +316,36 @@ export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFPro
                                 <Text style={styles.tableCell}>{labels.total}</Text>
                             </View>
                         </View>
-                        {invoice.items.map((item, index) => (
+                        {(invoice.items || []).map((item, index) => (
                             <View style={styles.tableRow} key={index}>
                                 <View style={styles.tableColDesc}>
                                     <Text style={styles.tableCell}>
-                                        {item.product?.name || item.description || "Item"}
+                                        {item?.product?.name || item?.description || "Item"}
                                     </Text>
-                                    {item.description && item.product?.name && item.description !== item.product.name && (
+                                    {item?.description && item?.product?.name && item?.description !== item?.product?.name && (
                                         <Text style={[styles.text, { color: '#555', fontSize: 9, fontStyle: 'italic', marginBottom: 2 }]}>
                                             {item.description}
                                         </Text>
                                     )}
-                                    {item.product.description && (
+                                    {item?.product?.description && (
                                         <Text style={[styles.text, { color: '#666', fontSize: 8, marginTop: 2 }]}>
                                             {item.product.description}
                                         </Text>
                                     )}
-                                    {item.product.warrantyInfo && (
+                                    {item?.product?.warrantyInfo && (
                                         <Text style={[styles.text, { color: '#444', fontSize: 8, fontWeight: 'bold', marginTop: 4 }]}>
                                             {item.product.warrantyInfo}
                                         </Text>
                                     )}
                                 </View>
                                 <View style={styles.tableCol}>
-                                    <Text style={styles.tableCell}>{String(item.quantity)}</Text>
+                                    <Text style={styles.tableCell}>{String(item?.quantity || 1)}</Text>
                                 </View>
                                 <View style={styles.tableCol}>
-                                    <Text style={styles.tableCell}>${Number(item.price).toFixed(2)}</Text>
+                                    <Text style={styles.tableCell}>${Number(item?.price || 0).toFixed(2)}</Text>
                                 </View>
                                 <View style={styles.tableCol}>
-                                    <Text style={styles.tableCell}>${(Number(item.quantity) * Number(item.price)).toFixed(2)}</Text>
+                                    <Text style={styles.tableCell}>${(Number(item?.quantity || 1) * Number(item?.price || 0)).toFixed(2)}</Text>
                                 </View>
                             </View>
                         ))}
