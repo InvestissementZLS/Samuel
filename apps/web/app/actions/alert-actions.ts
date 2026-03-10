@@ -164,7 +164,7 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
                 description: `${inv.client?.name || 'Client'} — ${inv.total.toFixed(2)}$ — ${daysAgo}j sans paiement`,
                 clientId: inv.clientId,
                 clientName: inv.client?.name,
-                linkHref: `/invoices/${inv.id}`,
+                linkHref: `/financial/invoices/${inv.id}`,
                 daysAgo,
             });
         }
