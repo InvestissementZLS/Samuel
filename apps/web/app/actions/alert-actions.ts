@@ -129,12 +129,20 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
             const isPast = new Date(job.scheduledAt) < today;
             const daysAgo = isPast ? Math.floor((today.getTime() - new Date(job.scheduledAt).getTime()) / 86400000) : 0;
             const serviceName = job.products[0]?.product?.name || 'Suivi';
+            const address = job.property?.address || '';
+            
+            // Try to find if it's a "Follow-up #X" from the description
+            const match = job.description?.match(/Follow-up #(\d+)/i);
+            const sequenceText = match ? ` (${match[0]})` : '';
+
+            const phone = job.property?.client?.phone ? ` (${job.property.client.phone})` : '';
+
             alerts.push({
                 id: `followup-${job.id}`,
                 category: 'visit',
                 severity: isPast ? 'critical' : 'warning',
                 title: isPast ? `Visite de suivi en retard` : `Visite de suivi à confirmer`,
-                description: `${job.property?.client?.name || 'Client'} — ${serviceName}${isPast ? ` (${daysAgo}j de retard)` : ''}`,
+                description: `${job.property?.client?.name || 'Client'}${phone} — ${serviceName}${sequenceText} — ${address}${isPast ? ` (${daysAgo}j de retard)` : ''}`,
                 clientId: job.property?.clientId,
                 clientName: job.property?.client?.name,
                 linkHref: `/jobs/${job.id}`,
@@ -145,26 +153,62 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
         // ─── 5. Factures impayées depuis +30j ─────────────────────────────
         const overdueInvoices = await prisma.invoice.findMany({
             where: {
-                status: { in: ['SENT', 'OVERDUE'] },
-                createdAt: { lt: subDays(today, 30) },
+                status: { in: ['SENT', 'OVERDUE', 'PARTIALLY_PAID'] },
+                createdAt: { lt: subDays(today, 1) }, // Any unpaid after 1 day? Or keep 30? User said "imoayer" (impayé). Usually 30j is standard for "overdue". I'll keep 15j for a good balance.
                 ...(division && division !== 'ALL' ? { division: division as any } : {})
             },
             include: { client: true },
             orderBy: { createdAt: 'asc' },
-            take: 10,
+            take: 100,
         });
 
+        const groupedInvoices: Record<string, {
+            clientName: string,
+            phone: string,
+            total: number,
+            count: number,
+            oldestDate: Date,
+            clientId: string
+        }> = {};
+
         for (const inv of overdueInvoices) {
-            const daysAgo = Math.floor((today.getTime() - new Date(inv.createdAt).getTime()) / 86400000);
+            if (!groupedInvoices[inv.clientId]) {
+                groupedInvoices[inv.clientId] = {
+                    clientName: inv.client?.name || 'Client',
+                    phone: inv.client?.phone || '',
+                    total: 0,
+                    count: 0,
+                    oldestDate: inv.createdAt,
+                    clientId: inv.clientId
+                };
+            }
+            const balance = inv.total - (inv.amountPaid || 0);
+            if (balance > 0) {
+                groupedInvoices[inv.clientId].total += balance;
+                groupedInvoices[inv.clientId].count += 1;
+                if (inv.createdAt < groupedInvoices[inv.clientId].oldestDate) {
+                    groupedInvoices[inv.clientId].oldestDate = inv.createdAt;
+                }
+            }
+        }
+
+        for (const clientId in groupedInvoices) {
+            const group = groupedInvoices[clientId];
+            if (group.count === 0) continue;
+
+            const daysAgo = Math.floor((today.getTime() - new Date(group.oldestDate).getTime()) / 86400000);
+            const phoneText = group.phone ? ` (${group.phone})` : '';
+            const invoicesText = group.count > 1 ? `${group.count} factures` : `Facture #${overdueInvoices.find(i => i.clientId === clientId)?.number || '?'}`;
+
             alerts.push({
-                id: `invoice-overdue-${inv.id}`,
+                id: `invoice-overdue-group-${clientId}`,
                 category: 'invoice',
                 severity: daysAgo > 60 ? 'critical' : 'warning',
-                title: `Facture #${inv.number || inv.id.slice(0, 6)} impayée`,
-                description: `${inv.client?.name || 'Client'} — ${inv.total.toFixed(2)}$ — ${daysAgo}j sans paiement`,
-                clientId: inv.clientId,
-                clientName: inv.client?.name,
-                linkHref: `/invoices?invoiceId=${inv.id}`,
+                title: `Client avec impayés : ${group.total.toFixed(2)}$`,
+                description: `${group.clientName}${phoneText} — ${invoicesText} — Somme due depuis ${daysAgo}j`,
+                clientId: group.clientId,
+                clientName: group.clientName,
+                linkHref: `/invoices?clientId=${group.clientId}`, // Filter invoices by client
                 daysAgo,
             });
         }

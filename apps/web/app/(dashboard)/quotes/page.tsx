@@ -12,11 +12,17 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
+    let whereClause: any = {};
+    if (searchParams?.clientId) {
+        whereClause.clientId = searchParams.clientId;
+    }
+
     let quotes: any[] = [];
     let totalCount = 0;
     try {
         [quotes, totalCount] = await Promise.all([
             prisma.quote.findMany({
+                where: whereClause,
                 include: {
                     items: { include: { product: true } },
                     client: true
@@ -25,7 +31,7 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
                 skip: (page - 1) * PAGE_SIZE,
                 take: PAGE_SIZE,
             }),
-            prisma.quote.count()
+            prisma.quote.count({ where: whereClause })
         ]);
     } catch (e) {
         console.error("Failed to load quotes", e);

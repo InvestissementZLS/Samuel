@@ -187,6 +187,21 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
 
     return (
         <div className="space-y-4">
+            {clientId && (
+                <div className="flex items-center justify-between p-2 px-3 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-700">
+                    <span className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        {isFr ? `Affichage des factures pour ${clients.find(c => c.id === clientId)?.name || 'le client'}` : `Showing invoices for ${clients.find(c => c.id === clientId)?.name || 'client'}`}
+                    </span>
+                    <button 
+                        onClick={() => router.push(pathname)}
+                        className="font-medium hover:underline flex items-center gap-1"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                        {isFr ? 'Effacer' : 'Clear'}
+                    </button>
+                </div>
+            )}
             {/* Summary bar */}
             {!clientId && totalUnpaid > 0 && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">

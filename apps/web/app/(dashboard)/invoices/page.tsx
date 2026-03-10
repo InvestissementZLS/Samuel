@@ -26,6 +26,10 @@ export default async function InvoicesPage({ searchParams }: { searchParams?: { 
         whereClause.division = { in: allowedDivisions };
     }
 
+    if (searchParams?.clientId) {
+        whereClause.clientId = searchParams.clientId;
+    }
+
     // Requête allégée : on ne charge PAS les items ici (chargés à la demande)
     // On sélectionne uniquement les colonnes nécessaires pour la liste
     const [invoices, totalCount] = await Promise.all([
