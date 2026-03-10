@@ -5,6 +5,7 @@ import { Product } from "@prisma/client";
 import { StockManagerDialog } from "@/components/inventory/stock-manager-dialog";
 import { Pencil, Filter, Users } from "lucide-react";
 import { ProductDialog } from "./product-dialog";
+import { SupplierImportDialog } from "./supplier-import-dialog";
 
 interface ProductListProps {
     products: Product[];
@@ -21,6 +22,7 @@ export function ProductList({ products }: ProductListProps) {
     // Stock Manager State
     const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
     const [productToManage, setProductToManage] = useState<Product | null>(null);
+    const [showSupplierImport, setShowSupplierImport] = useState(false);
 
     const { division } = useDivision();
 
@@ -96,6 +98,13 @@ export function ProductList({ products }: ProductListProps) {
                 </div>
                 <div className="flex gap-2">
                     <button
+                        onClick={() => setShowSupplierImport(!showSupplierImport)}
+                        className="flex items-center gap-2 border border-indigo-300 text-indigo-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-50"
+                    >
+                        <Filter className="h-4 w-4" />
+                        {isFr ? 'Importer Coûts CSV' : 'Import Costs CSV'}
+                    </button>
+                    <button
                         onClick={handleAdd}
                         className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
                     >
@@ -103,6 +112,20 @@ export function ProductList({ products }: ProductListProps) {
                     </button>
                 </div>
             </div>
+
+            {showSupplierImport && (
+                <div className="mb-6 border border-indigo-200 rounded-xl p-6 bg-indigo-50/30">
+                    <h3 className="font-semibold text-indigo-900 mb-1 flex items-center gap-2">
+                        📦 {isFr ? 'Importer Liste de Prix Fournisseur' : 'Import Supplier Price List'}
+                    </h3>
+                    <p className="text-sm text-indigo-700/70 mb-4">
+                        {isFr
+                            ? 'Importez un fichier CSV avec vos coûts d\'achat pour calibrer automatiquement la rentabilité.'
+                            : 'Upload a CSV with purchase costs to auto-calibrate profitability.'}
+                    </p>
+                    <SupplierImportDialog />
+                </div>
+            )}
 
             <div className="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
