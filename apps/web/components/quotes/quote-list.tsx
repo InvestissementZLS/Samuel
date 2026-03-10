@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { Quote, Product, Client } from "@prisma/client";
 import { createQuote, updateQuoteStatus, updateQuote } from "@/app/actions/client-portal-actions";
 import { format } from "date-fns";
@@ -14,6 +14,7 @@ import { QuoteForm } from "@/components/quotes/quote-form";
 import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 type QuoteWithDetails = Quote & { items: (any & { product: Product })[], client: Client };
 type SortKey = 'number' | 'client' | 'total' | 'status' | 'createdAt';
@@ -25,6 +26,9 @@ interface QuoteListProps {
     products: Product[];
     clients?: Client[];
     clientId?: string;
+    currentPage?: number;
+    totalPages?: number;
+    totalCount?: number;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -41,13 +45,30 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
         : <ChevronDown className="w-3 h-3 text-indigo-500 ml-1" />;
 }
 
-export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteListProps) {
+export function QuoteList({ 
+    quotes, 
+    products, 
+    clientId, 
+    clients = [],
+    currentPage = 1,
+    totalPages = 1,
+    totalCount = 0
+}: QuoteListProps) {
     const { t } = useLanguage();
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { language } = useLanguage();
     const isFr = language === 'fr';
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
+
+    const handlePageChange = (newPage: number) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', newPage.toString());
+        router.push(`${pathname}?${params.toString()}`);
+    };
 
     // Search & filter state
     const [search, setSearch] = useState('');
@@ -174,22 +195,29 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
 
             {/* Quick status filters */}
             <div className="flex gap-1.5 flex-wrap">
-                {quickFilters.map(f => (
-                    <button
-                        key={f.key}
-                        onClick={() => setStatusFilter(f.key)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === f.key
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    >
-                        {f.label}
-                        {f.key !== 'ALL' && (
-                            <span className="ml-1 opacity-70">
-                                ({quotes.filter(q => q.status === f.key && (divisionFilter === 'ALL' || (q as any).division === divisionFilter)).length})
-                            </span>
-                        )}
-                    </button>
-                ))}
+                {quickFilters.map(f => {
+                    const count = useMemo(() => {
+                        if (f.key === 'ALL') return totalCount;
+                        return quotes.filter(q => q.status === f.key && (divisionFilter === 'ALL' || (q as any).division === divisionFilter)).length;
+                    }, [quotes, f.key, divisionFilter, totalCount]);
+
+                    return (
+                        <button
+                            key={f.key}
+                            onClick={() => setStatusFilter(f.key)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === f.key
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        >
+                            {f.label}
+                            {f.key !== 'ALL' && (
+                                <span className="ml-1 opacity-70">
+                                    ({count})
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Result count */}
@@ -201,6 +229,7 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-100">
+                        {/* ... table content remains same ... */}
                         <thead className="bg-gray-50">
                             <tr>
                                 {[
@@ -235,99 +264,183 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                                 </tr>
                             ) : (
                                 filtered.map(quote => (
-                                    <tr
+                                    <QuoteRow
                                         key={quote.id}
-                                        className={`hover:bg-gray-50/80 transition-colors ${quote.status === 'ACCEPTED' ? 'bg-emerald-50/30' :
-                                                quote.status === 'REJECTED' ? 'bg-red-50/20' : ''
-                                            }`}
-                                    >
-                                        <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                            <Link href={`/quotes/${quote.id}`} className="hover:text-indigo-600 hover:underline">
-                                                {quote.number || `#${quote.id.slice(0, 6)}`}
-                                            </Link>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                                            {!clientId ? (
-                                                <Link href={`/clients/${quote.clientId}`} className="hover:text-indigo-600 hover:underline">
-                                                    {quote.client?.name || '—'}
-                                                </Link>
-                                            ) : (
-                                                quote.client?.name || '—'
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                            {quote.total.toFixed(2)}$
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[quote.status] || 'bg-gray-100 text-gray-600'}`}>
-                                                {t.quotes.statuses?.[quote.status as keyof typeof t.quotes.statuses] || quote.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                                            {format(new Date(quote.createdAt), 'dd MMM yyyy')}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end gap-1.5">
-                                                <Button variant="ghost" size="sm" onClick={() => { setSelectedQuote(quote); setIsEditing(true); }}>
-                                                    {t.common.edit}
-                                                </Button>
-                                                <a
-                                                    href={`/api/quotes/${quote.id}/pdf`}
-                                                    target="_blank"
-                                                    className="p-1.5 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                                    title="PDF"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </a>
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(`${window.location.origin}/portal/quotes/${quote.id}`);
-                                                        toast.success(t.quotes.linkCopied);
-                                                    }}
-                                                    className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                                    title={t.quotes.copyLink}
-                                                >
-                                                    <LinkIcon className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={async () => {
-                                                        const tid = toast.loading(t.invoices.sending);
-                                                        try {
-                                                            const { sendQuote } = await import("@/app/actions/email-actions");
-                                                            const r = await sendQuote(quote.id);
-                                                            r.success
-                                                                ? toast.success(t.invoices.emailSent, { id: tid })
-                                                                : toast.error((r.error || 'Error'), { id: tid });
-                                                        } catch {
-                                                            toast.error(t.invoices.emailError, { id: tid });
-                                                        }
-                                                    }}
-                                                    className="p-1.5 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                                    title={t.common.email}
-                                                >
-                                                    <Mail className="w-4 h-4" />
-                                                </button>
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    onClick={async () => {
-                                                        if (confirm(t.quotes.convertConfirm)) {
-                                                            const { convertQuoteToJob } = await import("@/app/actions/workflow-actions");
-                                                            await convertQuoteToJob(quote.id);
-                                                        }
-                                                    }}
-                                                >
-                                                    {t.quotes.convertToJob}
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        quote={quote}
+                                        t={t}
+                                        clientId={clientId}
+                                        onEdit={() => { setSelectedQuote(quote); setIsEditing(true); }}
+                                    />
                                 ))
                             )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination UI */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-4 py-3">
+                        <div className="flex flex-1 justify-between sm:hidden">
+                            <Button
+                                variant="outline"
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                {isFr ? 'Précédent' : 'Previous'}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                {isFr ? 'Suivant' : 'Next'}
+                            </Button>
+                        </div>
+                        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm text-gray-500">
+                                    {isFr ? 'Affichage de' : 'Showing'}{' '}
+                                    <span className="font-medium">{(currentPage - 1) * 50 + 1}</span>{' '}
+                                    {isFr ? 'à' : 'to'}{' '}
+                                    <span className="font-medium">{Math.min(currentPage * 50, totalCount)}</span>{' '}
+                                    {isFr ? 'sur' : 'of'}{' '}
+                                    <span className="font-medium">{totalCount}</span>{' '}
+                                    {isFr ? 'résultats' : 'results'}
+                                </p>
+                            </div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm bg-white" aria-label="Pagination">
+                                <button
+                                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <ChevronUp className="h-4 w-4 -rotate-90" />
+                                </button>
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i + 1}
+                                        onClick={() => handlePageChange(i + 1)}
+                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                            currentPage === i + 1
+                                                ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                                        }`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <ChevronUp className="h-4 w-4 rotate-90" />
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+const QuoteRow = memo(({ quote, t, clientId, onEdit }: { quote: QuoteWithDetails; t: any; clientId?: string; onEdit: () => void }) => {
+    const STATUS_STYLES: Record<string, string> = {
+        ACCEPTED: 'bg-emerald-100 text-emerald-700',
+        REJECTED: 'bg-red-100 text-red-600',
+        SENT: 'bg-blue-100 text-blue-700',
+        DRAFT: 'bg-gray-100 text-gray-600',
+    };
+
+    return (
+        <tr
+            className={`hover:bg-gray-50/80 transition-colors ${quote.status === 'ACCEPTED' ? 'bg-emerald-50/30' :
+                quote.status === 'REJECTED' ? 'bg-red-50/20' : ''
+                }`}
+        >
+            <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                <Link href={`/quotes/${quote.id}`} className="hover:text-indigo-600 hover:underline">
+                    {quote.number || `#${quote.id.slice(0, 6)}`}
+                </Link>
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                {!clientId ? (
+                    <Link href={`/clients/${quote.clientId}`} className="hover:text-indigo-600 hover:underline">
+                        {quote.client?.name || '—'}
+                    </Link>
+                ) : (
+                    quote.client?.name || '—'
+                )}
+            </td>
+            <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                {quote.total.toFixed(2)}$
+            </td>
+            <td className="px-4 py-3">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[quote.status] || 'bg-gray-100 text-gray-600'}`}>
+                    {t.quotes.statuses?.[quote.status as keyof typeof t.quotes.statuses] || quote.status}
+                </span>
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                {format(new Date(quote.createdAt), 'dd MMM yyyy')}
+            </td>
+            <td className="px-4 py-3">
+                <div className="flex items-center justify-end gap-1.5">
+                    <Button variant="ghost" size="sm" onClick={onEdit}>
+                        {t.common.edit}
+                    </Button>
+                    <a
+                        href={`/api/quotes/${quote.id}/pdf`}
+                        target="_blank"
+                        className="p-1.5 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        title="PDF"
+                    >
+                        <Download className="w-4 h-4" />
+                    </a>
+                    <button
+                        onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/portal/quotes/${quote.id}`);
+                            toast.success(t.quotes.linkCopied);
+                        }}
+                        className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title={t.quotes.copyLink}
+                    >
+                        <LinkIcon className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={async () => {
+                            const tid = toast.loading(t.invoices.sending);
+                            try {
+                                const { sendQuote } = await import("@/app/actions/email-actions");
+                                const r = await sendQuote(quote.id);
+                                r.success
+                                    ? toast.success(t.invoices.emailSent, { id: tid })
+                                    : toast.error((r.error || 'Error'), { id: tid });
+                            } catch {
+                                toast.error(t.invoices.emailError, { id: tid });
+                            }
+                        }}
+                        className="p-1.5 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        title={t.common.email}
+                    >
+                        <Mail className="w-4 h-4" />
+                    </button>
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={async () => {
+                            if (confirm(t.quotes.convertConfirm)) {
+                                const { convertQuoteToJob } = await import("@/app/actions/workflow-actions");
+                                await convertQuoteToJob(quote.id);
+                            }
+                        }}
+                    >
+                        {t.quotes.convertToJob}
+                    </Button>
+                </div>
+            </td>
+        </tr>
+    );
+});
+
+QuoteRow.displayName = "QuoteRow";

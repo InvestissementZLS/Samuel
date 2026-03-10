@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -22,7 +22,7 @@ export function Sidebar() {
     const { user, checkPermission } = useCurrentUser();
     const perms = checkPermission(division);
 
-    const navigation = [
+    const navigation = useMemo(() => [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
         { name: t.sidebar.calendar, href: '/calendar', icon: Calendar },
         { name: t.sidebar.jobs, href: '/jobs', icon: Truck },
@@ -38,7 +38,18 @@ export function Sidebar() {
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
-    ];
+    ], [t]);
+
+    const filteredNav = useMemo(() => {
+        return navigation.filter(item => {
+            if (item.href === '/reports' && !perms.canViewReports) return false;
+            if (item.href === '/timesheets' && !perms.canManageTimesheets) return false;
+            if (item.href === '/expenses' && !perms.canManageExpenses) return false;
+            if (item.href === '/technicians' && !perms.canManageUsers) return false;
+            if (item.href === '/commissions' && !perms.canManageCommissions) return false;
+            return true;
+        });
+    }, [navigation, perms]);
 
     const handleLogout = async () => {
         try {
@@ -86,37 +97,14 @@ export function Sidebar() {
                         {!isCollapsed && t.common.search}
                     </button>
                 } />
-                {navigation.filter(item => {
-                    if (item.href === '/reports' && !perms.canViewReports) return false;
-                    if (item.href === '/timesheets' && !perms.canManageTimesheets) return false;
-                    if (item.href === '/expenses' && !perms.canManageExpenses) return false;
-                    if (item.href === '/technicians' && !perms.canManageUsers) return false;
-                    if (item.href === '/commissions' && !perms.canManageCommissions) return false;
-                    // Always show Dashboard, Calendar, Jobs, Quotes, Invoices, Clients, Products, Inventory, Recurring, Settings
-                    // Unless we want to restrict those too? User didn't specify.
-                    return true;
-                }).map((item) => {
-                    const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-                    return (
-                        <Link
-
-                            key={item.href}
-                            href={item.href}
-                            className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${isActive
-                                ? 'bg-gray-800 text-white'
-                                : 'text-gray-100 hover:bg-gray-700 hover:text-white'
-                                } ${isCollapsed ? 'justify-center' : ''}`}
-                            title={isCollapsed ? item.name : undefined}
-                        >
-                            <item.icon
-                                className={`${isCollapsed ? 'mr-0' : 'mr-3'} h-6 w-6 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'
-                                    }`}
-                                aria-hidden="true"
-                            />
-                            {!isCollapsed && item.name}
-                        </Link>
-                    );
-                })}
+                {filteredNav.map((item) => (
+                    <SidebarItem
+                        key={item.href}
+                        item={item}
+                        isActive={pathname === item.href || pathname?.startsWith(item.href + '/')}
+                        isCollapsed={isCollapsed}
+                    />
+                ))}
             </nav>
             <div className="border-t border-gray-800 p-4">
                 {!isCollapsed ? (
@@ -156,3 +144,23 @@ export function Sidebar() {
         </div>
     );
 }
+
+const SidebarItem = memo(({ item, isActive, isCollapsed }: { item: any, isActive: boolean, isCollapsed: boolean }) => (
+    <Link
+        href={item.href}
+        className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${isActive
+            ? 'bg-gray-800 text-white'
+            : 'text-gray-100 hover:bg-gray-700 hover:text-white'
+            } ${isCollapsed ? 'justify-center' : ''}`}
+        title={isCollapsed ? item.name : undefined}
+    >
+        <item.icon
+            className={`${isCollapsed ? 'mr-0' : 'mr-3'} h-6 w-6 flex-shrink-0 transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'
+                }`}
+            aria-hidden="true"
+        />
+        {!isCollapsed && item.name}
+    </Link>
+));
+
+SidebarItem.displayName = "SidebarItem";

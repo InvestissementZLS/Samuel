@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { User } from "@prisma/client";
 
 interface UserContextType {
@@ -25,8 +25,10 @@ export function UserProvider({
         }
     }, [initialUser]);
 
+    const contextValue = useMemo(() => ({ user, setUser }), [user]);
+
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={contextValue}>
             {children}
         </UserContext.Provider>
     );

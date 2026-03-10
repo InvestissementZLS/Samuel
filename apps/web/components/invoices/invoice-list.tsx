@@ -28,6 +28,9 @@ interface InvoiceListProps {
     products: Product[];
     clients?: Client[];
     clientId?: string;
+    currentPage?: number;
+    totalPages?: number;
+    totalCount?: number;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -45,7 +48,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
         : <ChevronDown className="w-3 h-3 text-indigo-500 ml-1" />;
 }
 
-export function InvoiceList({ invoices, products, clientId, clients = [] }: InvoiceListProps) {
+export function InvoiceList({ invoices, products, clientId, clients = [], currentPage = 1, totalPages = 1, totalCount }: InvoiceListProps) {
     const { t } = useLanguage();
     const { language } = useLanguage();
     const isFr = language === 'fr';
@@ -275,7 +278,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                                         <tr
                                             key={invoice.id}
                                             className={`hover:bg-gray-50/80 transition-colors ${invoice.status === 'PAID' ? 'bg-emerald-50/20' :
-                                                    invoice.status === 'OVERDUE' ? 'bg-red-50/20' : ''
+                                                invoice.status === 'OVERDUE' ? 'bg-red-50/20' : ''
                                                 }`}
                                         >
                                             <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
@@ -380,6 +383,34 @@ export function InvoiceList({ invoices, products, clientId, clients = [] }: Invo
                     amountPaid={(paymentInvoice as any).amountPaid || 0}
                     type={paymentModalType}
                 />
+            )}
+
+            {/* Pagination */}
+            {!clientId && totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                    <p className="text-sm text-gray-500">
+                        {isFr
+                            ? `Affichage de ${Math.min((currentPage - 1) * 50 + 1, totalCount || 0)}–${Math.min(currentPage * 50, totalCount || 0)} sur ${totalCount} factures`
+                            : `Showing ${Math.min((currentPage - 1) * 50 + 1, totalCount || 0)}–${Math.min(currentPage * 50, totalCount || 0)} of ${totalCount} invoices`}
+                    </p>
+                    <div className="flex gap-2">
+                        <a
+                            href={`?page=${Math.max(1, currentPage - 1)}`}
+                            className={`px-3 py-1.5 text-sm border rounded-md transition ${currentPage <= 1 ? 'text-gray-300 border-gray-200 cursor-not-allowed pointer-events-none' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                        >
+                            ← {isFr ? 'Précédent' : 'Previous'}
+                        </a>
+                        <span className="px-3 py-1.5 text-sm text-gray-600">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <a
+                            href={`?page=${Math.min(totalPages, currentPage + 1)}`}
+                            className={`px-3 py-1.5 text-sm border rounded-md transition ${currentPage >= totalPages ? 'text-gray-300 border-gray-200 cursor-not-allowed pointer-events-none' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                        >
+                            {isFr ? 'Suivant' : 'Next'} →
+                        </a>
+                    </div>
+                </div>
             )}
         </div>
     );

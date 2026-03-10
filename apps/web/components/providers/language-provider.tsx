@@ -30,10 +30,11 @@ export function LanguageProvider({
         window.location.reload();
     };
 
-    const t = dictionary[language] || dictionary.en;
+    const t = useMemo(() => dictionary[language] || dictionary.en, [language]);
+    const contextValue = useMemo(() => ({ language, setLanguage, t }), [language, t]);
 
     return (
-        <LanguageContext.Provider value={{ language, setLanguage, t }}>
+        <LanguageContext.Provider value={contextValue}>
             {children}
         </LanguageContext.Provider>
     );

@@ -89,8 +89,8 @@ export function JobFilters({ jobs, onFilterChange, technicians = [], services = 
     // BUT the prompt requested a "complete filter system". 
     // Let's keep it simple: We use a `useEffect` here that calls `onFilterChange`.
 
-    // Instead of duplicating logic, let's use useMemo and useEffect.
-    useMemo(() => {
+    // Memoize the filtering logic to return the result
+    const filteredJobsResult = useMemo(() => {
         let result = [...jobs];
 
         // 1. Search Query
@@ -139,9 +139,13 @@ export function JobFilters({ jobs, onFilterChange, technicians = [], services = 
                 return matchesYear;
             });
         }
-
-        onFilterChange(result);
+        return result;
     }, [searchQuery, statusFilter, technicianFilter, serviceFilter, periodFilter, yearFilter, jobs]);
+
+    // Use useEffect to notify parent of the change, ensuring it doesn't happen during render
+    useEffect(() => {
+        onFilterChange(filteredJobsResult);
+    }, [filteredJobsResult, onFilterChange]);
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-4 mb-6">

@@ -21,13 +21,15 @@ export function DivisionProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const setDivision = (div: Division) => {
+    const setDivision = React.useCallback((div: Division) => {
         setDivisionState(div);
         localStorage.setItem("division", div);
-    };
+    }, []);
+
+    const contextValue = React.useMemo(() => ({ division, setDivision }), [division, setDivision]);
 
     return (
-        <DivisionContext.Provider value={{ division, setDivision }}>
+        <DivisionContext.Provider value={contextValue}>
             {children}
         </DivisionContext.Provider>
     );
