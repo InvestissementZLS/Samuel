@@ -6,6 +6,7 @@ import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminde
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
 import { PriorityAlerts } from '@/components/dashboard/priority-alerts';
+import { RenewalOpportunitiesWidget } from '@/components/dashboard/renewal-opportunities';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
 
@@ -108,7 +109,10 @@ export default async function DashboardPage() {
 
             {/* 🚨 Priority Alerts Widget */}
             {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
-                <PriorityAlerts />
+                <>
+                    <PriorityAlerts />
+                    <RenewalOpportunitiesWidget />
+                </>
             )}
 
             <DashboardStats stats={stats} />
