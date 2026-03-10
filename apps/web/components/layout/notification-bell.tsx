@@ -5,7 +5,7 @@ import { getDashboardAlerts, type DashboardAlert } from '@/app/actions/alert-act
 import { useDivision } from '@/components/providers/division-provider';
 import { useLanguage } from '@/components/providers/language-provider';
 import Link from 'next/link';
-import { Bell, X, ChevronRight, AlertTriangle, ShieldAlert, Clock, FileText, Users } from 'lucide-react';
+import { Bell, X, ChevronRight, AlertTriangle, ShieldAlert, Clock, FileText, Users, Package, TrendingDown, Zap } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 const CATEGORY_ICONS = {
@@ -14,6 +14,9 @@ const CATEGORY_ICONS = {
     visit: Clock,
     invoice: AlertTriangle,
     client: Users,
+    inventory: Package,
+    profitability: TrendingDown,
+    marketing: Zap,
 };
 
 const SEVERITY_DOT = {
@@ -177,12 +180,15 @@ export function NotificationBell() {
                     </div>
                 ) : (
                     visible.slice(0, 20).map(alert => {
+                        const Icon = CATEGORY_ICONS[alert.category] || Bell;
                         const content = (
                             <>
-                                <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${SEVERITY_DOT[alert.severity]}`} />
+                                <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${alert.severity === 'critical' ? 'bg-red-50 text-red-500' : alert.severity === 'warning' ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'}`}>
+                                    <Icon className="w-3.5 h-3.5" />
+                                </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold text-gray-900 truncate">{alert.title}</p>
-                                    <p className="text-xs text-gray-500 truncate mt-0.5">{alert.description}</p>
+                                    <p className="text-xs text-gray-500 truncate mt-0.5 whitespace-normal line-clamp-2">{alert.description}</p>
                                 </div>
                             </>
                         );

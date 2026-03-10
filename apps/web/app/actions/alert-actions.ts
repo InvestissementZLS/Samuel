@@ -1,10 +1,10 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { addDays, subDays, subMonths, subYears } from 'date-fns';
+import { addDays, subDays, subMonths, subYears, startOfMonth } from 'date-fns';
 
 export type AlertSeverity = 'critical' | 'warning' | 'info';
-export type AlertCategory = 'quote' | 'warranty' | 'visit' | 'invoice' | 'client';
+export type AlertCategory = 'quote' | 'warranty' | 'visit' | 'invoice' | 'client' | 'inventory' | 'profitability' | 'marketing';
 
 export interface DashboardAlert {
     id: string;
@@ -259,17 +259,112 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
             }
         }
 
+        // ─── 7. Alertes d'inventaire critique (Entrepôt) ──────────────────
+        const lowStock = await prisma.inventoryItem.findMany({
+            where: {
+                userId: null,
+                quantity: { lte: 10 },
+            },
+            include: { product: true },
+            take: 10,
+        });
+
+        for (const item of lowStock) {
+            alerts.push({
+                id: `inv-low-${item.id}`,
+                category: 'inventory',
+                severity: item.quantity <= 2 ? 'critical' : 'warning',
+                title: `Stock critique : ${item.product.name}`,
+                description: `Il ne reste que ${item.quantity} ${item.product.unit || 'unités'} à l'entrepôt. Pensez à commander.`,
+                linkHref: `/inventory`,
+            });
+        }
+
+        // ─── 8. Alertes de rentabilité (Jobs complétés < 10% marge) ────────
+        const lowMarginJobs = await prisma.job.findMany({
+            where: {
+                status: 'COMPLETED',
+                completedAt: { gte: subDays(today, 7) },
+                netSellingPrice: { gt: 0 },
+                totalJobCost: { gt: 0 },
+                ...(division && division !== 'ALL' ? { division: division as any } : {})
+            },
+            include: { property: { include: { client: true } } },
+            take: 10,
+        });
+
+        for (const job of lowMarginJobs) {
+            const margin = (job.netSellingPrice - job.totalJobCost) / job.netSellingPrice;
+            if (margin < 0.10) {
+                alerts.push({
+                    id: `margin-low-${job.id}`,
+                    category: 'profitability',
+                    severity: margin < 0 ? 'critical' : 'warning',
+                    title: `Job peu rentable : ${job.property?.client?.name || 'Client'}`,
+                    description: `Marge de ${(margin * 100).toFixed(1)}% sur le dernier job. coût: ${job.totalJobCost.toFixed(2)}$ / prix: ${job.netSellingPrice.toFixed(2)}$.`,
+                    clientId: job.property?.clientId,
+                    clientName: job.property?.client?.name,
+                    linkHref: `/jobs/${job.id}`,
+                });
+            }
+        }
+
+        // ─── 9. Opportunités de croissance (Clients Fourmis de l'an dernier) ─
+        // Focus sur la saison des fourmis (Mars à Juin)
+        const currentMonth = today.getMonth() + 1;
+        if (currentMonth >= 3 && currentMonth <= 6) {
+            const lastYearStart = subYears(subMonths(today, today.getMonth()), 1); // Début d'année dernière
+            const lastYearEnd = addDays(lastYearStart, 365);
+
+            // Clients ayant eu un service "Fourmis" l'an dernier
+            const pastAntJobs = await prisma.job.findMany({
+                where: {
+                    status: 'COMPLETED',
+                    scheduledAt: { gte: subDays(today, 400), lte: subDays(today, 300) }, // Fenêtre approximative
+                    products: { some: { product: { pestType: 'ANTS' } } },
+                    ...(division && division !== 'ALL' ? { division: division as any } : {})
+                },
+                include: { property: { include: { client: true } } },
+                take: 15,
+            });
+
+            for (const job of pastAntJobs) {
+                const clientId = job.property.clientId;
+                // Vérifier s'ils ont déjà un job prévu cette année
+                const hasCurrentJob = await prisma.job.count({
+                    where: {
+                        property: { clientId },
+                        scheduledAt: { gte: startOfMonth(subMonths(today, 2)) }, 
+                        products: { some: { product: { pestType: 'ANTS' } } }
+                    }
+                });
+
+                if (hasCurrentJob === 0) {
+                    alerts.push({
+                        id: `upsell-ants-${clientId}`,
+                        category: 'marketing',
+                        severity: 'info',
+                        title: `Opportunité Fourmis : ${job.property.client.name}`,
+                        description: `Client traité l'an dernier à cette date. Proposez-leur un traitement préventif dès maintenant.`,
+                        clientId: clientId,
+                        clientName: job.property.client.name,
+                        linkHref: `/clients/${clientId}`,
+                    });
+                }
+            }
+        }
+
     } catch (err) {
         console.error('[AlertActions] Error computing alerts:', err);
     }
 
     // Sort: critical first, then by category priority
     const severityOrder = { critical: 0, warning: 1, info: 2 };
-    const categoryOrder = { visit: 0, warranty: 1, quote: 2, invoice: 3, client: 4 };
+    const categoryOrder = { visit: 0, profitability: 1, inventory: 2, warranty: 3, quote: 4, invoice: 5, client: 6, marketing: 7 };
 
     return alerts.sort((a, b) => {
         const sevDiff = severityOrder[a.severity] - severityOrder[b.severity];
         if (sevDiff !== 0) return sevDiff;
-        return categoryOrder[a.category] - categoryOrder[b.category];
+        return (categoryOrder[a.category] || 99) - (categoryOrder[b.category] || 99);
     });
 }
