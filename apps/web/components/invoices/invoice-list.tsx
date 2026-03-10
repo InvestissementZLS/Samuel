@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { Invoice, Product, Client } from "@prisma/client";
 import { createInvoice, updateInvoice, deleteInvoice } from "@/app/actions/client-portal-actions";
 import { format } from "date-fns";
@@ -152,9 +152,21 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
     ];
 
     // Summary metrics
-    const totalUnpaid = invoices
-        .filter(i => i.status !== 'PAID' && (divisionFilter === 'ALL' || (i as any).division === divisionFilter))
-        .reduce((sum, i) => sum + i.total - ((i as any).amountPaid || 0), 0);
+    const totalUnpaid = useMemo(() => {
+        return invoices
+            .filter(i => i.status !== 'PAID' && (divisionFilter === 'ALL' || (i as any).division === divisionFilter))
+            .reduce((sum, i) => sum + i.total - ((i as any).amountPaid || 0), 0);
+    }, [invoices, divisionFilter]);
+
+    // Memoize status counts to avoid triple-filtering the entire list on every render
+    const statusCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        quickFilters.forEach(f => {
+            if (f.key === 'ALL') return;
+            counts[f.key] = invoices.filter(i => i.status === f.key && (divisionFilter === 'ALL' || (i as any).division === divisionFilter)).length;
+        });
+        return counts;
+    }, [invoices, divisionFilter]);
 
     return (
         <div className="space-y-4">
@@ -220,7 +232,7 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
                         {f.label}
                         {f.key !== 'ALL' && (
                             <span className="ml-1 opacity-70">
-                                ({invoices.filter(i => i.status === f.key && (divisionFilter === 'ALL' || (i as any).division === divisionFilter)).length})
+                                ({statusCounts[f.key] || 0})
                             </span>
                         )}
                     </button>
@@ -271,103 +283,26 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
                                     </td>
                                 </tr>
                             ) : (
-                                filtered.map(invoice => {
-                                    const balance = invoice.total - ((invoice as any).amountPaid || 0);
-                                    const isPaid = invoice.status === 'PAID';
-                                    return (
-                                        <tr
-                                            key={invoice.id}
-                                            className={`hover:bg-gray-50/80 transition-colors ${invoice.status === 'PAID' ? 'bg-emerald-50/20' :
-                                                invoice.status === 'OVERDUE' ? 'bg-red-50/20' : ''
-                                                }`}
-                                        >
-                                            <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                                                {invoice.number || `#${invoice.id.slice(0, 6)}`}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-                                                {!clientId ? (
-                                                    <Link href={`/clients/${invoice.clientId}`} className="hover:text-indigo-600 hover:underline">
-                                                        {invoice.client?.name || '—'}
-                                                    </Link>
-                                                ) : invoice.client?.name || '—'}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                                {invoice.total.toFixed(2)}$
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[invoice.status] || 'bg-gray-100 text-gray-600'}`}>
-                                                    {(t.invoices.statuses as any)?.[invoice.status] || invoice.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                                                {format(new Date(invoice.createdAt), 'dd MMM yyyy')}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm font-bold whitespace-nowrap text-right">
-                                                {!isPaid && balance > 0 ? (
-                                                    <span className="text-red-600">{balance.toFixed(2)}$</span>
-                                                ) : (
-                                                    <span className="text-emerald-600">—</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <Button variant="ghost" size="sm" onClick={() => { setSelectedInvoice(invoice); setIsEditing(true); }}>
-                                                        {t.common.edit}
-                                                    </Button>
-                                                    <DownloadPdfButton invoice={invoice} />
-                                                    <button
-                                                        onClick={async () => {
-                                                            const tid = toast.loading(t.invoices.sending);
-                                                            try {
-                                                                const { sendInvoice } = await import("@/app/actions/email-actions");
-                                                                const r = await sendInvoice(invoice.id);
-                                                                r.success ? toast.success(t.invoices.emailSent, { id: tid }) : toast.error(r.error || 'Error', { id: tid });
-                                                            } catch { toast.error(t.invoices.emailError, { id: tid }); }
-                                                        }}
-                                                        className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                                        title={t.invoices.sendEmail}
-                                                    >
-                                                        <Mail className="w-4 h-4" />
-                                                    </button>
-                                                    {!isPaid && (
-                                                        <button
-                                                            onClick={() => { setPaymentInvoice(invoice); setPaymentModalType("PAYMENT"); setPaymentModalOpen(true); }}
-                                                            className="p-1.5 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                                            title={t.invoices.pay}
-                                                        >
-                                                            <DollarSign className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                    {(invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID') && (
-                                                        <button
-                                                            onClick={() => { setPaymentInvoice(invoice); setPaymentModalType("REFUND"); setPaymentModalOpen(true); }}
-                                                            className="p-1.5 rounded text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
-                                                            title={t.invoices.refund}
-                                                        >
-                                                            <RefreshCcw className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        disabled={isPaid || ((invoice as any).amountPaid || 0) > 0}
-                                                        onClick={async () => {
-                                                            if (confirm(t.invoices.deleteConfirm)) {
-                                                                const tid = toast.loading(t.invoices.deleting);
-                                                                try {
-                                                                    await deleteInvoice(invoice.id);
-                                                                    toast.success(t.invoices.deleted, { id: tid });
-                                                                } catch { toast.error(t.invoices.deleteError, { id: tid }); }
-                                                            }
-                                                        }}
-                                                        className={`p-1.5 rounded transition-colors ${isPaid || ((invoice as any).amountPaid || 0) > 0 ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}
-                                                        title={t.invoices.deleteConfirm}
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
+                                filtered.map(invoice => (
+                                    <InvoiceRow
+                                        key={invoice.id}
+                                        invoice={invoice}
+                                        t={t}
+                                        clientId={clientId}
+                                        onEdit={() => { setSelectedInvoice(invoice); setIsEditing(true); }}
+                                        onPay={() => { setPaymentInvoice(invoice); setPaymentModalType("PAYMENT"); setPaymentModalOpen(true); }}
+                                        onRefund={() => { setPaymentInvoice(invoice); setPaymentModalType("REFUND"); setPaymentModalOpen(true); }}
+                                        onDelete={async () => {
+                                            if (confirm(t.invoices.deleteConfirm)) {
+                                                const tid = toast.loading(t.invoices.deleting);
+                                                try {
+                                                    await deleteInvoice(invoice.id);
+                                                    toast.success(t.invoices.deleted, { id: tid });
+                                                } catch { toast.error(t.invoices.deleteError, { id: tid }); }
+                                            }
+                                        }}
+                                    />
+                                ))
                             )}
                         </tbody>
                     </table>
@@ -415,3 +350,103 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
         </div>
     );
 }
+
+const InvoiceRow = memo(({ invoice, t, clientId, onEdit, onPay, onRefund, onDelete }: {
+    invoice: any;
+    t: any;
+    clientId?: string;
+    onEdit: () => void;
+    onPay: () => void;
+    onRefund: () => void;
+    onDelete: () => void;
+}) => {
+    const balance = invoice.total - ((invoice as any).amountPaid || 0);
+    const isPaid = invoice.status === 'PAID';
+
+    return (
+        <tr
+            className={`hover:bg-gray-50/80 transition-colors ${invoice.status === 'PAID' ? 'bg-emerald-50/20' :
+                invoice.status === 'OVERDUE' ? 'bg-red-50/20' : ''
+                }`}
+        >
+            <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                {invoice.number || `#${invoice.id.slice(0, 6)}`}
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                {!clientId ? (
+                    <Link href={`/clients/${invoice.clientId}`} className="hover:text-indigo-600 hover:underline">
+                        {invoice.client?.name || '—'}
+                    </Link>
+                ) : invoice.client?.name || '—'}
+            </td>
+            <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                {invoice.total.toFixed(2)}$
+            </td>
+            <td className="px-4 py-3">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[invoice.status] || 'bg-gray-100 text-gray-600'}`}>
+                    {(t.invoices.statuses as any)?.[invoice.status] || invoice.status}
+                </span>
+            </td>
+            <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                {format(new Date(invoice.createdAt), 'dd MMM yyyy')}
+            </td>
+            <td className="px-4 py-3 text-sm font-bold whitespace-nowrap text-right">
+                {!isPaid && balance > 0 ? (
+                    <span className="text-red-600">{balance.toFixed(2)}$</span>
+                ) : (
+                    <span className="text-emerald-600">—</span>
+                )}
+            </td>
+            <td className="px-4 py-3">
+                <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={onEdit}>
+                        {t.common.edit}
+                    </Button>
+                    <DownloadPdfButton invoice={invoice} />
+                    <button
+                        onClick={async () => {
+                            const tid = toast.loading(t.invoices.sending);
+                            try {
+                                const { sendInvoice } = await import("@/app/actions/email-actions");
+                                const r = await sendInvoice(invoice.id);
+                                r.success ? toast.success(t.invoices.emailSent, { id: tid }) : toast.error(r.error || 'Error', { id: tid });
+                            } catch { toast.error(t.invoices.emailError, { id: tid }); }
+                        }}
+                        className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        title={t.invoices.sendEmail}
+                    >
+                        <Mail className="w-4 h-4" />
+                    </button>
+                    {!isPaid && (
+                        <button
+                            onClick={onPay}
+                            className="p-1.5 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title={t.invoices.pay}
+                        >
+                            <DollarSign className="w-4 h-4" />
+                        </button>
+                    )}
+                    {(invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID') && (
+                        <button
+                            onClick={onRefund}
+                            className="p-1.5 rounded text-gray-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+                            title={t.invoices.refund}
+                        >
+                            <RefreshCcw className="w-4 h-4" />
+                        </button>
+                    )}
+                    <button
+                        disabled={isPaid || ((invoice as any).amountPaid || 0) > 0}
+                        onClick={onDelete}
+                        className={`p-1.5 rounded transition-colors ${isPaid || ((invoice as any).amountPaid || 0) > 0 ? 'text-gray-200 cursor-not-allowed' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}
+                        title={t.invoices.deleteConfirm}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+});
+
+InvoiceRow.displayName = "InvoiceRow";
