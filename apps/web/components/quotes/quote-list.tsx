@@ -10,7 +10,12 @@ import {
     Search, SlidersHorizontal, ArrowUpDown, ChevronUp, ChevronDown, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { QuoteForm } from "@/components/quotes/quote-form";
+import dynamic from "next/dynamic";
+
+const QuoteForm = dynamic(() => import("@/components/quotes/quote-form").then(mod => mod.QuoteForm), {
+    loading: () => <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">Loading form...</div>
+});
+
 import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import Link from "next/link";

@@ -2,8 +2,10 @@
 
 import { useState, useMemo, memo } from "react";
 import { Client } from "@prisma/client";
-import { ClientDialog } from "./client-dialog";
-import { ClientImportDialog } from "./client-import-dialog";
+import dynamic from "next/dynamic";
+
+const ClientDialog = dynamic(() => import("./client-dialog").then(mod => mod.ClientDialog));
+const ClientImportDialog = dynamic(() => import("./client-import-dialog").then(mod => mod.ClientImportDialog));
 import { Plus, Pencil, MessageSquare, Link as LinkIcon, Loader2, UploadCloud } from "lucide-react";
 import { createBookingLink } from "@/app/actions/booking-actions";
 import { toast } from "sonner";

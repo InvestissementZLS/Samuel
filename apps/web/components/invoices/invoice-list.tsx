@@ -7,12 +7,17 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import {
     Trash2, DollarSign, RefreshCcw, Mail, Download,
-    Search, ArrowUpDown, ChevronUp, ChevronDown, X
+    Search, ArrowUpDown, ChevronUp, ChevronDown, X, FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { InvoiceForm } from "@/components/invoices/invoice-form";
-import { PaymentDialog } from "@/components/invoices/payment-dialog";
-import { DownloadPdfButton } from "@/components/invoices/download-pdf-button";
+import dynamic from "next/dynamic";
+
+const InvoiceForm = dynamic(() => import("@/components/invoices/invoice-form").then(mod => mod.InvoiceForm), {
+    loading: () => <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">Loading form...</div>
+});
+
+const PaymentDialog = dynamic(() => import("@/components/invoices/payment-dialog").then(mod => mod.PaymentDialog));
+
 import { useDivision } from "@/components/providers/division-provider";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -402,7 +407,14 @@ const InvoiceRow = memo(({ invoice, t, clientId, onEdit, onPay, onRefund, onDele
                     <Button variant="ghost" size="sm" onClick={onEdit}>
                         {t.common.edit}
                     </Button>
-                    <DownloadPdfButton invoice={invoice} />
+                    <a
+                        href={`/api/invoices/${invoice.id}/pdf`}
+                        target="_blank"
+                        className="p-1.5 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        title="PDF"
+                    >
+                        <FileText className="w-4 h-4" />
+                    </a>
                     <button
                         onClick={async () => {
                             const tid = toast.loading(t.invoices.sending);
