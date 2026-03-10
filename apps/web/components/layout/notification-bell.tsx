@@ -177,33 +177,48 @@ export function NotificationBell() {
                     </div>
                 ) : (
                     visible.slice(0, 20).map(alert => {
-                        return (
-                            <div
-                                key={alert.id}
-                                className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group ${SEVERITY_ITEM[alert.severity]}`}
-                            >
+                        const content = (
+                            <>
                                 <div className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${SEVERITY_DOT[alert.severity]}`} />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold text-gray-900 truncate">{alert.title}</p>
                                     <p className="text-xs text-gray-500 truncate mt-0.5">{alert.description}</p>
                                 </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                    {alert.linkHref && (
-                                        <Link
-                                            href={alert.linkHref}
-                                            onClick={() => setOpen(false)}
-                                            className="p-1 rounded text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                        >
-                                            <ChevronRight className="w-3.5 h-3.5" />
-                                        </Link>
-                                    )}
-                                    <button
-                                        onClick={() => dismiss(alert.id)}
-                                        className="p-1 rounded text-gray-200 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                            </>
+                        );
+
+                        return (
+                            <div
+                                key={alert.id}
+                                className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group relative ${SEVERITY_ITEM[alert.severity]}`}
+                            >
+                                {alert.linkHref ? (
+                                    <Link
+                                        href={alert.linkHref}
+                                        onClick={() => setOpen(false)}
+                                        className="flex items-start gap-3 flex-1 min-w-0"
                                     >
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </div>
+                                        {content}
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <div className="p-1 rounded text-gray-300 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
+                                                <ChevronRight className="w-3.5 h-3.5" />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ) : (
+                                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                                        {content}
+                                    </div>
+                                )}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        dismiss(alert.id);
+                                    }}
+                                    className="p-1 rounded text-gray-200 hover:text-gray-500 hover:bg-gray-100 transition-colors z-10"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
                             </div>
                         );
                     })

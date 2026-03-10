@@ -82,6 +82,17 @@ export function QuoteList({
     const [sortKey, setSortKey] = useState<SortKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
 
+    useEffect(() => {
+        const qId = searchParams.get('quoteId');
+        if (qId) {
+            const q = quotes.find(item => item.id === qId);
+            if (q) {
+                setSelectedQuote(q);
+                setIsEditing(true);
+            }
+        }
+    }, [searchParams, quotes]);
+
     useEffect(() => { setDivisionFilter(division as any); }, [division]);
 
     const handleSort = (key: SortKey) => {

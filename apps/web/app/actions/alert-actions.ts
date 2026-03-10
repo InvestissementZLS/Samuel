@@ -50,7 +50,7 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
                 description: `${q.client?.name || 'Client'} — Envoyé il y a ${daysSent} jours`,
                 clientId: q.clientId,
                 clientName: q.client?.name,
-                linkHref: `/quotes/${q.id}`,
+                linkHref: `/quotes?quoteId=${q.id}`,
                 daysAgo: daysSent,
             });
         }
@@ -164,7 +164,7 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
                 description: `${inv.client?.name || 'Client'} — ${inv.total.toFixed(2)}$ — ${daysAgo}j sans paiement`,
                 clientId: inv.clientId,
                 clientName: inv.client?.name,
-                linkHref: `/invoices`,
+                linkHref: `/invoices?invoiceId=${inv.id}`,
                 daysAgo,
             });
         }

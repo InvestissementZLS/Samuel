@@ -21,7 +21,7 @@ const PaymentDialog = dynamic(() => import("@/components/invoices/payment-dialog
 import { useDivision } from "@/components/providers/division-provider";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useLanguage } from "@/components/providers/language-provider";
-import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 type InvoiceWithDetails = Invoice & { items: (any & { product: Product })[], client: Client };
 type SortKey = 'number' | 'client' | 'total' | 'status' | 'createdAt';
@@ -79,8 +79,20 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
     // Search & filter state
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
-    const [sortKey, setSortKey] = useState<SortKey>('createdAt');
-    const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        const invId = searchParams.get('invoiceId');
+        if (invId) {
+            const inv = invoices.find(i => i.id === invId);
+            if (inv) {
+                setSelectedInvoice(inv);
+                setIsEditing(true);
+            }
+        }
+    }, [searchParams, invoices]);
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
