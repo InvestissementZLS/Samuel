@@ -132,6 +132,23 @@ export function QuoteList({
         }
     };
 
+    const quickFilters: { key: StatusFilter; label: string }[] = [
+        { key: 'ALL', label: isFr ? 'Tous' : 'All' },
+        { key: 'SENT', label: isFr ? 'Envoyées' : 'Sent' },
+        { key: 'ACCEPTED', label: isFr ? 'Acceptés' : 'Accepted' },
+        { key: 'REJECTED', label: isFr ? 'Refusés' : 'Rejected' },
+        { key: 'DRAFT', label: isFr ? 'Brouillons' : 'Drafts' },
+    ];
+
+    const statusCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        quickFilters.forEach(f => {
+            if (f.key === 'ALL') return;
+            counts[f.key] = quotes.filter(q => q.status === f.key && (divisionFilter === 'ALL' || (q as any).division === divisionFilter)).length;
+        });
+        return counts;
+    }, [quotes, divisionFilter]);
+
     if (isEditing) {
         return (
             <div>
@@ -148,14 +165,6 @@ export function QuoteList({
             </div>
         );
     }
-
-    const quickFilters: { key: StatusFilter; label: string }[] = [
-        { key: 'ALL', label: isFr ? 'Tous' : 'All' },
-        { key: 'SENT', label: isFr ? 'Envoyés' : 'Sent' },
-        { key: 'ACCEPTED', label: isFr ? 'Acceptés' : 'Accepted' },
-        { key: 'REJECTED', label: isFr ? 'Refusés' : 'Rejected' },
-        { key: 'DRAFT', label: isFr ? 'Brouillons' : 'Drafts' },
-    ];
 
     return (
         <div className="space-y-4">
@@ -200,29 +209,22 @@ export function QuoteList({
 
             {/* Quick status filters */}
             <div className="flex gap-1.5 flex-wrap">
-                {quickFilters.map(f => {
-                    const count = useMemo(() => {
-                        if (f.key === 'ALL') return totalCount;
-                        return quotes.filter(q => q.status === f.key && (divisionFilter === 'ALL' || (q as any).division === divisionFilter)).length;
-                    }, [quotes, f.key, divisionFilter, totalCount]);
-
-                    return (
-                        <button
-                            key={f.key}
-                            onClick={() => setStatusFilter(f.key)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === f.key
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                        >
-                            {f.label}
-                            {f.key !== 'ALL' && (
-                                <span className="ml-1 opacity-70">
-                                    ({count})
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
+                {quickFilters.map(f => (
+                    <button
+                        key={f.key}
+                        onClick={() => setStatusFilter(f.key)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === f.key
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                        {f.label}
+                        {f.key !== 'ALL' && (
+                            <span className="ml-1 opacity-70">
+                                ({statusCounts[f.key] || 0})
+                            </span>
+                        )}
+                    </button>
+                ))}
             </div>
 
             {/* Result count */}

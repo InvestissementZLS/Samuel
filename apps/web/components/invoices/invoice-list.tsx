@@ -129,24 +129,6 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
             toast.error(t.invoices.failedSave);
         }
     };
-
-    if (isEditing) {
-        return (
-            <div>
-                <Button variant="ghost" onClick={() => setIsEditing(false)} className="mb-4">
-                    ← {t.invoices.backToInvoices}
-                </Button>
-                <InvoiceForm
-                    invoice={selectedInvoice}
-                    products={products}
-                    clients={clients}
-                    clientId={selectedInvoice?.clientId || clientId || ""}
-                    onSave={handleSave}
-                />
-            </div>
-        );
-    }
-
     const quickFilters: { key: StatusFilter; label: string; color?: string }[] = [
         { key: 'ALL', label: isFr ? 'Toutes' : 'All' },
         { key: 'SENT', label: isFr ? 'Envoyées' : 'Sent' },
@@ -172,6 +154,24 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
         });
         return counts;
     }, [invoices, divisionFilter]);
+
+    if (isEditing) {
+        return (
+            <div>
+                <Button variant="ghost" onClick={() => setIsEditing(false)} className="mb-4">
+                    ← {t.invoices.backToInvoices}
+                </Button>
+                <InvoiceForm
+                    invoice={selectedInvoice}
+                    products={products}
+                    clients={clients}
+                    clientId={selectedInvoice?.clientId || clientId || ""}
+                    onSave={handleSave}
+                />
+            </div>
+        );
+    }
+
 
     return (
         <div className="space-y-4">
