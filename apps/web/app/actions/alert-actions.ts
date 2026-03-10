@@ -194,9 +194,10 @@ export async function getDashboardAlerts(division?: string): Promise<DashboardAl
                 .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())[0];
 
             if (!lastJob || new Date(lastJob.scheduledAt) < oneYearAgo) {
+                // Si pas de job, regarder depuis combien de temps le client a été créé
                 const daysAgo = lastJob
                     ? Math.floor((today.getTime() - new Date(lastJob.scheduledAt).getTime()) / 86400000)
-                    : 365;
+                    : Math.floor((today.getTime() - new Date(client.createdAt).getTime()) / 86400000);
 
                 if (daysAgo >= 365) {
                     alerts.push({
