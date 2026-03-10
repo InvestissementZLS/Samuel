@@ -1,9 +1,8 @@
-"use client";
-
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
-import { createClient, updateClient, deleteClient } from "@/app/actions/client-actions";
+import { createClient, updateClient, deleteClient, checkClientDuplicates } from "@/app/actions/client-actions";
 import { Client } from "@prisma/client";
 
 import { useDivision } from "@/components/providers/division-provider";
@@ -25,11 +24,22 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
     const [billingAddress, setBillingAddress] = useState("");
     const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // Duplicate Detection State
+    const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+    // Use Partial<Client> or Pick<Client, ...> because checkClientDuplicates returns a subset
+    const [potentialDuplicates, setPotentialDuplicates] = useState<Partial<Client>[]>([]);
+
+    // Add router
+    const { push } = useRouter();
+
     const { division } = useDivision();
     const { user } = useUser();
 
     useEffect(() => {
         if (isOpen) {
+            setShowDuplicateWarning(false);
+            setPotentialDuplicates([]);
             if (client) {
                 setName(client.name);
                 setEmail(client.email || "");
@@ -59,6 +69,28 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
             return;
         }
 
+        // New Client Duplicate Check
+        if (!client && !showDuplicateWarning) {
+            try {
+                const duplicates = await checkClientDuplicates({ name, email, phone, division });
+
+                // Filter out exact matches if any logic needed, but server returns duplicates
+                // Also check if we are creating "Human" vs "Company" if that matters? 
+                // For now, simple check.
+
+                if (duplicates.length > 0) {
+                    setPotentialDuplicates(duplicates as any[]); // types might mismatch slightly on createdAt
+                    setShowDuplicateWarning(true);
+                    setLoading(false);
+                    return;
+                }
+            } catch (error) {
+                console.error("Duplicate check failed", error);
+                // Continue despite error? Or block?
+                // Let's continue to avoid blocking creation if check fails
+            }
+        }
+
         try {
             if (client) {
                 await updateClient(client.id, { name, email, phone, billingAddress, language, divisions });
@@ -85,7 +117,23 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
             onClose();
         } catch (error) {
             console.error("Failed to delete client:", error);
-            toast.error(t.clientDialog.deleteError);
+
+            // Allow force delete if initial delete fails (likely due to constraints)
+            if (confirm(language === 'FR'
+                ? "Impossible de supprimer ce client car il a des données associées (Propriétés, Jobs, Factures, etc.). Voulez-vous FORCER la suppression de TOUTES ses données ? Cette action est irréversible."
+                : "Cannot delete client because they have associated data (Properties, Jobs, Invoices, etc.). Do you want to FORCE delete ALL their data? This cannot be undone."
+            )) {
+                try {
+                    await deleteClient(client.id, true);
+                    toast.success(t.clientDialog.deleteSuccess);
+                    onClose();
+                } catch (forceError) {
+                    console.error("Force delete failed:", forceError);
+                    toast.error(t.clientDialog.deleteError);
+                }
+            } else {
+                toast.error(t.clientDialog.deleteError);
+            }
         } finally {
             setLoading(false);
         }
@@ -213,6 +261,64 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                         rows={3}
                     />
                 </div>
+
+                {showDuplicateWarning && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                        <h4 className="text-sm font-medium text-yellow-800 mb-2">
+                            {language === 'FR' ? 'Clients similaires trouvés' : 'Similar clients found'}
+                        </h4>
+                        <div className="space-y-2 mb-4 max-h-60 overflow-y-auto">
+                            {potentialDuplicates.map((dup) => (
+                                <div key={dup.id} className="text-sm text-yellow-800 bg-yellow-100 p-3 rounded border border-yellow-200 flex justify-between items-center gap-2">
+                                    <div className="flex-1">
+                                        <div className="font-bold">{dup.name}</div>
+                                        <div className="text-xs mt-1">
+                                            {dup.email && <span className="block">{dup.email}</span>}
+                                            {dup.phone && <span className="block">{dup.phone}</span>}
+                                        </div>
+                                        {dup.billingAddress && (
+                                            <div className="text-xs text-yellow-700 mt-1 opacity-80">
+                                                {dup.billingAddress}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (dup.id) {
+                                                push(`/clients/${dup.id}`);
+                                                onClose();
+                                            }
+                                        }}
+                                        className="shrink-0 px-3 py-1.5 bg-white border border-yellow-300 rounded text-xs font-semibold hover:bg-yellow-50 text-yellow-900 shadow-sm"
+                                    >
+                                        {language === 'FR' ? 'Voir Fiche' : 'View Profile'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-2 justify-end border-t border-yellow-200 pt-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowDuplicateWarning(false);
+                                    setPotentialDuplicates([]);
+                                    setLoading(false);
+                                }}
+                                className="text-xs text-yellow-800 hover:text-yellow-900 underline px-2"
+                            >
+                                {language === 'FR' ? 'Ignorer et annuler' : 'Ignore & Cancel'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                className="text-xs bg-yellow-600 text-white px-3 py-2 rounded hover:bg-yellow-700 font-medium"
+                            >
+                                {language === 'FR' ? 'Créer un nouveau client quand même' : 'Create New Client Anyway'}
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex justify-end gap-2 pt-4">
                     {client && (

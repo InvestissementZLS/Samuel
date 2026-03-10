@@ -231,6 +231,9 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
     const selectedClient = clients.find((c) => c.id === clientId);
 
+    // Filter clients by active division
+    const filteredClients = clients.filter(c => c.divisions.includes(division));
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={job ? "Edit Job" : "New Job"}>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -263,7 +266,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         ) : (
                             <select value={clientId} onChange={(e) => { setClientId(e.target.value); setPropertyId(""); }} className="w-full rounded-md border px-2 py-1.5 text-sm h-9" required disabled={!!job}>
                                 <option value="">Select Client</option>
-                                {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                {filteredClients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </select>
                         )}
                     </div>

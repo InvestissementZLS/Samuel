@@ -8,22 +8,18 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Trash2, Plus, FileText, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { InvoiceForm } from "@/components/invoices/invoice-form";
-
-import { useDivision } from "@/components/providers/division-provider";
-import { useEffect } from "react";
-
-interface ClientInvoicesProps {
-    clientId: string;
-    invoices: (Invoice & { items: (any & { product: Product })[] })[];
-    products: Product[];
-}
+import { PaymentDialog } from "@/components/invoices/payment-dialog";
+import { DollarSign, RefreshCcw } from "lucide-react";
 
 export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
     const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
+
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentModalType, setPaymentModalType] = useState<"PAYMENT" | "REFUND">("PAYMENT");
+    const [paymentInvoice, setPaymentInvoice] = useState<any>(null);
 
     useEffect(() => {
         setDivisionFilter(division);
@@ -37,6 +33,12 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
     const handleEdit = (invoice: any) => {
         setSelectedInvoice(invoice);
         setIsEditing(true);
+    };
+
+    const openPaymentModal = (invoice: any, type: "PAYMENT" | "REFUND") => {
+        setPaymentInvoice(invoice);
+        setPaymentModalType(type);
+        setPaymentModalOpen(true);
     };
 
     const handleSave = async (data: any) => {
@@ -111,71 +113,86 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
 
             <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
                 <div className="divide-y divide-gray-200">
-                    {filteredInvoices.map((invoice) => (
-                        <div key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-indigo-50 rounded text-indigo-600">
-                                        <FileText className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900">
-                                            {/* @ts-ignore */}
-                                            {invoice.number || (invoice.poNumber ? `PO #${invoice.poNumber}` : "Invoice")}
-                                        </p>
-                                        <div className="flex gap-2 text-sm text-gray-500">
-                                            <span>{format(new Date(invoice.createdAt), "MMM d, yyyy")}</span>
-                                            <span>•</span>
-                                            <span>${invoice.total.toFixed(2)}</span>
-                                            {/* @ts-ignore */}
-                                            {invoice.division && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="text-xs uppercase tracking-wider font-semibold">
-                                                        {/* @ts-ignore */}
-                                                        {invoice.division === "EXTERMINATION" ? "EXO" : "ENT"}
-                                                    </span>
-                                                </>
-                                            )}
+                    {filteredInvoices.map((invoice) => {
+                        // @ts-ignore
+                        const amountPaid = invoice.amountPaid || 0;
+                        const balance = invoice.total - amountPaid;
+                        return (
+                            <div key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2 bg-indigo-50 rounded text-indigo-600">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-gray-900">
+                                                {/* @ts-ignore */}
+                                                {invoice.number || (invoice.poNumber ? `PO #${invoice.poNumber}` : "Invoice")}
+                                            </p>
+                                            <div className="flex gap-2 text-sm text-gray-500 items-center">
+                                                <span>{format(new Date(invoice.createdAt), "MMM d, yyyy")}</span>
+                                                <span>•</span>
+                                                <span className="font-semibold text-gray-900">${invoice.total.toFixed(2)}</span>
+                                                {amountPaid > 0 && invoice.status !== 'PAID' && (
+                                                    <>
+                                                        <span className="text-gray-400">|</span>
+                                                        <span className="text-orange-600 font-medium text-xs">Left: ${balance.toFixed(2)}</span>
+                                                    </>
+                                                )}
+                                                {/* @ts-ignore */}
+                                                {invoice.division && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="text-xs uppercase tracking-wider font-semibold">
+                                                            {/* @ts-ignore */}
+                                                            {invoice.division === "EXTERMINATION" ? "EXO" : "ENT"}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
+                                    <div className="flex items-center gap-4">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold
                                         ${invoice.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                                            invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
-                                                invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-gray-100 text-gray-800'}`}>
-                                        {invoice.status}
-                                    </span>
-                                    <Button variant="outline" size="sm" onClick={() => handleEdit(invoice)}>
-                                        Edit
-                                    </Button>
-                                    {(invoice.status === 'SENT' || invoice.status === 'OVERDUE') && (
-                                        <Button
-                                            onClick={async () => {
-                                                const toastId = toast.loading("Redirecting to checkout...");
-                                                try {
-                                                    const result = await createCheckoutSession(invoice.id);
-                                                    if (result.url) {
-                                                        window.location.href = result.url;
-                                                    } else {
-                                                        toast.error(result.error || "Failed to create checkout session", { id: toastId });
-                                                    }
-                                                } catch (error) {
-                                                    toast.error("An error occurred", { id: toastId });
-                                                }
-                                            }}
-                                            className="bg-green-600 hover:bg-green-700 text-white"
-                                            size="sm"
-                                        >
-                                            Pay Now
+                                                invoice.status === 'PARTIALLY_PAID' ? 'bg-orange-100 text-orange-800' :
+                                                    invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                                                        invoice.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-800'}`}>
+                                            {invoice.status.replace('_', ' ')}
+                                        </span>
+                                        <Button variant="outline" size="sm" onClick={() => handleEdit(invoice)}>
+                                            Edit
                                         </Button>
-                                    )}
+
+                                        {invoice.status !== 'PAID' && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => openPaymentModal(invoice, "PAYMENT")}
+                                                className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                                            >
+                                                <DollarSign className="w-4 h-4 mr-1" />
+                                                Pay
+                                            </Button>
+                                        )}
+
+                                        {(invoice.status === 'PAID' || invoice.status === 'PARTIALLY_PAID') && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => openPaymentModal(invoice, "REFUND")}
+                                                className="text-gray-500 hover:text-gray-700"
+                                                title="Refund / Adjust"
+                                            >
+                                                <RefreshCcw className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     {filteredInvoices.length === 0 && (
                         <div className="p-8 text-center text-gray-500 italic">
                             No invoices found for this selection.
@@ -183,6 +200,20 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
                     )}
                 </div>
             </div>
+
+            {paymentInvoice && (
+                <PaymentDialog
+                    isOpen={paymentModalOpen}
+                    onClose={() => {
+                        setPaymentModalOpen(false);
+                        setPaymentInvoice(null);
+                    }}
+                    invoiceId={paymentInvoice.id}
+                    total={paymentInvoice.total}
+                    amountPaid={(paymentInvoice as any).amountPaid || 0}
+                    type={paymentModalType}
+                />
+            )}
         </div>
     );
 }

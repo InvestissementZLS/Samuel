@@ -8,16 +8,19 @@ export async function getDashboardStats() {
     const start = startOfYear(now);
     const end = endOfYear(now);
 
-    // 1. Total Revenue (Paid Invoices)
-    const paidInvoices = await prisma.invoice.findMany({
+    // 1. Total Revenue (Paid + Partial)
+    const revenueInvoices = await prisma.invoice.findMany({
         where: {
-            status: 'PAID',
+            OR: [
+                { status: 'PAID' },
+                { status: 'PARTIALLY_PAID' }
+            ]
         },
         select: {
-            total: true,
+            amountPaid: true,
         },
     });
-    const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.total, 0);
+    const totalRevenue = revenueInvoices.reduce((sum, inv) => sum + inv.amountPaid, 0);
 
     // 2. Job Counts
     const totalJobs = await prisma.job.count();
@@ -31,15 +34,18 @@ export async function getDashboardStats() {
     // 3. Revenue by Month (Current Year)
     const invoicesThisYear = await prisma.invoice.findMany({
         where: {
-            status: 'PAID',
-            createdAt: {
+            OR: [
+                { status: 'PAID' },
+                { status: 'PARTIALLY_PAID' }
+            ],
+            updatedAt: { // Use updatedAt for payment timing proxy, or issuedDate? Ideally Transaction date, but for now updatedAt/createdAt optimization
                 gte: start,
                 lte: end,
             },
         },
         select: {
-            total: true,
-            createdAt: true,
+            amountPaid: true,
+            updatedAt: true, // Using updatedAt as proxy for when it was paid/modified
         },
     });
 
@@ -51,9 +57,9 @@ export async function getDashboardStats() {
     }
 
     invoicesThisYear.forEach((inv) => {
-        const month = format(inv.createdAt, 'MMM');
+        const month = format(inv.updatedAt, 'MMM');
         const current = revenueByMonthMap.get(month) || 0;
-        revenueByMonthMap.set(month, current + inv.total);
+        revenueByMonthMap.set(month, current + inv.amountPaid);
     });
 
     const revenueByMonth = Array.from(revenueByMonthMap.entries()).map(([month, amount]) => ({

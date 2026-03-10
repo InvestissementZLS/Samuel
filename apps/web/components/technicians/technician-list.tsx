@@ -10,9 +10,18 @@ interface TechnicianListProps {
     canCreate?: boolean;
 }
 
+import { useDivision } from "@/components/providers/division-provider";
+
 export function TechnicianList({ technicians, canCreate = false }: TechnicianListProps) {
+    const { division } = useDivision();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null);
+
+    const filteredTechnicians = technicians.filter(tech => {
+        // @ts-ignore
+        const techDivisions = tech.divisions || ["EXTERMINATION"];
+        return techDivisions.includes(division);
+    });
 
     const handleAdd = () => {
         setSelectedTechnician(null);
@@ -40,7 +49,7 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
             </div>
 
             <div className="bg-white shadow rounded-lg overflow-hidden border">
-                {technicians.length > 0 ? (
+                {filteredTechnicians.length > 0 ? (
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -59,7 +68,7 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {technicians.map((tech) => (
+                            {filteredTechnicians.map((tech) => (
                                 <tr key={tech.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">{tech.name || "N/A"}</div>

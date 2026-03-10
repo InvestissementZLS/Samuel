@@ -19,9 +19,10 @@ type JobWithDetails = Job & {
 interface JobListProps {
     jobs: JobWithDetails[];
     services?: Product[];
+    showHeader?: boolean;
 }
 
-export function JobList({ jobs, services = [] }: JobListProps) {
+export function JobList({ jobs, services = [], showHeader = false }: JobListProps) {
     const { t } = useLanguage();
     const { division } = useDivision();
     const [filteredData, setFilteredData] = useState<JobWithDetails[]>(jobs);
@@ -45,6 +46,17 @@ export function JobList({ jobs, services = [] }: JobListProps) {
 
     return (
         <div className="space-y-4">
+            {showHeader && (
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{t.jobs.title}</h1>
+                    <Link
+                        href="/jobs/new"
+                        className="w-full sm:w-auto bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-center text-sm font-medium"
+                    >
+                        + {t.jobs.createWorkOrder}
+                    </Link>
+                </div>
+            )}
             <JobFilters
                 jobs={jobs}
                 onFilterChange={setFilteredData}

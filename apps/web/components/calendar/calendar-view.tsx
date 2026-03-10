@@ -14,6 +14,7 @@ import { CalendarSidebar } from "./calendar-sidebar";
 import { localizer } from "./localizer";
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from "date-fns";
 import { useLanguage } from "@/components/providers/language-provider";
+import { PanelRight, PanelRightClose, Plus, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -45,7 +46,6 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
 
     // Filters
     const [selectedTechId, setSelectedTechId] = useState<string>("all");
-    const [selectedStatus, setSelectedStatus] = useState<string>("all");
     const [isMobile, setIsMobile] = useState(false);
     const [showSidebar, setShowSidebar] = useState(true);
 
@@ -53,16 +53,14 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
         const checkMobile = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
-            // Default Sidebar visibility based on screen size
             if (mobile) {
                 setShowSidebar(false);
+                // Use Day view on mobile for better readability
+                if (view === Views.MONTH || view === Views.WEEK) {
+                    setView(Views.DAY);
+                }
             } else {
                 setShowSidebar(true);
-            }
-
-            // Force Agenda view on mobile start if not already set
-            if (mobile && view !== Views.AGENDA && view !== Views.DAY) {
-                setView(Views.AGENDA);
             }
         };
         checkMobile();
@@ -72,8 +70,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
 
     const filteredJobs = jobs.filter((job) => {
         const techMatch = selectedTechId === "all" || job.technicians.some(t => t.id === selectedTechId) || (selectedTechId === "" && job.technicians.length === 0);
-        const statusMatch = selectedStatus === "all" || job.status === selectedStatus;
-        return techMatch && statusMatch;
+        return techMatch;
     });
 
     const unassignedJobs = jobs.filter(job => job.technicians.length === 0 && job.status !== 'COMPLETED' && job.status !== 'CANCELLED');
@@ -95,7 +92,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
         } else {
             job.technicians.forEach(tech => {
                 jobEvents.push({
-                    id: `${job.id}-${tech.id}`, // Unique ID for the event instance
+                    id: `${job.id}-${tech.id}`,
                     title: `${job.property.client.name} - ${job.property.address}`,
                     start: new Date(job.scheduledAt),
                     end: job.scheduledEndAt
@@ -117,14 +114,12 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
 
     const handleSelectEvent = (event: any) => {
         setSelectedJob(event.resource);
-        // Don't open dialog, sidebar will show details
+        if (isMobile) setShowSidebar(true);
     };
 
     const handleEventDrop = async ({ event, start, end, resourceId }: any) => {
         const job = event.resource as Job;
         const techId = resourceId === "unassigned" ? undefined : resourceId;
-
-        // Optimistic update (optional, for now just reload)
         try {
             await updateCalendarJob(job.id, {
                 scheduledAt: start,
@@ -142,7 +137,6 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
             toast.error("Please select a technician to optimize");
             return;
         }
-
         const toastId = toast.loading("Optimizing route...");
         try {
             const result = await optimizeDailyRoute(date, selectedTechId);
@@ -157,142 +151,128 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
     };
 
     const handleNavigate = (action: 'PREV' | 'NEXT' | 'TODAY') => {
-        if (action === 'TODAY') {
-            setDate(new Date());
-            return;
-        }
-
+        if (action === 'TODAY') { setDate(new Date()); return; }
         switch (view) {
-            case Views.MONTH:
-                setDate(action === 'NEXT' ? addMonths(date, 1) : subMonths(date, 1));
-                break;
-            case Views.WEEK:
-                setDate(action === 'NEXT' ? addWeeks(date, 1) : subWeeks(date, 1));
-                break;
-            case Views.DAY:
-                setDate(action === 'NEXT' ? addDays(date, 1) : subDays(date, 1));
-                break;
+            case Views.MONTH: setDate(action === 'NEXT' ? addMonths(date, 1) : subMonths(date, 1)); break;
+            case Views.WEEK: setDate(action === 'NEXT' ? addWeeks(date, 1) : subWeeks(date, 1)); break;
+            case Views.DAY: setDate(action === 'NEXT' ? addDays(date, 1) : subDays(date, 1)); break;
         }
     };
 
     const eventPropGetter = (event: any) => {
         const job = event.resource as Job;
         let className = "";
-
         switch (job.status) {
-            case "SCHEDULED":
-                // Green (Confirm)
-                className = "bg-green-100 border-green-300 text-green-800";
-                break;
-            case "PENDING":
-                // Gray (Unconfirm)
-                className = "bg-gray-100 border-gray-300 text-gray-800";
-                break;
-            case "CANCELLED":
-                // Orange (Cancel)
-                className = "bg-orange-100 border-orange-300 text-orange-800";
-                break;
-            case "IN_PROGRESS":
-                // Yellow (Reschedule/In Progress)
-                className = "bg-yellow-100 border-yellow-300 text-yellow-800";
-                break;
-            case "COMPLETED":
-                // Blue (Completed)
-                className = "bg-blue-100 border-blue-300 text-blue-800";
-                break;
-            default:
-                className = "bg-blue-50 border-blue-200 text-blue-700";
+            case "SCHEDULED": className = "bg-green-100 border-green-300 text-green-800"; break;
+            case "PENDING": className = "bg-gray-100 border-gray-300 text-gray-800"; break;
+            case "CANCELLED": className = "bg-orange-100 border-orange-300 text-orange-800"; break;
+            case "IN_PROGRESS": className = "bg-yellow-100 border-yellow-300 text-yellow-800"; break;
+            case "COMPLETED": className = "bg-blue-100 border-blue-300 text-blue-800"; break;
+            default: className = "bg-blue-50 border-blue-200 text-blue-700";
         }
-
         return { className };
     };
 
-    useEffect(() => {
-        console.log("CalendarView jobs:", jobs);
-        console.log("CalendarView events:", events);
-    }, [jobs, events]);
+    // Format the header date label based on view
+    const dateLabel = (() => {
+        switch (view) {
+            case Views.DAY: return format(date, 'EEEE, MMM d yyyy');
+            case Views.WEEK: return format(date, "'Week of' MMM d, yyyy");
+            default: return format(date, 'MMMM yyyy');
+        }
+    })();
 
     return (
-        <div className="h-screen flex flex-col bg-white text-gray-900">
-            {/* Toolbar */}
-            {/* Toolbar */}
-            <div className="p-4 border-b flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white">
-                <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full xl:w-auto">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-bold text-black min-w-[120px]">{t.calendar.title}</h2>
-                        <div className="flex items-center border rounded-md bg-white shadow-sm">
-                            <button
-                                onClick={() => handleNavigate('PREV')}
-                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 border-r"
-                                title={t.calendar.prev}
-                            >
-                                &lt;
-                            </button>
-                            <button
-                                onClick={() => handleNavigate('TODAY')}
-                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700 text-sm font-medium border-r"
-                            >
-                                {t.calendar.today}
-                            </button>
-                            <button
-                                onClick={() => handleNavigate('NEXT')}
-                                className="px-3 py-1.5 hover:bg-gray-50 text-gray-700"
-                                title={t.calendar.next}
-                            >
-                                &gt;
-                            </button>
-                        </div>
+        <div className="h-screen flex flex-col bg-white text-gray-900 overflow-hidden">
+            {/* ─── Toolbar ─── */}
+            <div className="flex-shrink-0 border-b bg-white px-3 py-2 md:px-4 md:py-3">
 
-                        <h3 className="text-lg font-semibold text-gray-900 min-w-[180px] hidden sm:block">
-                            {format(date, 'MMMM yyyy')}
-                        </h3>
+                {/* Row 1: Title + nav + view switcher + sidebar toggle */}
+                <div className="flex items-center gap-2 flex-wrap">
 
-                        {/* Mobile Sidebar Toggle */}
-                        {isMobile && (
-                            <button
-                                onClick={() => setShowSidebar(!showSidebar)}
-                                className={`px-2 py-1.5 rounded-md border ${showSidebar ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-gray-200 text-gray-700'}`}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M15 3v18" /></svg>
-                            </button>
-                        )}
+                    {/* Page title */}
+                    <h2 className="text-lg md:text-2xl font-bold text-black mr-1 hidden sm:block">
+                        {t.calendar.title}
+                    </h2>
+
+                    {/* Prev / Today / Next */}
+                    <div className="flex items-center border rounded-md bg-white shadow-sm text-sm">
+                        <button
+                            onClick={() => handleNavigate('PREV')}
+                            className="px-2.5 py-1.5 hover:bg-gray-50 text-gray-700 border-r"
+                            aria-label="Previous"
+                        >
+                            <ChevronLeft size={15} />
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('TODAY')}
+                            className="px-2.5 py-1.5 hover:bg-gray-50 text-gray-700 font-medium border-r whitespace-nowrap"
+                        >
+                            {t.calendar.today}
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('NEXT')}
+                            className="px-2.5 py-1.5 hover:bg-gray-50 text-gray-700"
+                            aria-label="Next"
+                        >
+                            <ChevronRight size={15} />
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg overflow-x-auto max-w-full">
+                    {/* Date label */}
+                    <span className="text-sm md:text-base font-semibold text-gray-700 min-w-[130px]">
+                        {dateLabel}
+                    </span>
+
+                    {/* Spacer */}
+                    <div className="flex-1" />
+
+                    {/* View switcher */}
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
                         <button
                             onClick={() => setView(Views.MONTH)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            className={`px-2.5 py-1 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${view === Views.MONTH ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             {t.calendar.month}
                         </button>
                         {!isMobile && (
                             <button
                                 onClick={() => setView(Views.WEEK)}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                                className={`px-2.5 py-1 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${view === Views.WEEK ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                             >
                                 {t.calendar.week}
                             </button>
                         )}
                         <button
                             onClick={() => setView(Views.DAY)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            className={`px-2.5 py-1 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${view === Views.DAY ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             {t.calendar.day}
                         </button>
                         <button
                             onClick={() => setView(Views.AGENDA)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${view === Views.AGENDA ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                            className={`px-2.5 py-1 rounded-md text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${view === Views.AGENDA ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
                         >
                             List
                         </button>
                     </div>
+
+                    {/* Sidebar toggle (visible on all sizes) */}
+                    <button
+                        onClick={() => setShowSidebar(!showSidebar)}
+                        className={`p-1.5 rounded-md border transition-colors ${showSidebar ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-gray-200 text-gray-600 hover:text-gray-900'}`}
+                        title={showSidebar ? "Hide panel" : "Show panel"}
+                    >
+                        {showSidebar ? <PanelRightClose size={18} /> : <PanelRight size={18} />}
+                    </button>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                {/* Row 2: Filters + action buttons */}
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <select
                         value={selectedTechId}
                         onChange={(e) => setSelectedTechId(e.target.value)}
-                        className="border rounded-md px-3 py-1.5 text-sm bg-white text-gray-900 w-full sm:w-auto"
+                        className="border rounded-md px-2.5 py-1.5 text-sm bg-white text-gray-900 flex-1 min-w-[140px] max-w-xs"
                     >
                         <option value="all">All Technicians</option>
                         {technicians.map(tech => (
@@ -300,39 +280,38 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                         ))}
                     </select>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleOptimize}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
-                        >
-                            Optimize
-                        </button>
+                    <button
+                        onClick={handleOptimize}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                    >
+                        <Zap size={14} />
+                        <span className="hidden sm:inline">Optimize</span>
+                    </button>
 
-                        <button
-                            onClick={() => {
-                                setSelectedJob(null);
-                                setInitialDate(new Date());
-                                setIsDialogOpen(true);
-                            }}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
-                        >
-                            + New Job
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => { setSelectedJob(null); setInitialDate(new Date()); setIsDialogOpen(true); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+                    >
+                        <Plus size={14} />
+                        <span className="hidden sm:inline">New Job</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex overflow-hidden">
+            {/* ─── Main Content: Calendar + Sidebar ─── */}
+            <div className="flex-1 flex overflow-hidden relative">
                 <style jsx global>{`
                     .rbc-calendar { color: #000000 !important; }
                     .rbc-header { color: #000000 !important; font-weight: 600; }
                     .rbc-off-range-bg { background-color: #f9fafb !important; }
                     .rbc-off-range { color: #9ca3af !important; }
-                    .rbc-today { background-color: #f3f4f6 !important; }
+                    .rbc-today { background-color: #eff6ff !important; }
                     .rbc-event { border-radius: 4px; }
+                    .rbc-agenda-view table { width: 100%; }
                 `}</style>
-                <div className="flex-1 relative">
+
+                {/* Calendar grid */}
+                <div className="flex-1 min-w-0 overflow-hidden">
                     <DnDCalendar
                         toolbar={false}
                         localizer={localizer}
@@ -372,29 +351,40 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                     />
                 </div>
 
-                {/* Sidebar */}
+                {/* Sidebar — desktop: inline panel; mobile: slide-over overlay */}
                 {showSidebar && (
-                    <div className={`${isMobile ? 'absolute inset-0 z-10 bg-white' : ''} h-full`}>
-                        <CalendarSidebar
-                            date={date}
-                            setDate={(d) => {
-                                setDate(d);
-                                if (isMobile) setShowSidebar(false); // Close on select
-                            }}
-                            selectedJob={selectedJob}
-                            onCloseJobDetails={() => setSelectedJob(null)}
-                            unassignedJobs={unassignedJobs}
-                            jobs={filteredJobs}
-                        />
+                    <>
+                        {/* Mobile overlay backdrop */}
                         {isMobile && (
-                            <button
+                            <div
+                                className="absolute inset-0 bg-black/40 z-20"
                                 onClick={() => setShowSidebar(false)}
-                                className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                            </button>
+                            />
                         )}
-                    </div>
+
+                        {/* Sidebar panel */}
+                        <div
+                            className={`
+                                flex-shrink-0 h-full z-30
+                                ${isMobile
+                                    ? 'absolute right-0 top-0 bottom-0 w-[85vw] max-w-[300px] shadow-2xl'
+                                    : 'w-[240px] xl:w-[270px]'
+                                }
+                            `}
+                        >
+                            <CalendarSidebar
+                                date={date}
+                                setDate={(d) => {
+                                    setDate(d);
+                                    if (isMobile) setShowSidebar(false);
+                                }}
+                                selectedJob={selectedJob}
+                                onCloseJobDetails={() => setSelectedJob(null)}
+                                unassignedJobs={unassignedJobs}
+                                jobs={filteredJobs}
+                            />
+                        </div>
+                    </>
                 )}
             </div>
 

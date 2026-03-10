@@ -14,6 +14,7 @@ interface ClientListProps {
 import { useLanguage } from "@/components/providers/language-provider";
 import { useRouter } from "next/navigation";
 import { useDivision } from "@/components/providers/division-provider";
+import { useUser } from "@/components/providers/user-provider";
 
 export function ClientList({ clients }: ClientListProps) {
     const { t } = useLanguage();
@@ -21,6 +22,8 @@ export function ClientList({ clients }: ClientListProps) {
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const router = useRouter();
     const { division } = useDivision();
+    const { user } = useUser();
+
 
     const filteredClients = clients.filter(client => {
         // @ts-ignore

@@ -9,6 +9,8 @@ import { Trash2, Plus } from "lucide-react";
 import { UnitCostCalculator } from "./unit-cost-calculator";
 import { useLanguage } from "@/components/providers/language-provider";
 
+import { useCurrentUser } from "@/hooks/use-current-user";
+
 interface ProductDialogProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,6 +20,18 @@ interface ProductDialogProps {
 
 export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDialogProps) {
     const { t, language } = useLanguage();
+    const { checkPermission } = useCurrentUser();
+
+    const allDivisions = [
+        { value: "EXTERMINATION", label: t.divisions.extermination },
+        { value: "ENTREPRISES", label: t.divisions.entreprises },
+        { value: "RENOVATION", label: "Rénovation Esthéban" }
+    ];
+
+    const allowedDivisions = allDivisions.filter(d =>
+        // @ts-ignore
+        checkPermission(d.value).hasDivisionAccess
+    );
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [usageDescription, setUsageDescription] = useState("");
@@ -27,7 +41,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [stock, setStock] = useState(0);
     const [price, setPrice] = useState(0);
     const [cost, setCost] = useState(0);
-    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES">("EXTERMINATION");
+    const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">("EXTERMINATION");
     const [type, setType] = useState<"CONSUMABLE" | "EQUIPMENT" | "SERVICE">("CONSUMABLE");
     const [isCommissionEligible, setIsCommissionEligible] = useState(false);
     const [warrantyInfo, setWarrantyInfo] = useState("");
@@ -54,6 +68,8 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
         order: number;
         seasonality: "ALL_YEAR" | "SPRING_ONLY";
         isWeatherDependent: boolean;
+        applyToRecurring?: boolean;
+        warrantyExtensionMonths?: number;
     }[]>([]);
     const [availableServices, setAvailableServices] = useState<{ id: string; name: string }[]>([]);
 
@@ -64,7 +80,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [loading, setLoading] = useState(false);
 
     // Warranty Templates
-    const [warrantyTemplates, setWarrantyTemplates] = useState<{ id: string, name: string, text: string }[]>([]);
+    const [warrantyTemplates, setWarrantyTemplates] = useState<{ id: string, name: string, text: string, durationMonths?: number }[]>([]);
 
     useEffect(() => {
         if (type === 'SERVICE') {
@@ -138,7 +154,8 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                 delayDays: item.delayDays || 0,
                                 order: item.order || 1,
                                 seasonality: item.seasonality || "ALL_YEAR",
-                                isWeatherDependent: item.isWeatherDependent || false
+                                isWeatherDependent: item.isWeatherDependent || false,
+                                applyToRecurring: item.applyToRecurring || false
                             })));
                         } else if (details.includedServices) {
                             // Legacy mapping just in case or empty
@@ -169,7 +186,13 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 setStock(0);
                 setPrice(0);
                 setCost(0);
-                setDivision("EXTERMINATION");
+
+                // Set default division to first allowed division if current default is not allowed
+                // @ts-ignore
+                const defaultDiv = allowedDivisions.length > 0 ? allowedDivisions[0].value : "EXTERMINATION";
+                // @ts-ignore
+                setDivision(defaultDiv);
+
                 setType(fixedType || "CONSUMABLE");
                 setIsCommissionEligible(false);
                 setWarrantyInfo("");
@@ -265,7 +288,13 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={product ? t.productDialog.editProduct : t.productDialog.newProduct}
+            title={
+                product
+                    // @ts-ignore
+                    ? (type === 'SERVICE' ? t.productDialog.editService : t.productDialog.editProduct)
+                    // @ts-ignore
+                    : (type === 'SERVICE' ? t.productDialog.newService : t.productDialog.newProduct)
+            }
             maxWidth="max-w-4xl"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -274,11 +303,12 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                         <label className="block text-sm font-medium mb-1 text-foreground">{t.products.division}</label>
                         <select
                             value={division}
-                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES")}
+                            onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION")}
                             className="w-full rounded-md border p-2 bg-background text-foreground"
                         >
-                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
-                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            {allowedDivisions.map(d => (
+                                <option key={d.value} value={d.value}>{d.label}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
@@ -332,7 +362,11 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                     className="text-xs border rounded p-1 bg-background text-foreground"
                                     onChange={(e) => {
                                         const t = warrantyTemplates.find(w => w.id === e.target.value);
-                                        if (t) setWarrantyInfo(t.text);
+                                        if (t) {
+                                            setWarrantyInfo(t.text);
+                                            // @ts-ignore
+                                            if (t.durationMonths) setWarrantyMonths(t.durationMonths);
+                                        }
                                     }}
                                     defaultValue=""
                                 >
@@ -350,6 +384,23 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                             rows={3}
                             placeholder={t.productDialog.warrantyPlaceholder}
                         />
+                    </div>
+                )}
+
+                {type === 'SERVICE' && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-foreground">{t.productDialog.warrantyMonths || "Warranty (Months)"}</label>
+                            <input
+                                type="number"
+                                value={warrantyMonths || ""}
+                                onChange={(e) => setWarrantyMonths(e.target.value ? Number(e.target.value) : undefined)}
+                                className="w-full rounded-md border p-2 bg-background text-foreground"
+                                placeholder="e.g. 12"
+                                min="0"
+                            />
+                        </div>
+                        {/* Empty placeholder to align grid if needed, or remove verify grid below */}
                     </div>
                 )}
 
@@ -513,7 +564,9 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                         min="2"
                                         placeholder="e.g. 3"
                                     />
-                                    <p className="text-[10px] text-gray-500 mt-1">1 Initial + {numberOfVisits - 1} Follow-ups</p>
+                                    <p className="text-[10px] text-gray-500 mt-1">
+                                        {t.productDialog.warrantyHelperText || "Warranty starts when the invoice is sent (Start of Contract)."}
+                                    </p>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">{t.productDialog.interval}</label>
@@ -643,6 +696,22 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                                                 <option value="SPRING_ONLY">Spring Only</option>
                                                             </select>
                                                         </div>
+                                                        <div className="flex items-center pt-4 sm:pt-0">
+                                                            <label className="flex items-center gap-1 cursor-pointer" title="Add this to ALL recurring visits?">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={step.applyToRecurring || false}
+                                                                    onChange={e => {
+                                                                        const newList = [...includedServices];
+                                                                        // @ts-ignore
+                                                                        newList[index].applyToRecurring = e.target.checked;
+                                                                        setIncludedServices(newList);
+                                                                    }}
+                                                                    className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                                />
+                                                                <span className="text-[10px] text-gray-600 font-medium">Recurring?</span>
+                                                            </label>
+                                                        </div>
                                                     </div>
 
                                                     <button
@@ -688,7 +757,8 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                                             delayDays: includedServices.length === 0 ? 0 : 14,
                                                             order: includedServices.length + 1,
                                                             seasonality: "ALL_YEAR",
-                                                            isWeatherDependent: false
+                                                            isWeatherDependent: false,
+                                                            applyToRecurring: false
                                                         }
                                                     ]);
                                                     select.value = "";

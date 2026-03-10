@@ -2,12 +2,14 @@
 
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
 import { createTechnician, updateTechnician, deleteTechnician } from "@/app/actions/technician-actions";
 
 import { User, Division, Role, UserDivisionAccess } from "@prisma/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useDivision } from "@/components/providers/division-provider";
 import { Plus, Trash, Shield } from "lucide-react";
 
 interface TechnicianDialogProps {
@@ -17,6 +19,7 @@ interface TechnicianDialogProps {
 }
 
 export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDialogProps) {
+    const router = useRouter();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [internalHourlyRate, setInternalHourlyRate] = useState(0);
@@ -35,6 +38,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
     const [loading, setLoading] = useState(false);
 
     const { user: currentUser } = useCurrentUser();
+    const { division } = useDivision();
     const isMaster = currentUser?.canManageDivisions;
 
     useEffect(() => {
@@ -82,16 +86,29 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                 setCommissionPercentageSupervision(0);
                 setCommissionPercentageSupervision(0);
                 setCanManageCommissions(false);
-                setAccesses([]);
-                setDivisions(["EXTERMINATION"]);
+
+                // Initialize with current division
+                setAccesses([{
+                    division: division,
+                    role: "TECHNICIAN",
+                    canViewReports: false,
+                    canManageTimesheets: false,
+                    canManageExpenses: false,
+                    canManageUsers: false,
+                    canManageCommissions: false
+                }]);
+                setDivisions([division]);
                 setIsActive(true);
             }
         }
-    }, [isOpen, technician]);
+    }, [isOpen, technician, division]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        // Derive simple divisions list from the granular accesses to ensure they match
+        const activeDivisions = accesses.map(a => a.division!) as ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
 
         try {
             if (technician) {
@@ -105,7 +122,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     // Pass legacy global flags as false/defaults or derived from first access
                     // Ideally API should handle this translation
                     password: password || undefined,
-                    divisions,
+                    divisions: activeDivisions,
                     accesses: accesses, // New field
                     isActive,
                 });
@@ -119,12 +136,13 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     commissionPercentageSales,
                     commissionPercentageSupervision,
                     canManageCommissions,
-                    divisions,
+                    divisions: activeDivisions,
                     accesses: accesses, // New field
                     isActive
                 });
                 toast.success("Technician created successfully");
             }
+            router.refresh();
             onClose();
         } catch (error) {
             console.error("Failed to save technician:", error);
@@ -250,7 +268,7 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
                     <label htmlFor="isActive" className="text-sm font-medium text-foreground">
-                        Active (Visible to everyone)
+                        Active (Account Enabled)
                     </label>
                 </div>
 

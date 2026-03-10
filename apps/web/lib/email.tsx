@@ -14,7 +14,7 @@ const resendExtermination = process.env.RESEND_API_KEY_EXTERMINATION
     ? new Resend(process.env.RESEND_API_KEY_EXTERMINATION)
     : null;
 
-function getEmailConfig(division: "EXTERMINATION" | "ENTREPRISES" | "RENOVATION" | string) {
+function getEmailConfig(division: string) {
     if (division === "EXTERMINATION" && resendExtermination) {
         return {
             resend: resendExtermination,
@@ -25,14 +25,14 @@ function getEmailConfig(division: "EXTERMINATION" | "ENTREPRISES" | "RENOVATION"
     if (division === "RENOVATION") {
         return {
             resend: resendEntreprises, // Share API key with Entreprises for now
-            from: "Rénovation Esthéban <extermination@praxiszls.com>"
+            from: "Rénovation Esthéban <renovationestheban@praxiszls.com>"
         };
     }
 
     // Default to Entreprises
     return {
         resend: resendEntreprises,
-        from: "Les Entreprises ZLS <extermination@praxiszls.com>"
+        from: "Les Entreprises ZLS <Lesentrepriseszls@praxiszls.com>"
     };
 }
 

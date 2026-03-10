@@ -7,8 +7,37 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { StockTransferModal } from './stock-transfer-modal';
 import { TechnicianInventoryView } from './technician-inventory-view';
+import { useDivision } from '@/components/providers/division-provider';
+import { useLanguage } from '@/components/providers/language-provider';
+import { Package, Wrench, ClipboardList, Warehouse, Users, ArrowLeftRight } from 'lucide-react';
+
+function EmptyState({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+    return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-gray-400">
+                {icon}
+            </div>
+            <h3 className="text-base font-semibold text-gray-700 mb-1">{title}</h3>
+            <p className="text-sm text-gray-400 max-w-xs">{description}</p>
+        </div>
+    );
+}
+
+function SkeletonRow({ cols }: { cols: number }) {
+    return (
+        <tr className="animate-pulse">
+            {Array.from({ length: cols }).map((_, i) => (
+                <td key={i} className="px-6 py-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                </td>
+            ))}
+        </tr>
+    );
+}
 
 export function InventoryDashboard() {
+    const { division } = useDivision();
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'WAREHOUSE' | 'TECHNICIANS' | 'AUDITS'>('WAREHOUSE');
     const [inventory, setInventory] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
@@ -20,18 +49,18 @@ export function InventoryDashboard() {
 
     useEffect(() => {
         loadData();
-    }, [activeTab, selectedTech]);
+    }, [activeTab, selectedTech, division]);
 
     const loadData = async () => {
         setLoading(true);
         try {
             if (activeTab === 'WAREHOUSE') {
-                const res = await getInventory(undefined); // Warehouse
+                const res = await getInventory(undefined);
                 if (res.success) setInventory(res.data || []);
                 const prods = await getAllProducts();
                 setProducts(prods);
             } else if (activeTab === 'TECHNICIANS') {
-                const techs = await getTechnicians();
+                const techs = await getTechnicians(division);
                 setTechnicians(techs);
                 if (selectedTech) {
                     const res = await getInventory(selectedTech);
@@ -45,15 +74,14 @@ export function InventoryDashboard() {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load data");
+            toast.error(t.common.loading + ' Error');
         } finally {
             setLoading(false);
         }
     };
 
     const handleReconcile = async (auditId: string, action: 'APPROVE' | 'REJECT') => {
-        if (!confirm(`Are you sure you want to ${action.toLowerCase()} this audit?`)) return;
-
+        if (!confirm(`${action === 'APPROVE' ? t.inventory.confirmApprove : t.inventory.confirmReject}`)) return;
         const res = await reconcileAudit(auditId, action);
         if (res.success) {
             toast.success(res.message);
@@ -63,66 +91,96 @@ export function InventoryDashboard() {
         }
     };
 
+    const consumables = products.filter(p => p.type === 'CONSUMABLE' && p.division === division);
+    const equipment = products.filter(p => p.type === 'EQUIPMENT' && p.division === division);
+
+    const tabs = [
+        { key: 'WAREHOUSE', label: t.inventory.warehouse, icon: <Warehouse className="w-4 h-4" /> },
+        { key: 'TECHNICIANS', label: t.inventory.technicians, icon: <Users className="w-4 h-4" /> },
+        { key: 'AUDITS', label: t.inventory.audits, icon: <ClipboardList className="w-4 h-4" /> },
+    ];
+
     return (
         <div className="p-6 space-y-6">
+            {/* Header */}
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Inventory Management</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t.inventory.title}</h1>
                 <button
                     onClick={() => setIsTransferModalOpen(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                 >
-                    Transfer Stock
+                    <ArrowLeftRight className="w-4 h-4" />
+                    {t.inventory.transferStock}
                 </button>
             </div>
 
-            <div className="flex space-x-4 border-b">
-                <button
-                    className={`pb-2 px-4 ${activeTab === 'WAREHOUSE' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
-                    onClick={() => setActiveTab('WAREHOUSE')}
-                >
-                    Warehouse
-                </button>
-                <button
-                    className={`pb-2 px-4 ${activeTab === 'TECHNICIANS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
-                    onClick={() => setActiveTab('TECHNICIANS')}
-                >
-                    Technicians
-                </button>
-                <button
-                    className={`pb-2 px-4 ${activeTab === 'AUDITS' ? 'border-b-2 border-blue-600 font-medium' : 'text-gray-700'}`}
-                    onClick={() => setActiveTab('AUDITS')}
-                >
-                    Audits & Discrepancies
-                </button>
+            {/* Tabs */}
+            <div className="flex space-x-1 border-b border-gray-200">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.key}
+                        className={`flex items-center gap-2 pb-3 px-4 text-sm font-medium transition-colors ${activeTab === tab.key
+                            ? 'border-b-2 border-indigo-600 text-indigo-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        onClick={() => setActiveTab(tab.key as any)}
+                    >
+                        {tab.icon}
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {loading && <div className="text-gray-500">Loading...</div>}
-
-            {!loading && activeTab === 'WAREHOUSE' && (
+            {/* WAREHOUSE TAB */}
+            {activeTab === 'WAREHOUSE' && (
                 <div className="space-y-8">
                     {/* Consumables */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">Consumables</h3>
-                        <div className="bg-white rounded-lg shadow overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
+                        <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <Package className="w-4 h-4 text-blue-500" />
+                            {t.products.consumables}
+                        </h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <table className="min-w-full divide-y divide-gray-100">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse Stock</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.products.name}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.inventory.warehouseStock}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.products.unit}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {products.filter(p => p.type === 'CONSUMABLE').map((product) => {
-                                        const item = inventory.find(i => i.productId === product.id);
-                                        return (
-                                            <tr key={product.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">{item?.quantity || 0}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.unit}</td>
-                                            </tr>
-                                        );
-                                    })}
+                                <tbody className="bg-white divide-y divide-gray-100">
+                                    {loading ? (
+                                        Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} cols={3} />)
+                                    ) : consumables.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={3}>
+                                                <EmptyState
+                                                    icon={<Package className="w-8 h-8" />}
+                                                    title={t.inventory.noConsumables}
+                                                    description={t.inventory.noConsumablesDesc}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        consumables.map((product) => {
+                                            const item = inventory.find(i => i.productId === product.id);
+                                            const qty = item?.quantity ?? 0;
+                                            const isLow = qty === 0;
+                                            return (
+                                                <tr key={product.id} className={isLow ? 'bg-red-50/50' : 'hover:bg-gray-50'}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`text-sm font-bold ${isLow ? 'text-red-600' : 'text-gray-900'}`}>
+                                                            {qty}
+                                                            {isLow && <span className="ml-2 text-xs font-normal text-red-500 bg-red-100 px-1.5 py-0.5 rounded">{t.inventory.outOfStock}</span>}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.unit}</td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -130,29 +188,48 @@ export function InventoryDashboard() {
 
                     {/* Equipment */}
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">Equipment (Tools & Machines)</h3>
-                        <div className="bg-white rounded-lg shadow overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
+                        <h3 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <Wrench className="w-4 h-4 text-purple-500" />
+                            {t.products.equipment}
+                        </h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                            <table className="min-w-full divide-y divide-gray-100">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse Stock</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.products.name}</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.inventory.warehouseStock}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {products.filter(p => p.type === 'EQUIPMENT').map((product) => {
-                                        const item = inventory.find(i => i.productId === product.id);
-                                        return (
-                                            <tr key={product.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">{item?.quantity || 0}</td>
-                                            </tr>
-                                        );
-                                    })}
-                                    {products.filter(p => p.type === 'EQUIPMENT').length === 0 && (
+                                <tbody className="bg-white divide-y divide-gray-100">
+                                    {loading ? (
+                                        Array.from({ length: 2 }).map((_, i) => <SkeletonRow key={i} cols={2} />)
+                                    ) : equipment.length === 0 ? (
                                         <tr>
-                                            <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">No equipment defined.</td>
+                                            <td colSpan={2}>
+                                                <EmptyState
+                                                    icon={<Wrench className="w-8 h-8" />}
+                                                    title={t.inventory.noEquipment}
+                                                    description={t.inventory.noEquipmentDesc}
+                                                />
+                                            </td>
                                         </tr>
+                                    ) : (
+                                        equipment.map((product) => {
+                                            const item = inventory.find(i => i.productId === product.id);
+                                            const qty = item?.quantity ?? 0;
+                                            const isLow = qty === 0;
+                                            return (
+                                                <tr key={product.id} className={isLow ? 'bg-amber-50/50' : 'hover:bg-gray-50'}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`text-sm font-bold ${isLow ? 'text-amber-600' : 'text-gray-900'}`}>
+                                                            {qty}
+                                                            {isLow && <span className="ml-2 text-xs font-normal text-amber-500 bg-amber-100 px-1.5 py-0.5 rounded">{t.inventory.outOfStock}</span>}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>
@@ -161,97 +238,134 @@ export function InventoryDashboard() {
                 </div>
             )}
 
-            <div className="space-y-4">
-                <select
-                    className="w-full md:w-64 rounded-md border p-2 bg-white text-gray-900"
-                    value={selectedTech}
-                    onChange={(e) => setSelectedTech(e.target.value)}
-                >
-                    <option value="">Select Technician</option>
-                    {technicians.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                </select>
-
-                {selectedTech ? (
-                    <TechnicianInventoryView technicianId={selectedTech} />
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* TECHNICIANS TAB */}
+            {activeTab === 'TECHNICIANS' && (
+                <div className="space-y-4">
+                    <select
+                        className="w-full md:w-64 rounded-lg border border-gray-200 p-2.5 bg-white text-gray-900 text-sm shadow-sm focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
+                        value={selectedTech}
+                        onChange={(e) => setSelectedTech(e.target.value)}
+                    >
+                        <option value="">{t.inventory.selectTech}</option>
                         {technicians.map(t => (
-                            <button
-                                key={t.id}
-                                onClick={() => setSelectedTech(t.id)}
-                                className="p-6 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow text-left group"
-                            >
-                                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600">{t.name}</h3>
-                                <p className="text-sm text-gray-500 mt-1">Click to view inventory</p>
-                            </button>
+                            <option key={t.id} value={t.id}>{t.name}</option>
                         ))}
-                    </div>
-                )}
-            </div>
+                    </select>
+
+                    {selectedTech ? (
+                        <TechnicianInventoryView technicianId={selectedTech} />
+                    ) : technicians.length === 0 && !loading ? (
+                        <EmptyState
+                            icon={<Users className="w-8 h-8" />}
+                            title={t.settings.noTechnicians}
+                            description=""
+                        />
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {loading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="p-6 bg-white border rounded-xl animate-pulse">
+                                        <div className="h-5 w-32 bg-gray-200 rounded mb-2" />
+                                        <div className="h-3 w-24 bg-gray-100 rounded" />
+                                    </div>
+                                ))
+                            ) : (
+                                technicians.map(tech => (
+                                    <button
+                                        key={tech.id}
+                                        onClick={() => setSelectedTech(tech.id)}
+                                        className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all text-left group"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm mb-3">
+                                            {tech.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{tech.name}</h3>
+                                        <p className="text-xs text-gray-400 mt-1">{t.inventory.clickToView}</p>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
             )}
 
-            {!loading && activeTab === 'AUDITS' && (
+            {/* AUDITS TAB */}
+            {activeTab === 'AUDITS' && (
                 <div className="space-y-6">
-                    {audits.map((audit) => (
-                        <div key={audit.id} className="bg-white rounded-lg shadow p-4 border">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-lg font-bold">{audit.technician.name} - {format(new Date(audit.date), 'PPP')}</h3>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${audit.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                        audit.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                        {audit.status}
-                                    </span>
+                    {loading ? (
+                        <div className="space-y-4">
+                            {Array.from({ length: 2 }).map((_, i) => (
+                                <div key={i} className="bg-white rounded-xl border p-6 animate-pulse">
+                                    <div className="h-5 w-48 bg-gray-200 rounded mb-4" />
+                                    <div className="h-24 bg-gray-100 rounded" />
                                 </div>
-                                {audit.status === 'PENDING' && (
-                                    <div className="space-x-2">
-                                        <button
-                                            onClick={() => handleReconcile(audit.id, 'APPROVE')}
-                                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                                        >
-                                            Approve & Update Stock
-                                        </button>
-                                        <button
-                                            onClick={() => handleReconcile(audit.id, 'REJECT')}
-                                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                                        >
-                                            Reject
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Expected</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Actual (Counted)</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Discrepancy</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {audit.items.map((item: any) => {
-                                        const discrepancy = item.actualQuantity - item.expectedQuantity;
-                                        return (
-                                            <tr key={item.id} className={discrepancy !== 0 ? 'bg-red-50' : ''}>
-                                                <td className="px-4 py-2 text-sm text-gray-900">{item.product.name}</td>
-                                                <td className="px-4 py-2 text-sm text-gray-500">{item.expectedQuantity}</td>
-                                                <td className="px-4 py-2 text-sm font-bold text-gray-900">{item.actualQuantity}</td>
-                                                <td className={`px-4 py-2 text-sm font-bold ${discrepancy < 0 ? 'text-red-600' : discrepancy > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                                                    {discrepancy > 0 ? `+${discrepancy}` : discrepancy}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                            ))}
                         </div>
-                    ))}
-                    {audits.length === 0 && <div className="text-gray-500">No audits found.</div>}
+                    ) : audits.length === 0 ? (
+                        <EmptyState
+                            icon={<ClipboardList className="w-8 h-8" />}
+                            title={t.inventory.noAudits}
+                            description={t.inventory.noAuditsDesc}
+                        />
+                    ) : (
+                        audits.map((audit) => (
+                            <div key={audit.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900">{audit.technician.name} — {format(new Date(audit.date), 'PPP')}</h3>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${audit.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                            audit.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                'bg-amber-100 text-amber-800'
+                                            }`}>
+                                            {audit.status}
+                                        </span>
+                                    </div>
+                                    {audit.status === 'PENDING' && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleReconcile(audit.id, 'APPROVE')}
+                                                className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors"
+                                            >
+                                                {t.inventory.approve}
+                                            </button>
+                                            <button
+                                                onClick={() => handleReconcile(audit.id, 'REJECT')}
+                                                className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 transition-colors"
+                                            >
+                                                {t.inventory.reject}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <table className="min-w-full divide-y divide-gray-100">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t.products.name}</th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t.inventory.expected}</th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t.inventory.actual}</th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t.inventory.discrepancy}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-100">
+                                        {audit.items.map((item: any) => {
+                                            const discrepancy = item.actualQuantity - item.expectedQuantity;
+                                            return (
+                                                <tr key={item.id} className={discrepancy !== 0 ? 'bg-red-50/50' : ''}>
+                                                    <td className="px-4 py-2 text-sm text-gray-900">{item.product.name}</td>
+                                                    <td className="px-4 py-2 text-sm text-gray-500">{item.expectedQuantity}</td>
+                                                    <td className="px-4 py-2 text-sm font-bold text-gray-900">{item.actualQuantity}</td>
+                                                    <td className={`px-4 py-2 text-sm font-bold ${discrepancy < 0 ? 'text-red-600' : discrepancy > 0 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                                        {discrepancy > 0 ? `+${discrepancy}` : discrepancy}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ))
+                    )}
                 </div>
             )}
 

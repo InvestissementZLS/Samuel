@@ -11,6 +11,7 @@ import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useDivision } from '@/components/providers/division-provider';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { NotificationBell } from '@/components/layout/notification-bell';
 
 export function Sidebar() {
     const pathname = usePathname();
@@ -62,8 +63,8 @@ export function Sidebar() {
                 {!isCollapsed ? (
                     <>
                         <img
-                            src={division === 'RENOVATION' ? "/renovation-logo.png" : "/praxis-logo.svg"}
-                            alt="PraxisZLS Logo"
+                            src={division === 'RENOVATION' ? "/renovation-logo.png" : division === 'EXTERMINATION' ? "/zls-logo.png" : division === 'ENTREPRISES' ? "/entreprises-logo.jpg" : "/praxis-logo.svg"}
+                            alt="Logo"
                             className="h-16 w-auto object-contain"
                         />
                         <DivisionSwitcher />
@@ -132,10 +133,14 @@ export function Sidebar() {
                                 {t.common.logout}
                             </button>
                         </div>
-                        <LanguageSwitcher />
+                        <div className="flex items-center gap-2">
+                            <NotificationBell />
+                            <LanguageSwitcher />
+                        </div>
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2 items-center">
+                        <NotificationBell />
                         <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold mb-2">AU</div>
                         <button
                             onClick={handleLogout}

@@ -4,16 +4,20 @@ import { useState, useEffect } from "react";
 import { getFinancialStats, getFinancialHistory, FinancialStats } from "@/app/actions/financial-actions";
 import { startOfMonth, endOfMonth, format, subMonths } from "date-fns";
 import { TrendingUp, TrendingDown, DollarSign, PieChart, Activity } from "lucide-react";
+import { useDivision } from "@/components/providers/division-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function FinancialDashboard() {
     const [period, setPeriod] = useState<'CURRENT_MONTH' | 'LAST_MONTH' | 'YTD'>('CURRENT_MONTH');
     const [stats, setStats] = useState<FinancialStats | null>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { division } = useDivision();
+    const { t } = useLanguage();
 
     useEffect(() => {
         loadData();
-    }, [period]);
+    }, [period, division]);
 
     const loadData = async () => {
         setLoading(true);
@@ -30,8 +34,8 @@ export function FinancialDashboard() {
         }
 
         const [data, hist] = await Promise.all([
-            getFinancialStats(start, end),
-            getFinancialHistory()
+            getFinancialStats(start, end, division),
+            getFinancialHistory(division)
         ]);
 
         setStats(data);
@@ -39,14 +43,33 @@ export function FinancialDashboard() {
         setLoading(false);
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500 animate-pulse">Calculating Profitability...</div>;
-    if (!stats) return <div className="p-8 text-center text-red-500">Error loading data</div>;
+    if (loading) return (
+        <div className="space-y-8 animate-pulse">
+            <div className="flex justify-between items-center">
+                <div className="h-7 w-48 bg-gray-200 rounded" />
+                <div className="h-9 w-64 bg-gray-200 rounded-lg" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-6 rounded-xl border shadow-sm bg-white">
+                        <div className="h-4 w-20 bg-gray-200 rounded mb-4" />
+                        <div className="h-8 w-28 bg-gray-200 rounded" />
+                    </div>
+                ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="h-52 bg-gray-200 rounded-xl" />
+                <div className="h-52 bg-gray-200 rounded-xl" />
+            </div>
+        </div>
+    );
+    if (!stats) return <div className="p-8 text-center text-red-500">{t.common.loading} Error</div>;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Controls */}
             <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Profit & Loss Statement</h2>
+                <h2 className="text-xl font-bold text-gray-800">{t.reports.profitLoss}</h2>
                 <div className="bg-white rounded-lg shadow-sm border p-1 flex space-x-1">
                     {(['CURRENT_MONTH', 'LAST_MONTH', 'YTD'] as const).map((p) => (
                         <button
@@ -57,7 +80,7 @@ export function FinancialDashboard() {
                                 : 'text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
-                            {p.replace('_', ' ')}
+                            {p === 'CURRENT_MONTH' ? t.reports.currentMonth : p === 'LAST_MONTH' ? t.reports.lastMonth : t.reports.ytd}
                         </button>
                     ))}
                 </div>
@@ -66,28 +89,28 @@ export function FinancialDashboard() {
             {/* Main KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <KPICard
-                    title="Revenue"
+                    title={t.reports.revenue}
                     amount={stats.revenue}
                     icon={<DollarSign className="w-5 h-5 text-blue-600" />}
                     color="text-blue-600"
                 />
                 <KPICard
-                    title="Gross Profit"
+                    title={t.reports.grossProfit}
                     amount={stats.grossProfit}
-                    subValue={`${stats.grossMargin.toFixed(1)}% Margin`}
+                    subValue={`${stats.grossMargin.toFixed(1)}% ${t.reports.margin}`}
                     icon={<Activity className="w-5 h-5 text-indigo-600" />}
                     color="text-indigo-600"
                 />
                 <KPICard
-                    title="Expenses"
+                    title={t.reports.expenses}
                     amount={stats.expenses.total}
                     icon={<TrendingDown className="w-5 h-5 text-orange-600" />}
                     color="text-orange-600"
                 />
                 <KPICard
-                    title="Net Profit"
+                    title={t.reports.netProfit}
                     amount={stats.netProfit}
-                    subValue={`${stats.netMargin.toFixed(1)}% Net Margin`}
+                    subValue={`${stats.netMargin.toFixed(1)}% ${t.reports.netMargin}`}
                     icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
                     color={stats.netProfit >= 0 ? "text-emerald-600" : "text-red-600"}
                     highlight
@@ -100,15 +123,15 @@ export function FinancialDashboard() {
                 {/* COGS Section */}
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <div className="px-6 py-4 border-b bg-gray-50/50 flex justify-between">
-                        <h3 className="font-semibold text-gray-800">Job Costs (COGS)</h3>
+                        <h3 className="font-semibold text-gray-800">{t.reports.jobCosts}</h3>
                         <span className="text-sm font-medium text-gray-900">${stats.cogs.total.toLocaleString()}</span>
                     </div>
                     <div className="p-6 space-y-4">
-                        <BarRow label="Materials" value={stats.cogs.material} total={stats.cogs.total} color="bg-blue-500" />
-                        <BarRow label="Technician Labor" value={stats.cogs.labor} total={stats.cogs.total} color="bg-indigo-500" />
+                        <BarRow label={t.reports.materials} value={stats.cogs.material} total={stats.cogs.total} color="bg-blue-500" />
+                        <BarRow label={t.reports.labor} value={stats.cogs.labor} total={stats.cogs.total} color="bg-indigo-500" />
 
                         <div className="mt-6 pt-4 border-t text-sm text-gray-500">
-                            <p>Direct costs associated with completing jobs.</p>
+                            <p>{t.reports.cogsDesc}</p>
                         </div>
                     </div>
                 </div>
@@ -116,7 +139,7 @@ export function FinancialDashboard() {
                 {/* Expenses Section */}
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <div className="px-6 py-4 border-b bg-gray-50/50 flex justify-between">
-                        <h3 className="font-semibold text-gray-800">Operating Expenses</h3>
+                        <h3 className="font-semibold text-gray-800">{t.reports.operatingExpenses}</h3>
                         <span className="text-sm font-medium text-gray-900">${stats.expenses.total.toLocaleString()}</span>
                     </div>
                     <table className="w-full text-sm text-left">
@@ -131,7 +154,7 @@ export function FinancialDashboard() {
                             ))}
                             {stats.expenses.byCategory.length === 0 && (
                                 <tr>
-                                    <td colSpan={2} className="px-6 py-8 text-center text-gray-400">No expenses recorded for this period.</td>
+                                    <td colSpan={2} className="px-6 py-8 text-center text-gray-400">{t.reports.noExpenses}</td>
                                 </tr>
                             )}
                         </tbody>
@@ -141,7 +164,7 @@ export function FinancialDashboard() {
 
             {/* History Chart (Mock Visual) */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="font-semibold text-gray-800 mb-6">Profitability Trend (6 Months)</h3>
+                <h3 className="font-semibold text-gray-800 mb-6">{t.reports.trend}</h3>
                 <div className="h-48 flex items-end space-x-4">
                     {history.map((month) => {
                         const maxVal = Math.max(...history.map(h => h.revenue));
@@ -171,10 +194,10 @@ export function FinancialDashboard() {
                 </div>
                 <div className="mt-4 flex justify-center gap-6 text-xs text-gray-500">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-gray-200 rounded-sm"></div> Revenue
+                        <div className="w-3 h-3 bg-gray-200 rounded-sm"></div> {t.reports.revenue}
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div> Net Profit
+                        <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div> {t.reports.netProfit}
                     </div>
                 </div>
             </div>

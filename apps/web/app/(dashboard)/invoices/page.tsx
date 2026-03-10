@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { InvoiceList } from "@/components/invoices/invoice-list";
 import { serialize } from '@/lib/serialization';
+import { getUserProfile } from "@/app/actions/user-actions";
+
 import { cookies } from "next/headers";
 import { dictionary } from "@/lib/i18n/dictionary";
 
@@ -12,7 +14,17 @@ export default async function InvoicesPage() {
     const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
     const t = dictionary[initialLanguage] || dictionary.en;
 
+    const user = await getUserProfile();
+
+    let whereClause: any = {};
+    if (user && !user.canManageDivisions) {
+        // @ts-ignore
+        const allowedDivisions = user.accesses.map((a: any) => a.division) || [];
+        whereClause.division = { in: allowedDivisions };
+    }
+
     const invoices = await prisma.invoice.findMany({
+        where: whereClause,
         include: {
             items: {
                 include: {

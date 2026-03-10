@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { Division } from '@prisma/client';
 
 export interface FinancialStats {
     revenue: number;
@@ -20,7 +21,7 @@ export interface FinancialStats {
     netMargin: number;
 }
 
-export async function getFinancialStats(startDate: Date, endDate: Date): Promise<FinancialStats> {
+export async function getFinancialStats(startDate: Date, endDate: Date, division: Division | "ALL" = "ALL"): Promise<FinancialStats> {
 
     // 1. Fetch Completed Jobs in Range
     const jobs = await prisma.job.findMany({
@@ -29,7 +30,8 @@ export async function getFinancialStats(startDate: Date, endDate: Date): Promise
                 gte: startDate,
                 lte: endDate
             },
-            status: 'COMPLETED' // Ensure we only count completed work
+            status: 'COMPLETED', // Ensure we only count completed work
+            ...(division !== "ALL" ? { division: division } : {})
         },
         include: {
             invoices: true
@@ -42,7 +44,8 @@ export async function getFinancialStats(startDate: Date, endDate: Date): Promise
             date: {
                 gte: startDate,
                 lte: endDate
-            }
+            },
+            ...(division !== "ALL" ? { division: division } : {})
         }
     });
 
@@ -114,7 +117,7 @@ export async function getFinancialStats(startDate: Date, endDate: Date): Promise
     };
 }
 
-export async function getFinancialHistory() {
+export async function getFinancialHistory(division: Division | "ALL" = "ALL") {
     // Get last 6 months metrics for charts
     const history = [];
     const today = new Date();
@@ -122,7 +125,7 @@ export async function getFinancialHistory() {
     for (let i = 5; i >= 0; i--) {
         const start = startOfMonth(subMonths(today, i));
         const end = endOfMonth(subMonths(today, i));
-        const stats = await getFinancialStats(start, end);
+        const stats = await getFinancialStats(start, end, division);
 
         history.push({
             month: format(start, 'MMM yyyy'),

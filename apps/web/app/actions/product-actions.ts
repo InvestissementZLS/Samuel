@@ -60,7 +60,8 @@ interface CreateProductData {
         delayDays?: number;
         order?: number;
         seasonality?: "ALL_YEAR" | "SPRING_ONLY";
-        isWeatherDependent?: boolean
+        isWeatherDependent?: boolean;
+        applyToRecurring?: boolean;
     }[]; // IDs and config of services included
     containerSize?: number;
     preparationListUrl?: string;
@@ -128,7 +129,8 @@ export async function createProduct(data: CreateProductData) {
                             order: service.order || index + 1,
                             delayDays: service.delayDays || 0,
                             seasonality: service.seasonality || 'ALL_YEAR',
-                            isWeatherDependent: service.isWeatherDependent || false
+                            isWeatherDependent: service.isWeatherDependent || false,
+                            applyToRecurring: service.applyToRecurring || false
                         }))
                     }
                 })
@@ -220,7 +222,8 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
                         order: service.order || index + 1,
                         delayDays: service.delayDays || 0,
                         seasonality: service.seasonality || 'ALL_YEAR',
-                        isWeatherDependent: service.isWeatherDependent || false
+                        isWeatherDependent: service.isWeatherDependent || false,
+                        applyToRecurring: service.applyToRecurring || false
                     }))
                 })
             ] : []),

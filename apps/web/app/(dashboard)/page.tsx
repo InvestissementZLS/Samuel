@@ -5,6 +5,7 @@ import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminder';
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
+import { PriorityAlerts } from '@/components/dashboard/priority-alerts';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
 
@@ -92,7 +93,7 @@ export default async function DashboardPage() {
         <div className="space-y-6">
             {userId && <WeeklyAuditReminder userId={userId} />}
 
-            {/* Smart Inventory Widgets (New) */}
+            {/* Smart Inventory Widgets */}
             {user?.role === 'TECHNICIAN' && userId && (
                 <InventoryForecast userId={userId} />
             )}
@@ -104,6 +105,11 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
             </div>
+
+            {/* 🚨 Priority Alerts Widget */}
+            {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
+                <PriorityAlerts />
+            )}
 
             <DashboardStats stats={stats} />
 

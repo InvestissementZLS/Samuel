@@ -29,8 +29,31 @@ interface DashboardStatsProps {
 
 import { useDivision } from "@/components/providers/division-provider";
 
+import { useCurrentUser } from "@/hooks/use-current-user";
+
+const divisions = [
+    {
+        value: "EXTERMINATION",
+        label: "Extermination ZLS",
+    },
+    {
+        value: "ENTREPRISES",
+        label: "Les Entreprises ZLS",
+    },
+    {
+        value: "RENOVATION",
+        label: "Contrat Actif",
+    },
+];
+
 export function DashboardStats({ stats }: DashboardStatsProps) {
     const { division, setDivision } = useDivision();
+    const { checkPermission } = useCurrentUser();
+
+    const allowedDivisions = divisions.filter(d =>
+        // @ts-ignore
+        checkPermission(d.value).hasDivisionAccess
+    );
 
     const currentStats = stats[division] || {
         jobs: 0,
@@ -43,10 +66,10 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
         <div className="space-y-4">
             <div className="flex justify-end">
                 <Tabs value={division} onValueChange={(v) => setDivision(v as any)} className="w-full md:w-[600px]">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="EXTERMINATION">Extermination ZLS</TabsTrigger>
-                        <TabsTrigger value="ENTREPRISES">Les Entreprises ZLS</TabsTrigger>
-                        <TabsTrigger value="RENOVATION">Rénovation ZLS</TabsTrigger>
+                    <TabsList className={`grid w-full grid-cols-${allowedDivisions.length || 1}`}>
+                        {allowedDivisions.map((d) => (
+                            <TabsTrigger key={d.value} value={d.value}>{d.label}</TabsTrigger>
+                        ))}
                     </TabsList>
                 </Tabs>
             </div>

@@ -5,11 +5,14 @@ import { getLastAudit } from '@/app/actions/inventory-actions';
 import Link from 'next/link';
 import { differenceInDays } from 'date-fns';
 
+import { useDivision } from '@/components/providers/division-provider';
+
 interface WeeklyAuditReminderProps {
     userId: string;
 }
 
 export function WeeklyAuditReminder({ userId }: WeeklyAuditReminderProps) {
+    const { division } = useDivision();
     const [daysSinceAudit, setDaysSinceAudit] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -34,6 +37,8 @@ export function WeeklyAuditReminder({ userId }: WeeklyAuditReminderProps) {
     };
 
     if (loading) return null;
+
+    if (division !== 'EXTERMINATION') return null;
 
     if (daysSinceAudit !== null && daysSinceAudit >= 7) {
         return (

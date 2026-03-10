@@ -1,45 +1,95 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Quote, Product, Client } from "@prisma/client";
 import { createQuote, updateQuoteStatus, updateQuote } from "@/app/actions/client-portal-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { FileText, Filter, Link as LinkIcon, Clipboard } from "lucide-react";
+import {
+    FileText, Link as LinkIcon, Download, Mail,
+    Search, SlidersHorizontal, ArrowUpDown, ChevronUp, ChevronDown, X
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuoteForm } from "@/components/quotes/quote-form";
 import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import Link from "next/link";
 
+type QuoteWithDetails = Quote & { items: (any & { product: Product })[], client: Client };
+type SortKey = 'number' | 'client' | 'total' | 'status' | 'createdAt';
+type SortDir = 'asc' | 'desc';
+type StatusFilter = 'ALL' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'DRAFT';
+
 interface QuoteListProps {
-    quotes: (Quote & { items: (any & { product: Product })[], client: Client })[];
+    quotes: QuoteWithDetails[];
     products: Product[];
     clients?: Client[];
     clientId?: string;
 }
 
+const STATUS_STYLES: Record<string, string> = {
+    ACCEPTED: 'bg-emerald-100 text-emerald-700',
+    REJECTED: 'bg-red-100 text-red-600',
+    SENT: 'bg-blue-100 text-blue-700',
+    DRAFT: 'bg-gray-100 text-gray-600',
+};
+
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+    if (!active) return <ArrowUpDown className="w-3 h-3 text-gray-300 ml-1" />;
+    return dir === 'asc'
+        ? <ChevronUp className="w-3 h-3 text-indigo-500 ml-1" />
+        : <ChevronDown className="w-3 h-3 text-indigo-500 ml-1" />;
+}
+
 export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteListProps) {
     const { t } = useLanguage();
+    const { language } = useLanguage();
+    const isFr = language === 'fr';
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
-    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
 
-    useEffect(() => {
-        setDivisionFilter(division);
-    }, [division]);
+    // Search & filter state
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division as any);
+    const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-    const handleCreateNew = () => {
-        // Allow creation without clientId now
-        setSelectedQuote(null);
-        setIsEditing(true);
+    useEffect(() => { setDivisionFilter(division as any); }, [division]);
+
+    const handleSort = (key: SortKey) => {
+        if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(key); setSortDir('asc'); }
     };
 
-    const handleEdit = (quote: any) => {
-        setSelectedQuote(quote);
-        setIsEditing(true);
-    };
+    const filtered = useMemo(() => {
+        return quotes
+            .filter(q => {
+                if (divisionFilter !== 'ALL' && (q as any).division !== divisionFilter) return false;
+                if (statusFilter !== 'ALL' && q.status !== statusFilter) return false;
+                if (search.trim()) {
+                    const s = search.toLowerCase();
+                    return (
+                        (q.number || '').toLowerCase().includes(s) ||
+                        q.client?.name?.toLowerCase().includes(s) ||
+                        q.total.toString().includes(s)
+                    );
+                }
+                return true;
+            })
+            .sort((a, b) => {
+                let valA: any, valB: any;
+                if (sortKey === 'total') { valA = a.total; valB = b.total; }
+                else if (sortKey === 'client') { valA = a.client?.name || ''; valB = b.client?.name || ''; }
+                else if (sortKey === 'status') { valA = a.status; valB = b.status; }
+                else if (sortKey === 'number') { valA = a.number || ''; valB = b.number || ''; }
+                else { valA = new Date(a.createdAt); valB = new Date(b.createdAt); }
+                if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+    }, [quotes, search, statusFilter, divisionFilter, sortKey, sortDir]);
 
     const handleSave = async (data: any) => {
         try {
@@ -51,23 +101,16 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
                 toast.success(t.quotes.created);
             }
             setIsEditing(false);
-        } catch (error) {
+        } catch {
             toast.error(t.quotes.failedSave);
-            console.error(error);
         }
     };
-
-    const filteredQuotes = quotes.filter(quote => {
-        if (divisionFilter === "ALL") return true;
-        // @ts-ignore
-        return quote.division === divisionFilter;
-    });
 
     if (isEditing) {
         return (
             <div>
                 <Button variant="ghost" onClick={() => setIsEditing(false)} className="mb-4">
-                    &larr; {t.quotes.backToQuotes}
+                    ← {t.quotes.backToQuotes}
                 </Button>
                 <QuoteForm
                     quote={selectedQuote}
@@ -80,145 +123,209 @@ export function QuoteList({ quotes, products, clientId, clients = [] }: QuoteLis
         );
     }
 
+    const quickFilters: { key: StatusFilter; label: string }[] = [
+        { key: 'ALL', label: isFr ? 'Tous' : 'All' },
+        { key: 'SENT', label: isFr ? 'Envoyés' : 'Sent' },
+        { key: 'ACCEPTED', label: isFr ? 'Acceptés' : 'Accepted' },
+        { key: 'REJECTED', label: isFr ? 'Refusés' : 'Rejected' },
+        { key: 'DRAFT', label: isFr ? 'Brouillons' : 'Drafts' },
+    ];
+
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">{t.quotes.title} ({filteredQuotes.length})</h3>
-                <div className="flex gap-2">
-                    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-1.5">
-                        <Filter className="w-4 h-4 text-gray-500" />
+        <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                {/* Search */}
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder={isFr ? 'Rechercher par client, numéro…' : 'Search by client, number…'}
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    />
+                    {search && (
+                        <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Division filter */}
+                    {!clientId && (
                         <select
                             value={divisionFilter}
-                            onChange={(e) => setDivisionFilter(e.target.value as any)}
-                            className="border-none text-sm focus:ring-0 cursor-pointer text-gray-900 bg-white"
+                            onChange={e => setDivisionFilter(e.target.value as any)}
+                            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
                         >
-                            <option value="ALL">{t.common.allDivisions}</option>
-                            <option value="EXTERMINATION">{t.divisions.extermination}</option>
-                            <option value="ENTREPRISES">{t.divisions.entreprises}</option>
+                            <option value="ALL">{isFr ? 'Toutes divisions' : 'All divisions'}</option>
+                            <option value="EXTERMINATION">Extermination ZLS</option>
+                            <option value="ENTREPRISES">Les Entreprises ZLS</option>
                         </select>
-                    </div>
+                    )}
 
-                    <Button onClick={handleCreateNew}>
+                    <Button onClick={() => { setSelectedQuote(null); setIsEditing(true); }}>
                         + {t.quotes.createQuote}
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
-                <div className="divide-y divide-gray-200">
-                    {filteredQuotes.map((quote) => (
-                        <div key={quote.id} className="p-4 hover:bg-gray-50 transition-colors">
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-indigo-50 rounded text-indigo-600">
-                                        <FileText className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-medium text-gray-900">
-                                                {/* @ts-ignore */}
-                                                {quote.number || (quote.poNumber ? `PO #${quote.poNumber}` : t.quotes.createQuote)}
-                                            </p>
-                                            {!clientId && (
-                                                <Link href={`/clients/${quote.clientId}`} className="text-xs text-indigo-600 hover:underline">
-                                                    ({quote.client.name})
-                                                </Link>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-2 text-sm text-gray-500">
-                                            <span>${quote.total.toFixed(2)}</span>
-                                            {/* @ts-ignore */}
-                                            {quote.division && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="text-xs uppercase tracking-wider font-semibold">
-                                                        {/* @ts-ignore */}
-                                                        {quote.division === "EXTERMINATION" ? "EXO" : "ENT"}
-                                                    </span>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="flex gap-4 mt-2">
-                                            <Link href={`/quotes/${quote.id}`} className="text-xs text-indigo-600 hover:text-indigo-900 flex items-center gap-1 hover:underline">
-                                                <FileText className="w-3 h-3" />
-                                                {t.quotes.viewDetails}
-                                            </Link>
-                                            <button
-                                                onClick={() => {
-                                                    const url = `${window.location.origin}/portal/quotes/${quote.id}`;
-                                                    navigator.clipboard.writeText(url);
-                                                    toast.success(t.quotes.linkCopied);
-                                                }}
-                                                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1 hover:underline"
-                                            >
-                                                <LinkIcon className="w-3 h-3" />
-                                                {t.quotes.copyLink}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                                        ${quote.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
-                                            quote.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                quote.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-gray-100 text-gray-800'}`}>
-                                        {/* @ts-ignore */}
-                                        {t.quotes.statuses[quote.status] || quote.status}
-                                    </span>
-                                    <Button variant="outline" size="sm" onClick={() => handleEdit(quote)}>
-                                        {t.common.edit}
-                                    </Button>
-                                    <div className="flex gap-1">
-                                        <a
-                                            href={`/api/quotes/${quote.id}/pdf`}
-                                            target="_blank"
-                                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-                                        >
-                                            {t.common.pdf}
-                                        </a>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={async () => {
-                                                const toastId = toast.loading(t.invoices.sending);
-                                                try {
-                                                    const { sendQuote } = await import("@/app/actions/email-actions");
-                                                    const result = await sendQuote(quote.id);
-                                                    if (result.success) {
-                                                        toast.success(t.invoices.emailSent, { id: toastId });
-                                                    } else {
-                                                        toast.error(t.invoices.emailError + ": " + (result.error || "Unknown error"), { id: toastId });
-                                                    }
-                                                } catch (error) {
-                                                    toast.error(t.invoices.emailError, { id: toastId });
-                                                }
-                                            }}
-                                        >
-                                            {t.common.email}
-                                        </Button>
-                                    </div>
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={async () => {
-                                            if (confirm(t.quotes.convertConfirm)) {
-                                                const { convertQuoteToJob } = await import("@/app/actions/workflow-actions");
-                                                await convertQuoteToJob(quote.id);
-                                            }
-                                        }}
+            {/* Quick status filters */}
+            <div className="flex gap-1.5 flex-wrap">
+                {quickFilters.map(f => (
+                    <button
+                        key={f.key}
+                        onClick={() => setStatusFilter(f.key)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === f.key
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                    >
+                        {f.label}
+                        {f.key !== 'ALL' && (
+                            <span className="ml-1 opacity-70">
+                                ({quotes.filter(q => q.status === f.key && (divisionFilter === 'ALL' || (q as any).division === divisionFilter)).length})
+                            </span>
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Result count */}
+            <p className="text-xs text-gray-400">
+                {filtered.length} {isFr ? 'résultat' : 'result'}{filtered.length !== 1 ? 's' : ''}
+            </p>
+
+            {/* Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                {[
+                                    { key: 'number' as SortKey, label: isFr ? 'Numéro' : 'Number' },
+                                    { key: 'client' as SortKey, label: isFr ? 'Client' : 'Client' },
+                                    { key: 'total' as SortKey, label: isFr ? 'Montant' : 'Amount' },
+                                    { key: 'status' as SortKey, label: isFr ? 'Statut' : 'Status' },
+                                    { key: 'createdAt' as SortKey, label: isFr ? 'Date' : 'Date' },
+                                ].map(col => (
+                                    <th
+                                        key={col.key}
+                                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+                                        onClick={() => handleSort(col.key)}
                                     >
-                                        {t.quotes.convertToJob}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                    {filteredQuotes.length === 0 && (
-                        <div className="p-8 text-center text-gray-500 italic">
-                            {t.quotes.noQuotes}
-                        </div>
-                    )}
+                                        <div className="flex items-center">
+                                            {col.label}
+                                            <SortIcon active={sortKey === col.key} dir={sortDir} />
+                                        </div>
+                                    </th>
+                                ))}
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                    {isFr ? 'Actions' : 'Actions'}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {filtered.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-sm italic">
+                                        {search ? (isFr ? 'Aucun résultat pour cette recherche.' : 'No results for this search.') : t.quotes.noQuotes}
+                                    </td>
+                                </tr>
+                            ) : (
+                                filtered.map(quote => (
+                                    <tr
+                                        key={quote.id}
+                                        className={`hover:bg-gray-50/80 transition-colors ${quote.status === 'ACCEPTED' ? 'bg-emerald-50/30' :
+                                                quote.status === 'REJECTED' ? 'bg-red-50/20' : ''
+                                            }`}
+                                    >
+                                        <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                            <Link href={`/quotes/${quote.id}`} className="hover:text-indigo-600 hover:underline">
+                                                {quote.number || `#${quote.id.slice(0, 6)}`}
+                                            </Link>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                            {!clientId ? (
+                                                <Link href={`/clients/${quote.clientId}`} className="hover:text-indigo-600 hover:underline">
+                                                    {quote.client?.name || '—'}
+                                                </Link>
+                                            ) : (
+                                                quote.client?.name || '—'
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                            {quote.total.toFixed(2)}$
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLES[quote.status] || 'bg-gray-100 text-gray-600'}`}>
+                                                {t.quotes.statuses?.[quote.status as keyof typeof t.quotes.statuses] || quote.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                                            {format(new Date(quote.createdAt), 'dd MMM yyyy')}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                <Button variant="ghost" size="sm" onClick={() => { setSelectedQuote(quote); setIsEditing(true); }}>
+                                                    {t.common.edit}
+                                                </Button>
+                                                <a
+                                                    href={`/api/quotes/${quote.id}/pdf`}
+                                                    target="_blank"
+                                                    className="p-1.5 rounded text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                                    title="PDF"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </a>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`${window.location.origin}/portal/quotes/${quote.id}`);
+                                                        toast.success(t.quotes.linkCopied);
+                                                    }}
+                                                    className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                    title={t.quotes.copyLink}
+                                                >
+                                                    <LinkIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        const tid = toast.loading(t.invoices.sending);
+                                                        try {
+                                                            const { sendQuote } = await import("@/app/actions/email-actions");
+                                                            const r = await sendQuote(quote.id);
+                                                            r.success
+                                                                ? toast.success(t.invoices.emailSent, { id: tid })
+                                                                : toast.error((r.error || 'Error'), { id: tid });
+                                                        } catch {
+                                                            toast.error(t.invoices.emailError, { id: tid });
+                                                        }
+                                                    }}
+                                                    className="p-1.5 rounded text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                                    title={t.common.email}
+                                                >
+                                                    <Mail className="w-4 h-4" />
+                                                </button>
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    onClick={async () => {
+                                                        if (confirm(t.quotes.convertConfirm)) {
+                                                            const { convertQuoteToJob } = await import("@/app/actions/workflow-actions");
+                                                            await convertQuoteToJob(quote.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    {t.quotes.convertToJob}
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

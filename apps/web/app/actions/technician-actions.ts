@@ -88,8 +88,11 @@ export async function updateTechnician(id: string, data: {
         canManageExpenses: data.canManageExpenses,
         canManageUsers: data.canManageUsers,
         divisions: data.divisions,
-        isActive: data.isActive,
+        isActive: data.isActive !== undefined ? Boolean(data.isActive) : undefined,
     };
+
+    console.log('Updating Technician:', id, 'isActive:', data.isActive, 'updateData.isActive:', updateData.isActive);
+    console.log('Accesses:', JSON.stringify(data.accesses));
 
     if (data.password) {
         updateData.password = data.password; // TODO: Hash this in production
@@ -147,15 +150,23 @@ export async function deleteTechnician(id: string) {
     revalidatePath('/technicians');
 }
 
-export async function getTechnicians() {
+export async function getTechnicians(filterDivision?: Division) {
+    const whereClause: any = {
+        OR: [
+            { role: 'TECHNICIAN' },
+            { role: 'OFFICE' },
+            { role: 'ADMIN' }
+        ]
+    };
+
+    if (filterDivision) {
+        whereClause.divisions = {
+            has: filterDivision
+        };
+    }
+
     return await prisma.user.findMany({
-        where: {
-            OR: [
-                { role: 'TECHNICIAN' },
-                { role: 'OFFICE' },
-                { role: 'ADMIN' }
-            ]
-        },
+        where: whereClause,
         include: {
             accesses: true
         },

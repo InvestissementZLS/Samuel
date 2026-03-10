@@ -10,20 +10,28 @@ export async function getWarrantyTemplates() {
     });
 }
 
-export async function createWarrantyTemplate(name: string, text: string) {
+export async function createWarrantyTemplate(name: string, text: string, durationMonths?: number) {
     // @ts-ignore
     const warranty = await prisma.warrantyTemplate.create({
-        data: { name, text }
+        data: {
+            name,
+            text,
+            durationMonths: durationMonths ? Number(durationMonths) : null
+        }
     });
     revalidatePath('/settings/warranties');
     return warranty;
 }
 
-export async function updateWarrantyTemplate(id: string, name: string, text: string) {
+export async function updateWarrantyTemplate(id: string, name: string, text: string, durationMonths?: number) {
     // @ts-ignore
     const warranty = await prisma.warrantyTemplate.update({
         where: { id },
-        data: { name, text }
+        data: {
+            name,
+            text,
+            durationMonths: durationMonths ? Number(durationMonths) : null
+        }
     });
     revalidatePath('/settings/warranties');
     return warranty;

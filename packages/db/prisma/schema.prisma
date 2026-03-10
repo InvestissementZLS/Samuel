@@ -421,6 +421,7 @@ model IncludedService {
   delayDays       Int           @default(0)
   seasonality     Seasonality   @default(ALL_YEAR)
   isWeatherDependent Boolean    @default(false)
+  applyToRecurring Boolean      @default(false) // If true, this service is added to ALL recurring follow-ups (subject to seasonality)
   
   parentProduct   Product @relation("ParentService", fields: [parentProductId], references: [id])
   childProduct    Product @relation("ChildService", fields: [childProductId], references: [id])
@@ -617,6 +618,7 @@ model WarrantyTemplate {
   id        String   @id @default(uuid())
   name      String
   text      String   @db.Text
+  durationMonths Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

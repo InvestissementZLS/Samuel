@@ -154,135 +154,147 @@ export default function ClientPortalPage() {
         );
     }
 
-    const isExtermination = client.divisions?.includes("EXTERMINATION") || true; // Default/Fallback
+    // Warranty calculation from properties
+    const allProperties = client.properties || [];
+    const latestWarranty = allProperties
+        .map((p: any) => p.warrantyExpiresAt ? new Date(p.warrantyExpiresAt) : null)
+        .filter(Boolean)
+        .sort((a: any, b: any) => b.getTime() - a.getTime())[0];
+
+    const warrantyDaysLeft = latestWarranty
+        ? Math.floor((latestWarranty.getTime() - now.getTime()) / 86400000)
+        : null;
+    const warrantyActive = warrantyDaysLeft !== null && warrantyDaysLeft > 0;
+    const warrantyExpiredRecently = warrantyDaysLeft !== null && warrantyDaysLeft < 0 && warrantyDaysLeft > -60;
+
+    // Visit stats
+    const completedVisits = jobs.filter(j => j.status === 'COMPLETED').length;
+    const totalVisits = jobs.length;
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
             {/* Header */}
-            <header className="bg-white shadow">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
+            <header className="bg-white shadow-sm">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            {p.title}
-                        </h1>
-                        <p className="text-gray-500">
-                            {client.name}
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">{p.title}</h1>
+                        <p className="text-gray-500 mt-0.5">{client.name}</p>
                     </div>
                     {client.divisions?.includes("RENOVATION") ? (
-                        <img
-                            src="/renovation-logo.png"
-                            alt="Rénovation Esthéban"
-                            className="h-12 w-auto object-contain"
-                        />
+                        <img src="/renovation-logo.png" alt="Rénovation Esthéban" className="h-12 w-auto object-contain" />
                     ) : (
-                        <img
-                            src="/zls-logo.png"
-                            alt="Extermination ZLS"
-                            className="h-12 w-auto object-contain"
-                        />
+                        <img src="/zls-logo.png" alt="Extermination ZLS" className="h-12 w-auto object-contain" />
                     )}
                 </div>
             </header>
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-                {/* Quotes Section */}
+                {/* ── Garantie & Statistiques ── */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    {/* Guarantee card */}
+                    {(warrantyActive || warrantyExpiredRecently) && (
+                        <div className={`md:col-span-2 rounded-xl border p-5 ${warrantyActive ? 'bg-white border-gray-200' : 'bg-amber-50 border-amber-200'}`}>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className={`w-5 h-5 ${warrantyActive ? (warrantyDaysLeft! <= 30 ? 'text-amber-500' : 'text-emerald-500') : 'text-gray-400'}`} />
+                                    <span className="font-semibold text-gray-900 text-sm">
+                                        {language === 'fr' ? 'Garantie' : 'Warranty'}
+                                    </span>
+                                </div>
+                                {latestWarranty && (
+                                    <span className="text-xs text-gray-500">
+                                        {language === 'fr' ? 'Expire le' : 'Expires'} {format(latestWarranty, 'd MMM yyyy')}
+                                    </span>
+                                )}
+                            </div>
+                            {warrantyActive ? (
+                                <>
+                                    <p className={`text-2xl font-bold mb-2 ${warrantyDaysLeft! <= 7 ? 'text-red-600' : warrantyDaysLeft! <= 30 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                        {warrantyDaysLeft} {language === 'fr' ? 'jours restants' : 'days remaining'}
+                                    </p>
+                                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-all ${warrantyDaysLeft! <= 7 ? 'bg-red-500' : warrantyDaysLeft! <= 30 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                                            style={{ width: `${Math.min(100, Math.max(2, (warrantyDaysLeft! / 365) * 100))}%` }}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div>
+                                    <p className="text-sm font-medium text-amber-800 mb-2">
+                                        {language === 'fr' ? `Garantie expirée il y a ${Math.abs(warrantyDaysLeft!)} jours` : `Warranty expired ${Math.abs(warrantyDaysLeft!)} days ago`}
+                                    </p>
+                                    <a
+                                        href={`/booking/${token}`}
+                                        className="inline-flex items-center px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors"
+                                    >
+                                        {language === 'fr' ? 'Renouveler' : 'Renew service'}
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Visit counter */}
+                    {totalVisits > 0 && (
+                        <div className="rounded-xl border bg-white border-gray-200 p-5">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                {language === 'fr' ? 'Visites' : 'Visits'}
+                            </p>
+                            <p className="text-3xl font-bold text-gray-900">{completedVisits}<span className="text-lg text-gray-400">/{totalVisits}</span></p>
+                            <p className="text-xs text-gray-400 mt-1">{language === 'fr' ? 'complétées' : 'completed'}</p>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full mt-3 overflow-hidden">
+                                <div
+                                    className="h-full bg-indigo-500 rounded-full transition-all"
+                                    style={{ width: totalVisits > 0 ? `${(completedVisits / totalVisits) * 100}%` : '0%' }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Devis ── */}
                 <section>
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <FileText className="h-5 w-5 text-amber-600" />
-                        Quotes
+                        {language === 'fr' ? 'Soumissions' : 'Quotes'}
                     </h2>
 
                     {client?.quotes?.length === 0 ? (
-                        <div className="bg-white rounded-lg p-6 text-center border text-gray-500 text-sm">
-                            No active quotes.
+                        <div className="bg-white rounded-xl p-6 text-center border border-gray-200 text-gray-400 text-sm">
+                            {language === 'fr' ? 'Aucune soumission active.' : 'No active quotes.'}
                         </div>
                     ) : (
-                        <div className="grid gap-4 md:grid-cols-1">
+                        <div className="grid gap-4">
                             {client?.quotes?.map((quote: any) => (
-                                <div key={quote.id} className="bg-white border rounded-lg shadow-sm p-6">
+                                <div key={quote.id} className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <div className="font-semibold text-lg text-gray-900">
-                                                Quote #{quote.number || quote.id.slice(0, 8)}
+                                            <div className="font-semibold text-gray-900">
+                                                {language === 'fr' ? 'Soumission' : 'Quote'} #{quote.number || quote.id.slice(0, 8)}
                                             </div>
                                             <div className="text-sm text-gray-500 mt-1">
-                                                Issued: {format(new Date(quote.issuedDate), "d MMM yyyy")}
+                                                {format(new Date(quote.issuedDate), "d MMM yyyy")} • {quote.total.toFixed(2)}$
                                             </div>
-                                            <ul className="mt-2 text-sm text-gray-600 list-disc list-inside">
-                                                {quote.items?.slice(0, 3).map((item: any) => (
-                                                    <li key={item.id}>{item.product.name} (x{item.quantity}) - ${item.price}</li>
-                                                ))}
-                                                {(quote.items?.length || 0) > 3 && <li>...</li>}
-                                            </ul>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-xl font-bold text-gray-900">
-                                                ${quote.total.toFixed(2)}
-                                            </div>
-                                            <div className="mt-1 flex flex-col items-end gap-2">
-                                                {quote.status === 'ACCEPTED' && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        Accepted
-                                                    </span>
-                                                )}
-                                                {quote.status === 'REJECTED' && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                        Rejected
-                                                    </span>
-                                                )}
-                                                {['DRAFT', 'SENT'].includes(quote.status) && (
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-right mr-4">
-                                                            <div className="font-bold text-gray-900">{quote.total.toFixed(2)} $</div>
-                                                            <div className={`text-xs font-semibold ${quote.status === 'ACCEPTED' ? 'text-green-600' : 'text-gray-500'}`}>
-                                                                {quote.status}
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => router.push(`/portal/${token}/quote/${quote.id}`)}
-                                                            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                            View
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${quote.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
+                                                    quote.status === 'REJECTED' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                {quote.status}
+                                            </span>
+                                            {['DRAFT', 'SENT'].includes(quote.status) && (
+                                                <button
+                                                    onClick={() => router.push(`/portal/${token}/quote/${quote.id}`)}
+                                                    className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    {language === 'fr' ? 'Voir & Répondre' : 'View & Respond'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
-
-                                    {['DRAFT', 'SENT'].includes(quote.status) && (
-                                        <div className="mt-6 flex gap-3 border-t pt-4">
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm("Are you sure you want to REJECT this quote?")) return;
-                                                    const res = await import("@/app/actions/portal-actions").then(m => m.respondToQuote(token, quote.id, 'REJECTED'));
-                                                    if (res.success) {
-                                                        toast.success("Quote rejected");
-                                                        window.location.reload();
-                                                    }
-                                                }}
-                                                className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-2 px-4 rounded-md text-sm font-medium transition-colors"
-                                            >
-                                                Reject
-                                            </button>
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm("Confirm acceptance of this quote?")) return;
-                                                    const res = await import("@/app/actions/portal-actions").then(m => m.respondToQuote(token, quote.id, 'ACCEPTED'));
-                                                    if (res.success) {
-                                                        toast.success("Quote accepted!");
-                                                        window.location.reload();
-                                                    }
-                                                }}
-                                                className="flex-1 bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-md text-sm font-medium transition-colors"
-                                            >
-                                                Accept Quote
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             ))}
                         </div>

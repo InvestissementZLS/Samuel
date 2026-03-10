@@ -8,19 +8,29 @@ interface TechnicianInventoryViewProps {
     technicianId: string;
 }
 
+import { useDivision } from "@/components/providers/division-provider";
+
 export function TechnicianInventoryView({ technicianId }: TechnicianInventoryViewProps) {
+    const { division } = useDivision();
     const [inventory, setInventory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const load = async () => {
+            if (division !== 'EXTERMINATION') {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             const res = await getInventory(technicianId);
             if (res.success) setInventory(res.data || []);
             setLoading(false);
         };
         load();
-    }, [technicianId]);
+    }, [technicianId, division]);
+
+    if (division !== 'EXTERMINATION') return null;
 
     if (loading) return <div className="p-4 text-center text-gray-500">Chargement de l'inventaire...</div>;
     if (inventory.length === 0) return <div className="p-4 text-center text-gray-400">Aucun inventaire assigné.</div>;

@@ -10,6 +10,7 @@ interface Warranty {
     id: string;
     name: string;
     text: string;
+    durationMonths?: number | null;
 }
 
 interface WarrantySettingsProps {
@@ -25,17 +26,19 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
     // Form State
     const [name, setName] = useState("");
     const [text, setText] = useState("");
+    const [duration, setDuration] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleCreate = async () => {
         if (!name || !text) return;
         setLoading(true);
         try {
-            const newWarranty = await createWarrantyTemplate(name, text);
+            const newWarranty = await createWarrantyTemplate(name, text, duration ? Number(duration) : undefined);
             setWarranties([...warranties, newWarranty]);
             setIsCreating(false);
             setName("");
             setText("");
+            setDuration("");
             toast.success(t.settings.warrantyCreated);
         } catch (error) {
             toast.error(t.settings.warrantyCreateError);
@@ -48,11 +51,12 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
         if (!editingId || !name || !text) return;
         setLoading(true);
         try {
-            const updated = await updateWarrantyTemplate(editingId, name, text);
+            const updated = await updateWarrantyTemplate(editingId, name, text, duration ? Number(duration) : undefined);
             setWarranties(warranties.map(w => w.id === editingId ? updated : w));
             setEditingId(null);
             setName("");
             setText("");
+            setDuration("");
             toast.success(t.settings.warrantyUpdated);
         } catch (error) {
             toast.error(t.settings.warrantyUpdateError);
@@ -76,6 +80,7 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
         setEditingId(w.id);
         setName(w.name);
         setText(w.text);
+        setDuration(w.durationMonths ? String(w.durationMonths) : "");
         setIsCreating(false);
     };
 
@@ -83,7 +88,7 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
         <div className="space-y-6">
             {!isCreating && !editingId && (
                 <button
-                    onClick={() => { setIsCreating(true); setName(""); setText(""); }}
+                    onClick={() => { setIsCreating(true); setName(""); setText(""); setDuration(""); }}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                     <Plus size={16} /> {t.settings.newTemplate}
@@ -100,6 +105,17 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
                             value={name}
                             onChange={e => setName(e.target.value)}
                             placeholder={t.settings.warrantyNamePlaceholder}
+                            className="w-full rounded border p-2 text-gray-900"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.settings.warrantyDuration || "Duration (Months)"}</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={duration}
+                            onChange={e => setDuration(e.target.value)}
+                            placeholder="e.g. 12"
                             className="w-full rounded border p-2 text-gray-900"
                         />
                     </div>
@@ -142,6 +158,9 @@ export function WarrantySettings({ initialWarranties }: WarrantySettingsProps) {
                                 <button onClick={() => handleDelete(w.id)} className="p-1 hover:text-red-600"><Trash2 size={16} /></button>
                             </div>
                         </div>
+                        {w.durationMonths && (
+                            <p className="text-xs font-medium text-blue-600 mb-2">{w.durationMonths} {t.common.months || "Months"}</p>
+                        )}
                         <p className="text-sm text-gray-600 whitespace-pre-wrap line-clamp-3">{w.text}</p>
                     </div>
                 ))}

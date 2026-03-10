@@ -72,18 +72,72 @@ export async function generateFollowUpJobs(parentJobId: string) {
         const totalVisits = recurringService.product.numberOfVisits || 2;
         const followUpsNeeded = totalVisits - 1;
 
+        // Fetch full details of the recurring product to see if it has recurring add-ons
+        const fullRecurringProduct = await prisma.product.findUnique({
+            where: { id: recurringService.productId },
+            include: {
+                includedServices: {
+                    include: { childProduct: true }
+                }
+            }
+        });
+
         if (followUpsNeeded > 0) {
             let nextDate = parentJob.scheduledAt;
             for (let i = 1; i <= followUpsNeeded; i++) {
                 nextDate = addDays(nextDate, interval);
+
+                // 1. Base Products List (Main Service)
+                const productsToCreate = [{
+                    productId: recurringService.productId,
+                    quantity: 1,
+                    price: recurringService.price // Maintain original agreed price? Or 0 if included? Usually recursions are part of contract.
+                }];
+
+                let descriptionAddons = "";
+
+                // 2. Check for "Apply to Recurring" included services
+                if (fullRecurringProduct && fullRecurringProduct.includedServices.length > 0) {
+                    for (const included of fullRecurringProduct.includedServices) {
+                        if (included.applyToRecurring) {
+                            // Check Seasonality for this specific date
+                            // We need to implement a sync check or await the async one
+                            // Since we are in an async function, we can await
+                            const seasonCheck = await checkSeasonality(nextDate, included.childProductId);
+
+                            if (seasonCheck.allowed) {
+                                productsToCreate.push({
+                                    productId: included.childProductId,
+                                    quantity: 1,
+                                    price: 0 // Usually included in the bundle price
+                                });
+                                descriptionAddons += ` + ${included.childProduct.name}`;
+
+                                // Apply Warranty from this Add-on Service if applicable
+                                // e.g. Exterior Treatment extends warranty
+                                if (included.childProduct.warrantyMonths) {
+                                    await updateWarranty(parentJob.propertyId, included.childProduct.warrantyMonths);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 await prisma.job.create({
                     data: {
                         propertyId: parentJob.propertyId,
                         status: 'PENDING',
                         scheduledAt: nextDate,
-                        description: `Follow-up #${i} - ${recurringService.product.name} (Auto-generated)`,
+                        description: `Follow-up #${i} - ${recurringService.product.name}${descriptionAddons} (Auto-generated)`,
                         division: parentJob.division,
                         parentJobId: parentJob.id,
+                        products: {
+                            create: productsToCreate.map(p => ({
+                                productId: p.productId,
+                                quantity: p.quantity,
+                                price: p.price
+                            }))
+                        }
                     }
                 });
                 createdCount++;
