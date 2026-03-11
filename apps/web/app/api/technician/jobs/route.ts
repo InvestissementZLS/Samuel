@@ -14,7 +14,9 @@ export async function GET(request: Request) {
     }
 
     try {
-        const today = new Date();
+        const dateParam = searchParams.get("date");
+        const targetDate = dateParam ? new Date(dateParam) : new Date();
+
         const jobs = await prisma.job.findMany({
             where: {
                 technicians: {
@@ -23,8 +25,8 @@ export async function GET(request: Request) {
                     },
                 },
                 scheduledAt: {
-                    gte: startOfDay(today),
-                    lte: endOfDay(today),
+                    gte: startOfDay(targetDate),
+                    lte: endOfDay(targetDate),
                 }
             },
             include: {
