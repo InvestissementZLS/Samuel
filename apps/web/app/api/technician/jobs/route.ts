@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { startOfDay, endOfDay } from "date-fns";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
     }
 
     try {
+        const today = new Date();
         const jobs = await prisma.job.findMany({
             where: {
                 technicians: {
@@ -20,6 +22,10 @@ export async function GET(request: Request) {
                         id: techId,
                     },
                 },
+                scheduledAt: {
+                    gte: startOfDay(today),
+                    lte: endOfDay(today),
+                }
             },
             include: {
                 property: {

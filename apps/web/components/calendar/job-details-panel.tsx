@@ -18,9 +18,10 @@ type JobWithDetails = Job & {
 interface JobDetailsPanelProps {
     job: JobWithDetails;
     onClose: () => void;
+    onEdit: () => void;
 }
 
-export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
+export function JobDetailsPanel({ job, onClose, onEdit }: JobDetailsPanelProps) {
     const [status, setStatus] = useState(job.status);
     const [loading, setLoading] = useState(false);
 
@@ -50,14 +51,14 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
                                 'bg-yellow-900 text-yellow-300'}`}>
                         {status}
                     </span>
-                    <button className="p-1 hover:bg-gray-800 rounded">
-                        <Settings className="w-4 h-4" />
+                    <button onClick={onEdit} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-xs text-white font-medium">
+                        Edit Job
                     </button>
+                    <Link href={`/jobs/${job.id}`} className="px-2 py-1 hover:bg-gray-800 rounded text-xs text-gray-400 font-medium">
+                        View Full
+                    </Link>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href={`/jobs/${job.id}`} className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded text-sm text-white">
-                        Open Job
-                    </Link>
                     <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded">
                         <X className="w-5 h-5" />
                     </button>

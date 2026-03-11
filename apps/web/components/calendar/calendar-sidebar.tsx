@@ -21,15 +21,16 @@ interface CalendarSidebarProps {
     setDate: (date: Date) => void;
     selectedJob: JobWithDetails | null;
     onCloseJobDetails: () => void;
+    onEditJob: () => void;
     unassignedJobs: JobWithDetails[];
     jobs: JobWithDetails[];
 }
 
-export function CalendarSidebar({ date, setDate, selectedJob, onCloseJobDetails, unassignedJobs, jobs }: CalendarSidebarProps) {
+export function CalendarSidebar({ date, setDate, selectedJob, onCloseJobDetails, onEditJob, unassignedJobs, jobs }: CalendarSidebarProps) {
     const [activeTab, setActiveTab] = useState<'calendar' | 'workpool'>('calendar');
 
     if (selectedJob) {
-        return <JobDetailsPanel job={selectedJob} onClose={onCloseJobDetails} />;
+        return <JobDetailsPanel job={selectedJob} onClose={onCloseJobDetails} onEdit={onEditJob} />;
     }
 
     const dailyJobs = jobs.filter(job => {

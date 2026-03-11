@@ -380,6 +380,7 @@ export function CalendarView({ jobs, clients, technicians }: CalendarViewProps) 
                                 }}
                                 selectedJob={selectedJob}
                                 onCloseJobDetails={() => setSelectedJob(null)}
+                                onEditJob={() => setIsDialogOpen(true)}
                                 unassignedJobs={unassignedJobs}
                                 jobs={filteredJobs}
                             />
