@@ -15,7 +15,7 @@ import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 
 export function ProductList({ products }: ProductListProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -102,7 +102,7 @@ export function ProductList({ products }: ProductListProps) {
                         className="flex items-center gap-2 border border-indigo-300 text-indigo-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-50"
                     >
                         <Filter className="h-4 w-4" />
-                        {isFr ? 'Importer Coûts CSV' : 'Import Costs CSV'}
+                        {t.products.importCostsCSV}
                     </button>
                     <button
                         onClick={handleAdd}
@@ -116,12 +116,10 @@ export function ProductList({ products }: ProductListProps) {
             {showSupplierImport && (
                 <div className="mb-6 border border-indigo-200 rounded-xl p-6 bg-indigo-50/30">
                     <h3 className="font-semibold text-indigo-900 mb-1 flex items-center gap-2">
-                        📦 {isFr ? 'Importer Liste de Prix Fournisseur' : 'Import Supplier Price List'}
+                        📦 {t.products.importSupplierPrices}
                     </h3>
                     <p className="text-sm text-indigo-700/70 mb-4">
-                        {isFr
-                            ? 'Importez un fichier CSV avec vos coûts d\'achat pour calibrer automatiquement la rentabilité.'
-                            : 'Upload a CSV with purchase costs to auto-calibrate profitability.'}
+                        {t.products.importCostsDesc}
                     </p>
                     <SupplierImportDialog />
                 </div>
