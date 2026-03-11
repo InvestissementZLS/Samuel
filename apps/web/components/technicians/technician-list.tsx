@@ -61,6 +61,9 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Divisions
+                                </th>
                                 <th scope="col" className="relative px-6 py-3">
                                     <span className="sr-only">Edit</span>
                                 </th>
@@ -85,6 +88,18 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
                                                 Inactive (Hidden)
                                             </span>
                                         )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-normal">
+                                        <div className="flex gap-1 flex-wrap">
+                                            {/* @ts-ignore */}
+                                            {(tech.divisions || ["EXTERMINATION"]).map(d => (
+                                                <span key={d} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                    {d === "EXTERMINATION" ? "ZLS EXTERMINATION" :
+                                                     d === "MENAGE" ? "ZLS MÉNAGE" : 
+                                                     d === "GAZON" ? "ZLS GAZON / DÉNEIGEMENT" : d}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
