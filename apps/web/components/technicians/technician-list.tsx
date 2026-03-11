@@ -16,8 +16,7 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
     const { division } = useDivision();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedTechnician, setSelectedTechnician] = useState<User | null>(null);
-
-    const filteredTechnicians = technicians.filter(tech => {
+    const filteredTechnicians = canCreate ? technicians : technicians.filter(tech => {
         // @ts-ignore
         const techDivisions = tech.divisions || ["EXTERMINATION"];
         return techDivisions.includes(division);
