@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 14.1.0",
-    "requireCommit": true
+    "requireCommit": true,
+    "packageManager": "npm"
   },
   "build": {
     "development": {
