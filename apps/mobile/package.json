@@ -2,6 +2,9 @@
   "name": "mobile",
   "version": "1.0.0",
   "main": "App.tsx",
+  "expo": {
+    "monorepoDepth": 2
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -17,6 +20,7 @@
     "expo": "^54.0.30",
     "expo-camera": "~17.0.10",
     "expo-file-system": "~19.0.21",
+    "expo-image-picker": "~17.0.10",
     "expo-location": "~19.0.8",
     "expo-network": "~8.0.8",
     "expo-sqlite": "~16.0.10",
