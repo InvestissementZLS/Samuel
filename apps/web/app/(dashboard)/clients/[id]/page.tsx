@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ClientTabs } from '@/components/clients/client-tabs';
 import { ClientHeader } from '@/components/clients/client-header';
 import { CopyPortalLink } from '@/components/clients/copy-portal-link';
+import { getOrCreateClientPortalToken } from '@/app/actions/portal-actions';
 
 export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
     const { id } = params;
@@ -53,11 +54,13 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
     const products = await prisma.product.findMany({
         orderBy: { name: 'asc' },
     });
+    
+    const portalToken = await getOrCreateClientPortalToken(client.id);
 
     return (
         <div className="max-w-6xl mx-auto p-8">
             <div className="flex justify-between items-start mb-6">
-                <ClientHeader client={client} />
+                <ClientHeader client={client} portalToken={portalToken} />
                 <CopyPortalLink clientId={client.id} />
             </div>
 

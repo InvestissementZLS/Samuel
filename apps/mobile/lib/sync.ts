@@ -80,7 +80,7 @@ export const syncOutbox = async () => {
 };
 
 // Full Sync: Push Outbox then Pull Jobs
-export const syncData = async (userId: string) => {
+export const syncData = async (userId: string, dateIsoString?: string) => {
     const connected = await isConnected();
 
     // 1. Try to push changes first
@@ -92,7 +92,8 @@ export const syncData = async (userId: string) => {
     if (connected) {
         try {
             console.log("Fetching fresh jobs...");
-            const response = await axios.get(`${API_URL}/api/technician/jobs?techId=${userId}`);
+            const dateParams = dateIsoString ? `&date=${encodeURIComponent(dateIsoString)}` : '';
+            const response = await axios.get(`${API_URL}/api/technician/jobs?techId=${userId}${dateParams}`);
             saveJobsToLocal(response.data);
             return response.data;
         } catch (error) {

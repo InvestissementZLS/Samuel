@@ -30,6 +30,12 @@ import { useDivision } from "@/components/providers/division-provider";
 import { searchProducts, createQuickService } from "@/app/actions/product-actions";
 import { Plus, X, Search } from "lucide-react";
 
+// Workaround for React 19 / Lucide JSX type mismatch blocking Next.js HMR
+const PlusIcon = Plus as any;
+const XIcon = X as any;
+const SearchIcon = Search as any;
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+
 export function JobDialog({ isOpen, onClose, job, initialDate, clients, technicians }: JobDialogProps) {
     const [clientId, setClientId] = useState("");
     const [propertyId, setPropertyId] = useState("");
@@ -56,6 +62,12 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
     const handleCreateClient = async () => {
         if (!newClientName) return;
+        
+        if (!newClientAddress || newClientAddress.trim().length === 0) {
+            toast.error("Veuillez fournir une adresse afin de générer la propriété du travail.");
+            return;
+        }
+
         setLoading(true);
         try {
             const newClient = await createClient({
@@ -182,6 +194,17 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (isCreatingClient) {
+            toast.error("Veuillez d'abord enregistrer le nouveau client (bouton 'Save Client').");
+            return;
+        }
+
+        if (!propertyId) {
+            toast.error("Veuillez sélectionner une propriété pour ce travail.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -256,12 +279,18 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         </div>
                         {isCreatingClient ? (
                             <div className="space-y-2 p-2 bg-muted/50 rounded-md border">
-                                <input type="text" placeholder="Client Name" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
-                                <div className="grid grid-cols-2 gap-2">
+                                <input type="text" placeholder="Client Name *" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <input type="email" placeholder="Email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
-                                    <input type="text" placeholder="Address" value={newClientAddress} onChange={(e) => setNewClientAddress(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                    <AddressAutocomplete 
+                                        value={newClientAddress}
+                                        onChange={setNewClientAddress}
+                                        onSelectAddress={setNewClientAddress}
+                                        placeholder="Address (Required) *"
+                                        className="w-full rounded-md border px-2 py-1.5 text-sm"
+                                    />
                                 </div>
-                                <button type="button" onClick={handleCreateClient} disabled={!newClientName || loading} className="w-full bg-indigo-600 text-white px-3 py-1.5 rounded text-xs">Save Client</button>
+                                <button type="button" onClick={handleCreateClient} disabled={!newClientName || !newClientAddress || loading} className="w-full bg-indigo-600 text-white px-3 py-1.5 rounded text-xs hover:bg-indigo-700 disabled:opacity-50">Save Client</button>
                             </div>
                         ) : (
                             <select value={clientId} onChange={(e) => { setClientId(e.target.value); setPropertyId(""); }} className="w-full rounded-md border px-2 py-1.5 text-sm h-9" required disabled={!!job}>
@@ -322,7 +351,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                     <div className="relative mb-2">
                         <div className="flex items-center gap-2">
                             <div className="relative flex-1">
-                                <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+                                <SearchIcon className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                                 <input
                                     type="text"
                                     placeholder="Search or Create Service (e.g. 'Inspection')"
@@ -377,7 +406,7 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                         <span className="text-xs text-muted-foreground">Qty: {p.quantity}</span>
                                     )}
                                     <button type="button" onClick={() => removeProduct(p.productId)} className="text-red-500 hover:text-red-700">
-                                        <X size={14} />
+                                        <XIcon size={14} />
                                     </button>
                                 </div>
                             </div>

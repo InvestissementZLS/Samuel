@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPortalData, cancelJob } from "@/app/actions/portal-actions";
+import { getPortalData, cancelJob, getPortalServices } from "@/app/actions/portal-actions";
 import { format, isAfter, addHours } from "date-fns";
-import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileText, CreditCard, Download, Eye } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileText, CreditCard, Download, Eye, ShoppingBag, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { dictionary, Locale } from "@/lib/i18n/dictionary";
 import { PaymentModal } from "@/components/portal/payment-modal";
@@ -35,6 +35,7 @@ export default function ClientPortalPage() {
     const [jobs, setJobs] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<any[]>([]);
     const [processing, setProcessing] = useState<string | null>(null);
+    const [services, setServices] = useState<any[]>([]);
 
     // Payment State
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
@@ -72,6 +73,10 @@ export default function ClientPortalPage() {
                 if (data.language) {
                     setLanguage(data.language.toLowerCase() as Locale);
                 }
+
+                // Fetch services for the boutique
+                const servicesData = await getPortalServices();
+                setServices(servicesData);
             } catch (e) {
                 console.error(e);
                 toast.error("Failed to load portal");
@@ -188,7 +193,82 @@ export default function ClientPortalPage() {
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+                {/* ── Boutique & Services Saisonniers ── */}
+                <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="w-5 h-5 text-yellow-300" />
+                            <span className="text-sm font-semibold uppercase tracking-wider text-indigo-100">
+                                {language === 'fr' ? 'Suggestions de Saison' : 'Seasonal Suggestions'}
+                            </span>
+                        </div>
+                        <h2 className="text-3xl font-bold mb-4">
+                            {language === 'fr' 
+                                ? (now.getMonth() >= 3 && now.getMonth() <= 7 
+                                    ? "Protégez votre maison ce printemps" 
+                                    : "Préparez votre hiver en toute sérénité")
+                                : "Protect your home this season"}
+                        </h2>
+                        <p className="text-indigo-100 max-w-xl mb-6 text-lg">
+                            {language === 'fr'
+                                ? "Découvrez nos services spécialisés pour prévenir les infestations courantes ce mois-ci."
+                                : "Discover our specialized services to prevent common infestations this month."}
+                        </p>
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => router.push(`/booking/${token}`)}
+                                className="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold hover:bg-indigo-50 transition-all flex items-center gap-2 shadow-lg"
+                            >
+                                {language === 'fr' ? 'Réserver maintenant' : 'Book Now'}
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                    {/* Abstract shapes for design */}
+                    <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+                </section>
+
+                <section>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <ShoppingBag className="h-6 w-6 text-indigo-600" />
+                            {language === 'fr' ? 'Boutique & Services' : 'Our Services'}
+                        </h2>
+                    </div>
+
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {services.filter(s => s.price > 0).slice(0, 6).map((service) => (
+                            <div key={service.id} className="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        <ShieldCheck className="w-5 h-5" />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xl font-bold text-gray-900">{service.price}$</div>
+                                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">
+                                            {service.warrantyInfo || "Service Pro"}
+                                        </div>
+                                    </div>
+                                </div>
+                                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                                    {service.name}
+                                </h3>
+                                <p className="text-sm text-gray-500 line-clamp-3 mb-6 flex-grow">
+                                    {service.description}
+                                </p>
+                                <button
+                                    onClick={() => router.push(`/booking/${token}`)}
+                                    className="w-full py-2.5 rounded-xl border border-indigo-600 text-indigo-600 font-semibold hover:bg-indigo-600 hover:text-white transition-all text-sm"
+                                >
+                                    {language === 'fr' ? 'Détails & Réservation' : 'Details & Booking'}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 {/* ── Garantie & Statistiques ── */}
                 <div className="grid gap-4 md:grid-cols-3">

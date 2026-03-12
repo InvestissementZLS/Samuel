@@ -33,6 +33,7 @@ type JobDetailsNavigationProp = StackNavigationProp<RootStackParamList, 'JobDeta
 interface JobDetail {
     id: string;
     scheduledAt: string;
+    scheduledEndAt?: string | null;
     status: string;
     description: string;
     property: {
@@ -429,7 +430,7 @@ export default function JobDetailsScreen() {
 
                     <TouchableOpacity
                         style={[styles.actionButton, styles.deleteButton]}
-                        onPress={() => {
+                        onLongPress={() => {
                             Alert.alert(
                                 "Delete Job",
                                 "Are you sure you want to delete this job? This cannot be undone.",
@@ -459,7 +460,7 @@ export default function JobDetailsScreen() {
                         }}
                         disabled={loading}
                     >
-                        <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>Delete Job</Text>
+                        <Text style={[styles.actionButtonText, { color: '#DC2626' }]}>Hold to Delete</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

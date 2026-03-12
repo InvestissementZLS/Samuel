@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { setDivisionCookie } from "@/app/actions/division-actions";
+import { useRouter } from "next/navigation";
 
 type Division = "EXTERMINATION" | "ENTREPRISES" | "RENOVATION";
 
@@ -13,6 +15,7 @@ const DivisionContext = createContext<DivisionContextType | undefined>(undefined
 
 export function DivisionProvider({ children }: { children: React.ReactNode }) {
     const [division, setDivisionState] = useState<Division>("EXTERMINATION");
+    const router = useRouter();
 
     useEffect(() => {
         const stored = localStorage.getItem("division");
@@ -21,10 +24,17 @@ export function DivisionProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const setDivision = React.useCallback((div: Division) => {
+    const setDivision = React.useCallback(async (div: Division) => {
         setDivisionState(div);
         localStorage.setItem("division", div);
-    }, []);
+        
+        // Use the Server Action to definitively set the cookie for NextJS App Router
+        await setDivisionCookie(div);
+        
+        // This will forcefully refresh the Server Components with the new cookie
+        // and avoid the jarring visual "flash" of window.location.reload()
+        router.refresh();
+    }, [router]);
 
     const contextValue = React.useMemo(() => ({ division, setDivision }), [division, setDivision]);
 

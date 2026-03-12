@@ -1,0 +1,834 @@
+﻿[
+  {
+    "name": "Souris - Service R├®gulier",
+    "description": "Visite unique, installation de poison, suivi",
+    "price": 450,
+    "warrantyInfo": "6 mois",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Fourmis Charpenti├¿res - Forfait 1",
+    "description": "Traitement choc int├®rieur + 1 arrosage ext├®rieur",
+    "price": 675,
+    "warrantyInfo": "3 mois",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Fourmis Charpenti├¿res - Forfait 2",
+    "description": "Traitement choc int├®rieur + 3 arrosages ext├®rieurs (saison ├®t├®)",
+    "price": 975,
+    "warrantyInfo": "1 an (renouvelable si pr├®vention annuelle)",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Gu├¬pes - Nid visible",
+    "description": "Extermination dÔÇÖun nid visible",
+    "price": 175,
+    "warrantyInfo": "3 mois",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Gu├¬pes - Mur int├®rieur",
+    "description": "Extermination nid dans mur int├®rieur (selon difficult├®)",
+    "price": 400,
+    "warrantyInfo": "3 mois",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Gu├¬pes - Fumigation soffit complet",
+    "description": "Fumigation compl├¿te des soffits",
+    "price": 450,
+    "warrantyInfo": "3 mois",
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "ANTS NO-MORE ANT BAIT STATION",
+    "description": "├ëquipement",
+    "price": 42.4,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Arrosage ext├®rieur",
+    "description": "Pr├®vention contre les gu├¬pes. Arrosage ├á l'int├®rieur des soffites et ├á l'ext├®rieur, contour des portes et fen├¬tres.Produit utilis├®: DragnetIngr├®dient actif: perm├®thrineQuantit├® utilis├®e: 50ml/4l d'eauCentre Antipoison du Qu├®bec: 1-800-463-4010",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Autre",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "B&G MOUSE STATION 48/CASE CASE",
+    "description": "",
+    "price": 95,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Bi-Weekly mouse treatment",
+    "description": "(Visit 1)Installation of mouse bait stations, glue traps, and shock treatment in key areas.Placement of rat and mouse bait stations in mechanical rooms.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Bi-weekly visits",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "blocage G├®n├®ral",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage marmotte/mouffette",
+    "description": "Blocage carr├® de sable et cabanon contre marmotte/moufetteDescription des services inclus :Travaux de blocage : Creusage dÔÇÖune tranch├®e de 2 pieds de profondeur par 2 pieds de largeur tout le tour du carr├® de sable et du cabanon.Installation de grillage galvanis├® haute r├®sistance, fix├® solidement pour emp├¬cher toute intrusion sous les structures.Monitoring par cam├®ra : Installation et suivi avec cam├®ra pour observer lÔÇÖactivit├® animale et confirmer lÔÇÖefficacit├® des travaux.Pose de cage(s) de capture si n├®cessaire, pour pi├®ger et relocaliser les animaux ind├®sirables.D├®placements inclus pour toutes les visites n├®cessaires :1. Visite dÔÇÖinspection initiale et installation de la cam├®ra.2. Pose du grillage et des cages de capture.3. Visite(s) de suivi pour v├®rification et ajustements.4. Retrait de la cam├®ra et des cages une fois le probl├¿me r├®solu.Garantie :Garantie de 5 ans sur les travaux de blocage (grillage), non valide si des travaux ult├®rieurs affectent la structure prot├®g├®e.",
+    "price": 1200,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage Pr├®ventif ├á la Base (Souris et Mulots)",
+    "description": "Description du ServiceBlocage des acc├¿s situ├®s ├á la base du b├ótiment, en particulier dans les coins et zones vuln├®rables.Installation de grillage galvanis├® pour obstruer solidement les ouvertures et fissures ├á la jonction du sol et des murs.Application de silicone sp├®cialis├® sur les zones scell├®es afin dÔÇÖassurer une barri├¿re durable et herm├®tique contre les rongeurs. Mat├®riaux utilis├®sGrillage galvanis├® r├®sistant aux rongeurs : D├®coup├® et fix├® pour emp├¬cher toute p├®n├®tration.Silicone de calfeutrage ext├®rieur : Utilis├® en compl├®ment pour sceller les jointures et renforcer la protection dans les coins.InclusionsGarantie de 3 ans contre les souris : Si une r├®infestation survient par la base durant cette p├®riode, un traitement correctif sera effectu├® gratuitement.Garantie de 5 ans sur les mat├®riaux : Couvre les d├®fauts li├®s au grillage et au silicone utilis├®s.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage Pr├®ventif (Base et Hauteur ÔÇô Souris et Mulots)",
+    "description": "Description du Service Blocage ├á la base du b├ótiment : Installation de grillage galvanis├® et application de silicone dans les coins et zones vuln├®rables afin de sceller efficacement les acc├¿s au niveau du sol.  Scellement en hauteur : Fermeture de lÔÇÖespace situ├® entre le rev├¬tement et le soffite pour ├®liminer les points dÔÇÖentr├®e potentiels des rongeurs dans les parties sup├®rieures du b├ótiment.  Mat├®riaux utilis├®s Grillage galvanis├® r├®sistant aux rongeurs : Pour bloquer les ouvertures situ├®es ├á la base.  Silicone de calfeutrage ext├®rieur : Appliqu├® sur les jointures et fissures afin de garantir une barri├¿re herm├®tique et durable.  Inclusions Garantie de 3 ans contre les souris : En cas de r├®infestation durant cette p├®riode, une intervention corrective sera effectu├®e gratuitement.  Garantie de 5 ans sur les mat├®riaux : Couvre les d├®fauts li├®s au grillage et au silicone utilis├®s pour le calfeutrage.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage Pr├®ventif (Hauteur + Correctifs ├á la Base ÔÇô Souris et Mulots)",
+    "description": "Description du ServiceScellement en hauteur : Fermeture de lÔÇÖespace situ├® entre le rev├¬tement et le soffite afin dÔÇÖ├®liminer les points dÔÇÖentr├®e potentiels par le haut du b├ótiment.Correctifs cibl├®s ├á la base : Application de grillage galvanis├® et de silicone uniquement dans les zones critiques (coins et fissures) pour renforcer la protection contre les intrusions de rongeurs.Mat├®riaux utilis├®sGrillage galvanis├® r├®sistant aux rongeurs : Utilis├® pour bloquer les ouvertures rep├®r├®es ├á la base.Silicone de calfeutrage ext├®rieur : Appliqu├® pour sceller et renforcer la durabilit├® des correctifs effectu├®s.InclusionsGarantie de 3 ans contre les souris : En cas de r├®infestation durant cette p├®riode, une intervention corrective sera effectu├®e sans frais.Garantie de 5 ans sur les mat├®riaux : Couvre les d├®fauts li├®s aux mat├®riaux de calfeutrage (grillage et silicone).",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Blocage raton",
+    "description": "Description du Service ÔÇô Blocage contre les Ratons (Corniches et Grenier)Travaux de blocage cibl├® pour emp├¬cher les intrusions de ratons laveurs par les zones en hauteur, sp├®cifiquement les corniches et le grenier.Les travaux incluent : Inspection compl├¿te des hauteurs de la r├®sidence pour identifier tous les points dÔÇÖacc├¿s potentiels (soffites, corniches, trappes du grenier, etc.).  Installation de grillage m├®tallique galvanis├® pour couvrir les ouvertures et emp├¬cher lÔÇÖacc├¿s.  Renforcement ou remplacement des zones affaiblies au moyen de plaques de t├┤le ou de panneaux de plywood viss├®s solidement. Ce service est recommand├® en cas dÔÇÖintrusion active ou en pr├®vention dans les r├®sidences ├á risque, notamment situ├®es en bordure bois├®e.GarantieUne garantie de 3 ans est incluse sur les mat├®riaux install├®s, conditionnelle ├á lÔÇÖabsence de travaux futurs modifiant les zones trait├®es ainsi que pour l'intrusion de ratons laveur dans les zones bloqu├®es.",
+    "price": 1000,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Calfeutrage",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "calfeutrage acc├¿s en hauteur",
+    "description": "Calfeutrage en hauteur entre le rev├¬tement ext├®rieur et les soffites afin de bloquer les points dÔÇÖentr├®e des gu├¬pes dans le grenier.Application de scellant ext├®rieur professionnel sur toute la section concern├®eTravail r├®alis├® ├á lÔÇÖ├®chelle avec inspection visuelle compl├¿teV├®rification des points vuln├®rables autour du grenierProduit utilis├® : Scellant flexible haute performance, con├ºu pour r├®sister aux intemp├®ries, ├á la chaleur et au vieillissement.Garantie :Garantie de 5 ans sur les mat├®riaux et la qualit├® de lÔÇÖinstallation, sauf en cas de modification structurelle ou de bris physique des zones scell├®es.",
+    "price": 650,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Calfeutrage & Blocage souris",
+    "description": "1. Scellement des acc├¿s ├á la base de la maison :Application de silicone manquant pour les porte et fen├¬tre, silicone durable pour combler les espaces visibles entre la t├┤le anti-nuisible d├®j├á install├®e et la fondation tout autour de la maison.Installation d'un grillage anti-nuisible entre la base et le rev├¬tement si n├®cessaire pour une protection suppl├®mentaire. ( Si besoin )Inspection minutieuse pour identifier toutes les zones non ├®tanches ├á la base et les traiter de mani├¿re pr├®ventive.2. Traitement des acc├¿s en hauteur Application de silicone en hauteur entre le rev├¬tement et le soffit.V├®rification et traitement de toutes autres faiblesses possibles en hauteur qui pourraient permettre lÔÇÖacc├¿s des nuisibles.3. Inspection et calfeutrage compl├®mentaire :V├®rification globale pour garantir l'absence d'autres points d'entr├®e et scellement avec des mat├®riaux durables si n├®cessaire.4. Traitement pour ├®limination de la colonie active :Installation de stations de poison s├®curis├®es dans les endroits strat├®giques et faciles d'acc├¿s ├á l'int├®rieur de la maison, notamment :Sous l'├®vier (acc├¿s de plomberie).Salle m├®canique.Garage.Grenier.Produit utilis├® : CONTRAC┬« All-Weather BLOX┬«.Ingr├®dient actif : Bromadiolone (0,005%).D├®tails de FacturationGarantie de 5 ans sur le calfeutrage et les mat├®riaux appliqu├®s, ├á condition quÔÇÖaucune modification ou alt├®ration ne soit effectu├®e apr├¿s notre intervention.Garantie de 2 ans pour les souris. Un traitement avec poison sera effectu├® pour ├®liminer la colonie active dans la maison.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Capture ├®cureuil",
+    "description": "",
+    "price": 130,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "capture ecureuil x2 et ouverture",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Capture et relocalisation dÔÇÖune famille dÔÇÖ├®cureuils",
+    "description": "Installation de plusieurs cages individuelles ainsi que dÔÇÖune cage multi-capture afin dÔÇÖoptimiser la capture rapide de la famille dÔÇÖ├®cureuils.Relocalisation compl├¿te de la famille captur├®e ├á un minimum de 20 kilom├¿tres de la r├®sidence, dans un environnement naturel appropri├®.V├®rification et suivi jusquÔÇÖ├á la r├®ussite de la capture et du transfert.Garantie :Assurance de relocalisation de la famille enti├¿re.",
+    "price": 625,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "capture marmotte",
+    "description": "",
+    "price": 150,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Capture raton",
+    "description": "",
+    "price": 130,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Colmatage",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contrat 2 ans souris/mulots",
+    "description": "Traitement avec poison pendant 2 ans.Le paiement doit ├¬tre effectu├® en totalit├® pour avoir acc├¿s au rabais.15% de rabais par ann├®e.",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contrat 3 ans souris/mulots",
+    "description": "Traitement avec poison ├á chaque ann├®e pour une dur├®e de 3 ans. Le paiement doit ├¬tre effectu├® en totalit├® pour avoir acc├¿s au rabais.20% de rabais par ann├®e.",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contrat annuel Lee Brozak",
+    "description": "Service de gestion des souris :Nous effectuerons 4 visites par ann├®e, soit une par trimestre, pour le traitement contre les souris.Chaque visite est factur├®e 175ÔÇ»$ avant taxes, pour un total de 700ÔÇ»$.­ƒÉ£ Arrosage ext├®rieur anti-nuisibles :Nous r├®aliserons 3 arrosages pr├®ventifs durant la saison estivale, d├®butant en juin et se terminant en septembre.Le prix initial de ce service est de 600ÔÇ»$ avant taxes.Cependant, puisque deux des arrosages seront combin├®s avec les visites de traitement anti-souris, nous retirons les frais de d├®placement pour ces deux visites.Le co├╗t final de ce service est donc r├®duit ├á 450ÔÇ»$ avant taxes. R├®sum├® de la facturation :4 visites de traitement anti-souris ├á 175ÔÇ»$ chacune : 700ÔÇ»$3 arrosages ext├®rieurs anti-nuisibles ├á 125ÔÇ»$ chacun (frais de d├®placement d├®duits pour deux visites) : 450ÔÇ»$",
+    "price": 1150,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contrat de 4 ans souris/mulots",
+    "description": "Traitement avec poison ├á chaque ann├®e pour une dur├®e de 4 ans. Paiement doit ├¬tre effectu├® en totalit├® pour avoir acc├¿s au rabais.25% de rabais par ann├®e. (4e ann├®e gratuite)",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contr├┤le mensuel",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Contr├┤le souris",
+    "description": "Maintenir une pr├®vention contre les souris.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "D├®contamination",
+    "description": "",
+    "price": 3750,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "D├®duction",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "d├®duction traitement souris",
+    "description": "",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "D├®placement",
+    "description": "",
+    "price": 75,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Deuxi├¿me visite ÔÇô Plan dÔÇÖarrosage ext├®rieur et prolongation de garantie",
+    "description": "",
+    "price": 225,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "├ëviction de raton laveur",
+    "description": "",
+    "price": 300,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Extraction gu├¬pes de terre",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Famille de raton",
+    "description": "",
+    "price": 600,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Famille ├®cureuil",
+    "description": "",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Fourmis Charpenti├¿re Forfait 1",
+    "description": "Phase d'App├ótage Int├®rieur & Ext├®rieur : Deux (2) visites d'app├ótage int├®rieur & ext├®rieur utilisant un poison sp├®cifique pour ├®liminer les fourmis charpenti├¿res.Traitement Ext├®rieur : Une visite d'arrosage autour de la maison durant la saison d'├®t├® pour une protection renforc├®e.Garantie :Dur├®e : 3 mois, couvrant la r├®apparition des fourmis charpenti├¿res durant cette p├®riode.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 640,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Fourmis Charpenti├¿re Forfait 2",
+    "description": "Phase d'App├ótage Int├®rieur & Ext├®rieur : Deux (2) visites d'app├ótage int├®rieur & ext├®rieur avec du poison pour cibler efficacement les fourmis charpenti├¿res.Traitement Ext├®rieur : Trois (3) visites d'arrosage autour de la maison durant la saison d'├®t├® pour une protection renforc├®e.Garantie :Dur├®e : 1 an, offrant une intervention rapide en cas de r├®infestation dans cette p├®riode.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 975,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Fumigation des murs ext├®rieurs ÔÇô Gu├¬pes",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Garantie de 3 mois",
+    "description": "Notre traitement est couvert par une garantie de trois (3) mois.Cela signifie que si lÔÇÖactivit├® dÔÇÖinsectes persiste au-del├á de 3 ├á 4 semaines suivant lÔÇÖintervention initiale, un deuxi├¿me traitement sera effectu├® sans frais suppl├®mentaires afin dÔÇÖassurer lÔÇÖ├®limination compl├¿te du probl├¿me.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Garantie dÔÇÖun an sur le service offert",
+    "description": "La garantie est valide pour une p├®riode dÔÇÖun (1) an ├á compter de la date du traitement. Elle couvre toute r├®apparition de lÔÇÖactivit├® cibl├®e dans les zones trait├®es. Si une activit├® est observ├®e durant cette p├®riode, une nouvelle intervention sera effectu├®e sans frais suppl├®mentaires afin dÔÇÖassurer lÔÇÖefficacit├® compl├¿te du service.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Insecte d'humidit├®",
+    "description": "Traitement int├®rieur et ext├®rieur avec insecticide ├á large spectre",
+    "price": 350,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Inspection",
+    "description": "",
+    "price": 175,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "inspection canine - punaises de lit",
+    "description": "Inspection canine punaises de lit pour d├®terminer le degr├®s d'infestation.",
+    "price": 325,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Inspection et installation de trappes ├á rats",
+    "description": "D├®ploiement de plusieurs trappes ├á rats aux endroits o├╣ lÔÇÖactivit├® est la plus intense.",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "inspection pr├®liminaire ÔÇö Cafards",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Instalation de cage et cam├®ra ( controle du grenier)",
+    "description": "Installation de cage et de cam├®ra (contr├┤le du grenier)Mise en place dÔÇÖune cage de capture et dÔÇÖune cam├®ra de surveillance dans le grenier afin de suivre lÔÇÖactivit├® animale et confirmer la pr├®sence ou le d├®part des nuisibles. Cette installation permet un suivi pr├®cis et s├®curitaire avant toute ├®tape de fermeture d├®finitive des acc├¿s.",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Installation de cam├®ras d'inspection",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "installation de one way-out",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Int├®rieur/ext├®rieur fourmis - Traitement choc",
+    "description": "P├®rim├¿tre le long des moulures et contours portes/fen├¬tres.P├®rim├¿tre de la base ext de la maison, soffites, contours portes et fen├¬tres.Garantie 3 mois.",
+    "price": 350,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "one way out ├®cureuil + cam├®ras",
+    "description": "",
+    "price": 400,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Ouverture de dossier",
+    "description": "dossier valide pour une dur├®e de 6 mois",
+    "price": 220,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "ouverture du dossier",
+    "description": "",
+    "price": 220,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Pizza Dorval Cucina San Leone",
+    "description": "Contr├┤le mensuel pr├®vention et contr├┤le des rongeurs.",
+    "price": 125,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Plan dÔÇÖarrosage annuel pr├®ventif contre les insectes",
+    "description": "Description du serviceTraitement ext├®rieur pr├®ventif par arrosage contre les insectes rampants et volants pouvant sÔÇÖintroduire dans la maison.Nombre de visites : Trois (3) traitements ext├®rieurs pr├®ventifs, espac├®s dÔÇÖenviron 1 mois et demi ├á 2 mois durant la saison active (mi-mai ├á fin ao├╗t).Zones trait├®es :Base de la maisonContour des portes et fen├¬tresSoffitesGarantieCe service inclut une garantie pour toute la saison contre les insectes suivants :Nids de gu├¬pesFourmis, araign├®es, perce-oreilles, et autres insectes courantsTout insecte pouvant sÔÇÖintroduire dans la maisonSi une infestation se manifeste malgr├® les traitements, une intervention de suivi sera faite sans frais suppl├®mentaires dans un d├®lai de 24 ├á 48 heures suivant le signalement.Modalit├®s de paiement50% de la facture doit ├¬tre pay├®e avant le premier arrosage pour que le contrat prenne effet. Le reste du montant doit ├¬tre pay├® apr├¿s la premi├¿re visite d'arrosage.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Pose de cage (ouverture de dossier)",
+    "description": "Facturation pour pose de cage et cam├®ra (ouverture de dossier).Si un ├®cureuil est captur├® et relocalis├®, un montant suppl├®mentaire de 100$+taxes sera factur├®.Merci ! ZLS extermination",
+    "price": 200,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Pr├®ventif",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Pr├®vention ext├®rieure",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Punaises de lit - Traitement choc",
+    "description": "Application de Dragnet :Dragnet est un insecticide puissant appliqu├® cibl├® ├á la base des moulures, sur les fissures, les crevasses et les zones de passage des punaises.En cr├®ant un p├®rim├¿tre de mise en quarantaine, ce traitement tue non seulement les punaises directement expos├®es, mais aussi celles qui traversent les zones trait├®es dans les heures qui suivent.Cette approche permet d'endommager s├®v├¿rement la colonie d├¿s la premi├¿re intervention.Utilisation de Konk 407 :Konk 407 est un spray ├á effet imm├®diat qui cible les punaises directement dans les zones d├®tect├®es (notamment gr├óce ├á une ├®ventuelle d├®tection canine).Ce produit ├®limine les punaises et larves au contact, garantissant un impact imm├®diat et une r├®duction significative de lÔÇÖinfestation visible.Cette ├®tape initiale est essentielle pour donner un coup de gr├óce aux punaises les plus accessibles, tout en posant les bases pour un traitement compl├®mentaire efficace.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 800,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "rabais",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Raccoon Trapping and Removal Service",
+    "description": "This service includes the humane trapping and removal of raccoons from the property. We will install professional-grade traps in strategic locations based on signs of activity. Traps will be checked daily or as required by provincial regulations (with cameras or by the client).Once the raccoons are captured, they will be relocated in compliance with local wildlife control laws. The technician will also provide basic recommendations to prevent future intrusions (e.g., securing garbage bins, sealing entry points).Travel and Installation Fees:The service includes trap setup (installation fees) and technician travel to and from the site (travel fees).",
+    "price": 650,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Rapport dÔÇÖobservation",
+    "description": "Veuillez noter que le paiement doit ├¬tre effectu├® avant lÔÇÖenvoi du rapport complet.Une fois le paiement re├ºu, le rapport final vous sera transmis par courriel dans les plus brefs d├®lais.",
+    "price": 150,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "retrait plancher bois-franc",
+    "description": "",
+    "price": 1739.51,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Sauvage",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Service Bi-Mensuel",
+    "description": "Contr├┤le de pr├®vention nuisibles ├á chaque 2 mois.",
+    "price": 175,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Service complet (gu├¬pes)",
+    "description": "Comprend :Traitement int├®rieurDeux traitements ext├®rieursCalfeutrage completGarantie :┬á1 an sur lÔÇÖensemble des services.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 2500,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Service de garantie",
+    "description": "Rappel de garantie.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "service mensuel",
+    "description": "Installation of mouse bait stations, glue traps, and shock treatment in key areas.Placement of rat and mouse bait stations in mechanical rooms.",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Service Trimestriel",
+    "description": "Contr├┤le trimestriel de pr├®vention nuisibles.",
+    "price": 175,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Souris - Sous le toit de l'├ëchelon",
+    "description": "Traitement pr├®ventif contre les souris, mulots.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Sous-traitance",
+    "description": "",
+    "price": 7734.12,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Squirrels service",
+    "description": "This service includes the humane trapping and removal of squirrels from the property. Professional-grade live traps will be installed in strategic locations based on observed activity (attics, soffits, rooflines, or entry points). (Deadly measures can be used also if necessary). Traps will be monitored daily or as required by provincial regulations, either by the technician, with cameras, or by the client when applicable.Once the squirrels are captured, they will be handled and relocated in compliance with local wildlife control laws. The technician will also provide basic preventive recommendations to reduce the risk of future intrusions (e.g., sealing access points, trimming branches near the roof, securing vents).Travel and Installation FeesThe service includes trap setup (installation fees) as well as technician travel to and from the site (travel fees).",
+    "price": 650,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Surplus",
+    "description": "retrait du sous-plancher, chambre et salle de bain. retrait des plinthes et bases de mur.",
+    "price": 1739.51,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Surveillance et ├®valuation de lÔÇÖinfestation",
+    "description": "Installation des trappes collantes de monitoring avec 2 visites incluses sur une p├®riode de 1┬¢ ├á 2 semaines afin dÔÇÖ├®valuer lÔÇÖactivit├®, localiser les foyers actifs et ajuster le protocole de traitement.",
+    "price": 300,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Test",
+    "description": "Test",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement app├ót - coquerelle",
+    "description": "Application d'app├ót poison le long des moulures dans la cuisine, salle de bain, derri├¿re le four, frigidaire, etc. Ce poison cible les coquerelles seulement.",
+    "price": 521.85,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement app├ót fourmis",
+    "description": "Description du service : Ce service comprend 2 visites au total.Traitement contre les fourmis par application dÔÇÖapp├óts sp├®cialis├®s visant lÔÇÖ├®limination progressive de la colonie. Les fourmis transportent lÔÇÖapp├ót jusquÔÇÖ├á la fourmili├¿re, assurant une ├®limination compl├¿te en 2 ├á 4 semaines.Garantie : 3 mois. Des interventions suppl├®mentaires incluses en cas de r├®apparition du probl├¿me durant cette p├®riode.",
+    "price": 350,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc ÔÇô blattes germanique ÔÇô Extermination ZLS",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc contre les puces",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc - Coquerelles",
+    "description": "Description du ServiceInspection InitialeNous d├®buterons par une inspection approfondie ├á l'aide de trappes collantes que nous installerons dans chaque pi├¿ce de chaque unit├® du b├ótiment de 3 logements. Cette inspection nous permettra de d├®terminer l'├®tendue de l'infestation de coquerelles et de suivre la migration potentielle dans le b├ótiment.Traitement chocUne semaine apr├¿s l'inspection, nous effectuerons un traitement choc. Ce traitement comprend l'utilisation d'insecticides en a├®rosol pour ├®liminer imm├®diatement le plus grand nombre de coquerelles possible. Nous appliquerons cet insecticide dans toutes les fentes, fissures et autres cachettes potentielles pour atteindre les coquerelles ├á tous les stades de leur vie, y compris les ┼ôufs.Des trous d'un demi-pouce seront faits tous les trois pieds dans les zones o├╣ une forte pr├®sence de coquerelles a ├®t├® observ├®e. Nous y appliquerons de l'insecticide en poudre pour atteindre les coquerelles se cachant dans les murs. Enfin, nous appliquerons un insecticide le long de toutes les moulures, fentes et fissures pour maintenir une barri├¿re qui ├®limine les coquerelles se d├®pla├ºant sur ces surfaces.Suivi et MaintenanceUne semaine apr├¿s le traitement choc, nous installerons de nouvelles stations collantes pour ├®valuer les r├®sultats du traitement et ajuster notre approche si n├®cessaire.Des suivis rapproch├®s (hebdomadaires) sont essentiels pour ├®radiquer compl├¿tement les coquerelles. Chaque fois qu'une coquerelle est visible sur une trappe collante, nous interviendrons de nouveau de mani├¿re cibl├®e, uniquement dans les logements concern├®s.GarantieUne garantie d'un an est offerte pour ce service. En cas de r├®apparition de coquerelles durant cette p├®riode, des interventions suppl├®mentaires seront effectu├®es sans frais pour le client.Nous nous engageons ├á effectuer des visites jusqu'├á ce qu'aucune coquerelle ne soit plus d├®tect├®e.┬áCentre Antipoison: 1-800-463-5060",
+    "price": 2174.39,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc dermestes du lard",
+    "description": "ÔÇó Insertion de Drione et Piroside 300 dans les murs ├á intervalles r├®guliers, incluant les plinthes et fissures.ÔÇó Traitement p├®rim├®trique complet ├á lÔÇÖaide de Dragnet dans toutes les pi├¿ces de la maison.ÔÇó Traitement ├á la vapeur si n├®cessaire sur les zones molles (divans, matelas, tapis).ÔÇó Contr├┤le post-traitement et suivi.Garantie :Garantie jusqu'au 1er avril 2026. En cas de r├®apparition des dermestes du lard, jusqu'├á 5-6 interventions sans frais.",
+    "price": 1850,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc fourmis charpenti├¿res",
+    "description": "- Traitement p├®rim├¿tre int├®rieur (base des moulures, contour portes et fen├¬tres). - Traitement p├®rim├¿tre ext├®rieur (fondation, contour portes et fen├¬tres, soffites). -Garantie jusqu'au 1er avril 2026. *ne pas nettoyer les surfaces trait├®es ├á l'int├®rieur pour une p├®riode de 1 mois minimum. Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 700,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement choc pr├®ventif (punaises de lit)",
+    "description": "Intervention 2/31. Traitement Pr├®ventif contre les Punaises de LitDescription du Service :ÔùÅ Traitement complet des 45 chambres et bureaux, incluant meubles, lits et espaces derangement.ÔùÅ Trois interventions annuelles, espac├®es de quatre mois chacune.Co├╗t du Service :ÔùÅ Par chambre/bureau : 100$ÔùÅ Nombre total de chambres/bureaux : 45Produit Utilis├®: DRAGNET┬« FTQuantit├® utilis├®: 60L d'eau pour 750ml ml de concentr├®Ingr├®dient Actif: Perm├®thrine** 384 g/LKonk 407Quantit├® Utilis├®: 8 cannesIngr├®dient actif: Pyr├®thrine 1,00 % ÔÇô Butxide De Pip├®ronyle, technique 2,00 % ÔÇô Dicarboxinide De Bicyclohept├¿ne N-Octylique 3,33 %",
+    "price": 5000,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement complet (dermestes du lard)",
+    "description": "Description des ServicesSuite ├á lÔÇÖinspection d├®j├á effectu├®e, le service comprendra :Phase 1 ÔÇô Traitement Choc Initial Per├ºage de trous de ┬¢ pouce ├á la base des moulures dans les zones dÔÇÖinfestation majeure.  Injection dÔÇÖinsecticide en fum├®e (Pyroside) et en poudre directement dans les murs.  Traitement au Konk 407 dans toutes les fissures, crevasses et craques de la maison.  Pulv├®risation de Temprid sur le p├®rim├¿tre complet de la maison (base des murs, moulures).  Traitement sp├®cifique des petits moteurs (frigo, four, micro-ondes).  Installation de nombreuses trappes collantes strat├®giquement dans toute la maison. Phase 2 ÔÇô 2e Traitement Choc (1 semaine plus tard) R├®p├®tition compl├¿te du traitement choc (fum├®e, poudre, a├®rosol, p├®rim├¿tre).  Remplacement de toutes les trappes collantes contamin├®es. Phase 3 ÔÇô Traitement par App├ót (1 semaine plus tard) Application de poison en gel dans les zones ├á activit├® r├®siduelle.  Pose de nouvelles trappes pour ├®valuation continue. Suivi Visites espac├®es au fil du temps en fonction de la diminution de lÔÇÖactivit├®.  Le traitement est consid├®r├® termin├® seulement apr├¿s 1 mois sans d├®tection dans aucune trappe. GarantieGarantie compl├¿te de 1 an Si des coquerelles r├®apparaissent dans les zones trait├®es durant cette p├®riode, des interventions suppl├®mentaires seront effectu├®es sans frais.",
+    "price": 3250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement de gu├¬pes - nid cach├®",
+    "description": "├ëlimination et extraction (si possible) du nidGarantie de 3 mois zone trait├®eCentre Antipoison Qu├®bec: 1-800-463-5060",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement de gu├¬pes - nid de terre",
+    "description": "├ëlimination et extraction du nid de terreGarantie 3 mois pour la zone trait├®eCentre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 225,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement de gu├¬pes - nid visible facile d'acc├¿s",
+    "description": "├ëlimination et extraction du nid de gu├¬pes.Garantie de 3 mois pour la zone trait├®e.  Centre antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 175,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement de souris",
+    "description": "Un traitement complet contre les souris sera effectu├®, incluant :Installation de bo├«tes de poison s├®curis├®es dans les zones dÔÇÖactivit├® identifi├®es ├á lÔÇÖint├®rieur de la r├®sidence.Application de poison directement dans le grenier (sans bo├«tes), afin de cibler les colonies ├®tablies dans cet espace difficile dÔÇÖacc├¿s.Inspection et v├®rification des points dÔÇÖacc├¿s potentiels, pour identifier les zones par lesquelles les rongeurs peuvent p├®n├®trer dans la propri├®t├®.Apr├¿s lÔÇÖinstallation du poison, une p├®riode dÔÇÖattente dÔÇÖenviron 1 mois est n├®cessaire afin de permettre ├á la colonie de consommer le produit et de constater la r├®duction de lÔÇÖactivit├®.Visite de suivi (au besoin) :Si de lÔÇÖactivit├® est toujours observ├®e apr├¿s 1 mois, une visite de suivi sera effectu├®e sans frais suppl├®mentaires.Possibilit├® dÔÇÖinstaller des trappes m├®caniques dans les zones critiques (si n├®cessaire).Les stations de poison vides seront rafra├«chies et r├®approvisionn├®es.GarantieCe service inclut une garantie de 6 mois. En cas de r├®apparition des souris durant cette p├®riode, une intervention suppl├®mentaire sera effectu├®e sans frais pour le client.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement de souris - Premium",
+    "description": "Service Premium Phase initiale de pi├®geage avec d├®ploiement de pi├¿ges m├®caniques. Installation d'un p├®rim├¿tre ext├®rieur avec les pi├¿ges m├®caniques autour du b├ótiment et aux endroits strat├®giques ├á l'int├®rieur pour contr├┤ler les points d'acc├¿s des souris. Installation de pi├¿ges ├á l'int├®rieur des soffites pour contr├┤ler le grenier.R├®vision des pi├¿ges apr├¿s deux semaines. Traitement principal avec installation de poison.Garantie de 6 mois.",
+    "price": 625,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement de souris - R├®gulier",
+    "description": "Service R├®gulier Visite unique pour l'identification et le traitement des zones d'infestation.Installation de poison pour l'├®limination compl├¿te des souris activent dans la maison.Services R├®gulierUne garantie de 6 mois est incluse avec notre service. Celle-ci couvre lÔÇÖinstallation et lÔÇÖentretien des dispositifs de contr├┤le pour lÔÇÖensemble de la maison, incluant :le grenierla salle m├®caniqueles sorties de plomberieainsi que toutes les zones o├╣ de lÔÇÖactivit├® de rongeurs a ├®t├® observ├®eApr├¿s un mois, des visites de suivi seront effectu├®es si la probl├®matique persiste, et ce sans frais suppl├®mentaires pour le client.",
+    "price": 450,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement des punaises de lit - Aprehend",
+    "description": "Traitement biologique avec Aprehend. Application du produit sur le long des moulures et cachettes de punaises (bases de lit, etc). Agit comme un virus les punaises une fois contamin├®es vont transmettre le champignons au autres punaises pour une ├®limination compl├¿te. Le produit reste actif pendant 3 mois environ et les punaises contamin├®es meurent 4 ├á 7 jours apr├¿s ├¬tre entr├®es en contact avec le produit.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement et extraction nid de thon",
+    "description": "",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement fourmis charpenti├¿res",
+    "description": "Arrosage Int├®rieur (p├®rim├¿tre moulures, contour portes et fen├¬tres)Arrosage int├®rieur toiture (traitement choc)Garantie jusqu'au 1er Avril 2026",
+    "price": 700,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement fourmis pharaon",
+    "description": "Phase d'App├ótage Int├®rieur: Deux (2) visites d'app├ótage int├®rieur utilisant un poison sp├®cifique pour ├®liminer les fourmis charpenti├¿res.Traitement Ext├®rieur : Une visite d'arrosage autour du batiment durant la saison d'├®t├® pour une protection renforc├®e.Garantie :Dur├®e : 3 mois, couvrant la r├®apparition des fourmis charpenti├¿res durant cette p├®riode.Centre Antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 725,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement int├®rieur",
+    "description": "Arrosage int├®rieur.Produit utilis├®: DragnetIngr├®dient actif: Perm├®thrine** 384 g/LQuantit├® utilis├®: 1,5L d'eau/18,75mlCentre antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement int├®rieur (punaises de l'├®rable)",
+    "description": "-Traitement choc int├®rieur. Arrosage autour des portes et fen├¬tres, le long des moulures.Produit utilis├®: DragnetIngr├®dient actif: Perm├®thrine** 384 g/LQuantit├® utilis├®e: 3L d'eau/37,5mlCentre antipoison du Qu├®bec: 1-800-463-5060-3 arrosages autour de la maison ext├®rieur est inclus dans le forfait.-Une garantie de 3 mois est offerte avec ce forfait",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement pr├®ventif",
+    "description": "Arrosage contre les insectes rampants et volants pouvant sÔÇÖintroduire dans la maison.Nombre de visites : Deux (2) traitements ext├®rieurs pr├®ventifs, espac├®s dÔÇÖenviron 2 mois durant la saison active (fin juillet ├á d├®but septembre).Zones trait├®es :Base de la maisonContour des portes et fen├¬tresSoffitesAucune garantie offerte pour la premi├¿re ann├®e",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement pr├®ventif souris/mulots",
+    "description": "Rafraichissement des boites de poison.",
+    "price": 875,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement (punaises de l'├®rable)",
+    "description": "",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement punaises de lit - Aprehend",
+    "description": "Description des Services : Traitement Aprehend (Punaises de lit)Traitement cibl├® contre les punaises de lit ├á lÔÇÖaide dÔÇÖAprehend, un biopesticide fongique liquide de nouvelle g├®n├®ration : Application dÔÇÖAprehend en pulv├®risation pr├®cise sur les moulures, contours de prises ├®lectriques, bases de lit, fissures, crevasses, et autres zones strat├®giques identifi├®es dans les pi├¿ces d├®tect├®es comme infest├®es.  Traitement vapeur haute temp├®rature sur les matelas, divans, chaises, et meubles rembourr├®s dans les zones vis├®es, pour ├®liminer imm├®diatement les punaises et ┼ôufs pr├®sents en surface.  Aprehend d├®pose une fine couche invisible de spores fongiques. Les punaises de lit qui traversent ces zones contaminent leur corps avec les spores. En retournant ├á leur abri, elles transmettent lÔÇÖinfection aux autres punaises de la colonie, provoquant leur mort en quelques jours. Important ├á savoir : Le processus de mortalit├® est progressif, car le produit agit comme une maladie contagieuse pour les punaises. Les r├®sultats ne sont pas imm├®diats, mais le traitement est extr├¬mement efficace sur le long terme, m├¬me pour les colonies cach├®es. Selon lÔÇÖampleur de lÔÇÖinfestation, une seconde application peut ├¬tre n├®cessaire environ 30 jours plus tard pour assurer une ├®radication compl├¿te. Garantie :Ce service inclut une garantie de 1 an, couvrant jusquÔÇÖ├á 5 ├á 6 visites sans frais suppl├®mentaires en cas de r├®infestation, ├á condition que les directives de pr├®paration aient ├®t├® suivies par le client.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement punaises de lit - chimique",
+    "description": "Description des Services :Traitement chimique en deux phases contre les punaises de lit, espac├®es de 7 ├á 10 jours : Application du produit Konk 407 dans toutes les fissures, crevasses et craques situ├®es dans les zones dÔÇÖinfestation d├®tect├®es par chien renifleur.  Traitement cibl├® des matelas, bases de lit, divans, et autres meubles infest├®s.  Si autoris├® par le client, per├ºage de trous dÔÇÖenviron ┬¢ pouce de diam├¿tre tous les 2 ├á 3 pieds dans les murs ┬©├á la base des moulures des pi├¿ces concern├®es, afin de permettre lÔÇÖinjection de Drione dans les murs (proc├®dure facultative, mais fortement recommand├®e pour augmenter les chances de succ├¿s).  Application de Temprid SC en barri├¿re p├®rim├®trique dans toutes les pi├¿ces : le long des moulures, contours de portes et fen├¬tres.  ÔÜá´©Å Important : Il est possible que 3 ├á 4 visites soient n├®cessaires pour atteindre lÔÇÖ├®radication compl├¿te. Cela est normal dans le cadre dÔÇÖun traitement chimique contre les punaises de lit, selon lÔÇÖampleur de lÔÇÖinfestation et la configuration des lieux. Garantie :Ce service est g├®n├®ralement couvert par une garantie de 1 an, conditionnelle au respect par le client des protocoles de pr├®paration et dÔÇÖentretien fournis. Note : lÔÇÖajout des trous et lÔÇÖinjection de Drione sont recommand├®s pour maximiser lÔÇÖefficacit├®, mais ne modifient pas les conditions de garantie.",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitement rat bi-mensuel",
+    "description": "installation de dispositif de poison.Centre antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 255,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement rats",
+    "description": "Nombre de visites : 2-3Objectif :Installation de trappes m├®caniques pour rats afin dÔÇÖ├®valuer lÔÇÖactivit├® et r├®duire la population pr├®sente.Premi├¿re visite :Installation de trappes ├á rats aux endroits strat├®giques selon les signes dÔÇÖactivit├®.Conseils dÔÇÖentretien et dÔÇÖobservation pour le client.Deuxi├¿me visite (suivi 7 ├á 10 jours plus tard) :V├®rification des trappes install├®es.Retrait des rats captur├®s si applicable.R├®ajustement ou ajout de trappes au besoin.Recommandations suppl├®mentaires selon lÔÇÖactivit├® observ├®e.Recommandation additionnelle :Si plus de 2 rats sont captur├®s ou observ├®s, il est fortement recommand├® de faire une inspection de la plomberie avec un plombier qualifi├®, afin de sÔÇÖassurer quÔÇÖil nÔÇÖy a aucune br├¿che ou point dÔÇÖentr├®e via les conduits dÔÇÖ├®vacuation.Clause sur lÔÇÖampleur de lÔÇÖinfestation :Advenant la pr├®sence dÔÇÖune infestation active ou dÔÇÖune colonie importante, des traitements suppl├®mentaires et un plan dÔÇÖ├®radication complet pourront ├¬tre n├®cessaires.Dans ce cas, le co├╗t total pourrait ├¬tre ajust├®, avec un prix plafond de 700,00 $ avant taxes.Co├╗t initial du Service :Montant avant taxes : 300,00 $TPS (5%) : 15,00 $TVQ (9,975%) : 29,93 $Total taxes incluses : 344,93 $",
+    "price": 300,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement Souris Trappes M├®caniques",
+    "description": "Dans le cadre de notre intervention, des trappes m├®caniques ont ├®t├® install├®es dans le grenier ainsi que dans d'autres zones strat├®giques identifi├®es comme points de passage ou dÔÇÖactivit├® des rongeurs. Cette m├®thode permet de capturer efficacement les individus pr├®sents tout en limitant les risques de contamination secondaire, comme cÔÇÖest le cas avec les app├óts empoisonn├®s. Le placement pr├®cis des trappes vise ├á interrompre les d├®placements des rongeurs, ├á surveiller lÔÇÖ├®volution de lÔÇÖactivit├® et ├á intervenir rapidement jusquÔÇÖ├á lÔÇÖ├®limination compl├¿te de la pr├®sence d├®tect├®e. Ce service est adapt├® aux environnements sensibles et assure un contr├┤le rigoureux, sans introduction de produits toxiques.",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Traitement unique",
+    "description": "",
+    "price": 250,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "traitetement abeilles",
+    "description": "Des d├®marches de relocalisation ont ├®t├® entreprises :Contact avec la Miellerie Deschamps le 4 juillet, qui a refus├® la relocalisation en raison du risque de maladies et parasites;Un apiculteur mandat├® par le CPE a jug├® lÔÇÖextraction trop complexe et co├╗teuse en raison de la structure.LÔÇÖextermination a donc ├®t├® r├®alis├®e ├á titre de mesure de dernier recours, incluant :Application cibl├®e de Konk 407 et Pyrocide aux points dÔÇÖentr├®e et de sortie des abeilles;Scellement des acc├¿s avec du silicone pour emp├¬cher toute r├®infestation;Intervention effectu├®e un vendredi, en lÔÇÖabsence des enfants, avec un d├®lai de r├®entr├®e de 48 heures respect├®.Ô£à Garantie de 3 mois sur la zone trait├®e.­ƒô× Centre antipoison du Qu├®bec : 1-800-463-5060",
+    "price": 675,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "visite de suivi",
+    "description": "V├®rification des boitiers de poison. Rafraichir les boitiers au besoin.",
+    "price": 150,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "visite de suivi traitement rats",
+    "description": "",
+    "price": 150,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Visite d'urgence",
+    "description": "",
+    "price": 217.44,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Visite mensuel pr├®vention souris",
+    "description": "V├®rification des stations souris",
+    "price": 0,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  },
+  {
+    "name": "Visite unique",
+    "description": "Traitement contre les souris/mulots.produit: Contrac All Weather BloxIngr├®dient actif: Bromadiolone...0,005%Centre antipoison du Qu├®bec: 1-800-463-5060",
+    "price": 175,
+    "type": "SERVICE",
+    "division": "EXTERMINATION"
+  }
+]

@@ -1,0 +1,9 @@
+Error: Command failed: npx ripgrep -l isFr .
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/ripgrep - Not found
+npm error 404
+npm error 404  The requested resource 'ripgrep@*' could not be found or you do not have permission to access it.
+npm error 404
+npm error 404 Note that you can also install from a
+npm error 404 tarball, folder, http url, or git url.
+npm error A complete log of this run can be found in: C:\Users\samue\AppData\Local\npm-cache\_logs\2026-03-11T17_39_33_800Z-debug-0.log

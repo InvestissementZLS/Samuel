@@ -6,8 +6,11 @@ import { toast } from 'sonner';
 import { addProductUsed } from '@/app/actions/job-details-actions';
 import { getTreatmentOptions, createTreatmentLocation, createTargetPest, createApplicationMethod } from '@/app/actions/treatment-actions';
 import { getAllProducts } from '@/app/actions/inventory-actions';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Minus } from 'lucide-react';
 import { useLanguage } from '@/components/providers/language-provider';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface MaterialUsageDialogProps {
     isOpen: boolean;
@@ -45,7 +48,7 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
             getAllProducts(),
             getTreatmentOptions()
         ]);
-        setProducts(prods);
+        setProducts(prods.filter((p: any) => p.type === 'CONSUMABLE'));
         setLocations(options.locations);
         setPests(options.pests);
         setMethods(options.methods);
@@ -131,139 +134,177 @@ export function MaterialUsageDialog({ isOpen, onClose, jobId }: MaterialUsageDia
         }
     };
 
+    const incrementQuantity = (val: number) => {
+        setQuantity(prev => Number((Math.max(0.1, prev + val)).toFixed(2)));
+    };
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t.jobs.addMaterialUsage} maxWidth="max-w-6xl">
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px]">
-                    {/* Column 1: Chemicals (Products) */}
-                    <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.chemicals}</div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {products.filter(p => p.type === 'CONSUMABLE').map(p => (
-                                <div
-                                    key={p.id}
-                                    onClick={() => setSelectedProduct(p.id)}
-                                    className={`p-2 rounded cursor-pointer text-sm flex justify-between items-center ${selectedProduct === p.id ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
-                                >
-                                    <span>{p.name}</span>
-                                    {selectedProduct === p.id && <Check className="h-4 w-4" />}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Column 2: Locations */}
-                    <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.locations}</div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {locations.map(l => (
-                                <div
-                                    key={l.id}
-                                    onClick={() => toggleSelection(l.id, selectedLocations, setSelectedLocations)}
-                                    className={`p-2 rounded cursor-pointer text-sm flex justify-between items-center ${selectedLocations.includes(l.id) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
-                                >
-                                    <span>{l.name}</span>
-                                    {selectedLocations.includes(l.id) && <Check className="h-4 w-4" />}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-2 border-t flex gap-2">
-                            <input
-                                type="text"
-                                value={newLocation}
-                                onChange={(e) => setNewLocation(e.target.value)}
-                                placeholder={t.jobs.addNew}
-                                className="flex-1 text-sm border rounded px-2 py-1"
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddLocation()}
-                            />
-                            <button onClick={handleAddLocation} className="p-1 bg-gray-100 rounded hover:bg-gray-200">
-                                <Plus className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Column 3: Target Pests */}
-                    <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.targetPests}</div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {pests.map(p => (
-                                <div
-                                    key={p.id}
-                                    onClick={() => toggleSelection(p.id, selectedPests, setSelectedPests)}
-                                    className={`p-2 rounded cursor-pointer text-sm flex justify-between items-center ${selectedPests.includes(p.id) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
-                                >
-                                    <span>{p.name}</span>
-                                    {selectedPests.includes(p.id) && <Check className="h-4 w-4" />}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-2 border-t flex gap-2">
-                            <input
-                                type="text"
-                                value={newPest}
-                                onChange={(e) => setNewPest(e.target.value)}
-                                placeholder={t.jobs.addNew}
-                                className="flex-1 text-sm border rounded px-2 py-1"
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddPest()}
-                            />
-                            <button onClick={handleAddPest} className="p-1 bg-gray-100 rounded hover:bg-gray-200">
-                                <Plus className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Column 4: Methods */}
-                    <div className="border rounded-lg flex flex-col">
-                        <div className="p-3 bg-gray-50 border-b font-semibold">{t.jobs.methods}</div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {methods.map(m => (
-                                <div
-                                    key={m.id}
-                                    onClick={() => toggleSelection(m.id, selectedMethods, setSelectedMethods)}
-                                    className={`p-2 rounded cursor-pointer text-sm flex justify-between items-center ${selectedMethods.includes(m.id) ? 'bg-blue-100 text-blue-800' : 'hover:bg-gray-50'}`}
-                                >
-                                    <span>{m.name}</span>
-                                    {selectedMethods.includes(m.id) && <Check className="h-4 w-4" />}
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-2 border-t flex gap-2">
-                            <input
-                                type="text"
-                                value={newMethod}
-                                onChange={(e) => setNewMethod(e.target.value)}
-                                placeholder={t.jobs.addNew}
-                                className="flex-1 text-sm border rounded px-2 py-1"
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddMethod()}
-                            />
-                            <button onClick={handleAddMethod} className="p-1 bg-gray-100 rounded hover:bg-gray-200">
-                                <Plus className="h-4 w-4" />
-                            </button>
-                        </div>
+        <Modal isOpen={isOpen} onClose={onClose} title={t.jobs.addMaterialUsage} maxWidth="max-w-2xl">
+            <div className="space-y-6 max-h-[75vh] overflow-y-auto px-1 pb-2">
+                
+                {/* Product Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">{t.jobs.chemicals} <span className="text-red-500">*</span></label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {products.map(p => (
+                            <div 
+                                key={p.id}
+                                onClick={() => setSelectedProduct(p.id)}
+                                className={cn(
+                                    "px-3 py-2 text-sm rounded-lg border cursor-pointer flex items-center justify-between transition-colors",
+                                    selectedProduct === p.id 
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                                        : "bg-white text-gray-700 border-gray-200 hover:border-blue-400"
+                                )}
+                            >
+                                <span className="truncate pr-2">{p.name}</span>
+                                {selectedProduct === p.id && <Check className="h-4 w-4 shrink-0" />}
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t pt-4">
-                    <div className="flex items-center gap-4">
-                        <label className="font-medium">{t.jobs.quantityUsed}:</label>
-                        <input
-                            type="number"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                            className="border rounded p-2 w-24"
-                            min="0.1"
-                            step="0.1"
-                        />
+                {/* Locations Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">{t.jobs.locations}</label>
+                    <div className="flex flex-wrap gap-2">
+                        {locations.map(l => (
+                            <div 
+                                key={l.id}
+                                onClick={() => toggleSelection(l.id, selectedLocations, setSelectedLocations)}
+                                className={cn(
+                                    "px-3 py-1.5 text-xs rounded-full border cursor-pointer flex items-center transition-colors",
+                                    selectedLocations.includes(l.id)
+                                        ? "bg-indigo-600 text-white border-indigo-600" 
+                                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                                )}
+                            >
+                                {l.name}
+                            </div>
+                        ))}
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-50">{t.common.cancel}</button>
-                        <button
+                    <div className="flex gap-2 mt-2">
+                        <Input
+                            value={newLocation}
+                            onChange={(e) => setNewLocation(e.target.value)}
+                            placeholder={t.jobs.addNew + "..."}
+                            className="h-8 text-sm max-w-[200px]"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddLocation()}
+                        />
+                        <Button type="button" size="sm" variant="secondary" onClick={handleAddLocation} className="h-8 shadow-sm">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Target Pests Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">{t.jobs.targetPests}</label>
+                    <div className="flex flex-wrap gap-2">
+                        {pests.map(p => (
+                            <div 
+                                key={p.id}
+                                onClick={() => toggleSelection(p.id, selectedPests, setSelectedPests)}
+                                className={cn(
+                                    "px-3 py-1.5 text-xs rounded-full border cursor-pointer flex items-center transition-colors",
+                                    selectedPests.includes(p.id)
+                                        ? "bg-rose-600 text-white border-rose-600" 
+                                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                                )}
+                            >
+                                {p.name}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                        <Input
+                            value={newPest}
+                            onChange={(e) => setNewPest(e.target.value)}
+                            placeholder={t.jobs.addNew + "..."}
+                            className="h-8 text-sm max-w-[200px]"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddPest()}
+                        />
+                        <Button type="button" size="sm" variant="secondary" onClick={handleAddPest} className="h-8 shadow-sm">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Methods Selection */}
+                <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">{t.jobs.methods}</label>
+                    <div className="flex flex-wrap gap-2">
+                        {methods.map(m => (
+                            <div 
+                                key={m.id}
+                                onClick={() => toggleSelection(m.id, selectedMethods, setSelectedMethods)}
+                                className={cn(
+                                    "px-3 py-1.5 text-xs rounded-full border cursor-pointer flex items-center transition-colors",
+                                    selectedMethods.includes(m.id)
+                                        ? "bg-emerald-600 text-white border-emerald-600" 
+                                        : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                                )}
+                            >
+                                {m.name}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                        <Input
+                            value={newMethod}
+                            onChange={(e) => setNewMethod(e.target.value)}
+                            placeholder={t.jobs.addNew + "..."}
+                            className="h-8 text-sm max-w-[200px]"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddMethod()}
+                        />
+                        <Button type="button" size="sm" variant="secondary" onClick={handleAddMethod} className="h-8 shadow-sm">
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Quantity & Action */}
+                <div className="pt-6 border-t mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky bottom-0 bg-white z-10">
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold text-gray-700">Quantité (Total Unités)</label>
+                        <div className="flex items-center gap-1.5">
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => incrementQuantity(-1)}>
+                                -1
+                            </Button>
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => incrementQuantity(-0.5)}>
+                                -.5
+                            </Button>
+                            
+                            <Input
+                                type="number"
+                                value={quantity}
+                                onChange={(e) => setQuantity(Number(e.target.value))}
+                                className="w-20 text-center mx-1 h-9 font-medium"
+                                min="0.1"
+                                step="0.1"
+                            />
+
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => incrementQuantity(0.5)}>
+                                +.5
+                            </Button>
+                            <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => incrementQuantity(1)}>
+                                +1
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-0">
+                        <Button type="button" variant="outline" onClick={onClose} className="flex-1 sm:flex-none">
+                            {t.common.cancel}
+                        </Button>
+                        <Button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={loading || !selectedProduct}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 min-w-[120px]"
                         >
                             {loading ? t.common.saving : t.jobs.saveUsage}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

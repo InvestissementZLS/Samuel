@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
 import { createProperty, updateProperty, deleteProperty } from "@/app/actions/property-actions";
 import { Property, PropertyType } from "@prisma/client";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 
 interface PropertyDialogProps {
     isOpen: boolean;
@@ -42,6 +43,17 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
             }
         }
     }, [isOpen, property]);
+
+    const handleAddressSelect = (selectedStr: string, placeDetails: any) => {
+        setStreet(selectedStr); // Set the full formatted string by default
+        if (placeDetails?.address) {
+            const num = placeDetails.address.house_number || '';
+            const road = placeDetails.address.road || placeDetails.address.pedestrian || '';
+            setStreet(`${num} ${road}`.trim()); // Cleaner street
+            setCity(placeDetails.address.city || placeDetails.address.town || placeDetails.address.village || '');
+            setPostalCode(placeDetails.address.postcode || '');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,13 +113,12 @@ export function PropertyDialog({ isOpen, onClose, property, clientId }: Property
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">Street Address</label>
-                    <input
-                        type="text"
+                    <AddressAutocomplete 
                         value={street}
-                        onChange={(e) => setStreet(e.target.value)}
+                        onChange={setStreet}
+                        onSelectAddress={handleAddressSelect}
                         placeholder="123 Main St"
                         className="w-full rounded-md border p-2 bg-background text-foreground"
-                        required
                     />
                 </div>
 

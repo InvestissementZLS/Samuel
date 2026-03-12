@@ -295,3 +295,13 @@ export async function getPortalInvoice(token: string, invoiceId: string) {
 
     return invoice;
 }
+
+export async function getPortalServices() {
+    return await prisma.product.findMany({
+        where: {
+            type: 'SERVICE',
+            division: 'EXTERMINATION'
+        },
+        orderBy: { name: 'asc' }
+    });
+}

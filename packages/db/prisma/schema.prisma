@@ -446,7 +446,7 @@ model InventoryItem {
   id        String   @id @default(uuid())
   productId String
   userId    String?  // If null, belongs to Warehouse
-  quantity  Int      @default(0)
+  quantity  Float    @default(0)
   updatedAt DateTime @updatedAt
 
   product   Product  @relation(fields: [productId], references: [id])
@@ -472,8 +472,8 @@ model InventoryAuditItem {
   id               String         @id @default(uuid())
   auditId          String
   productId        String
-  expectedQuantity Int
-  actualQuantity   Int
+  expectedQuantity Float
+  actualQuantity   Float
   notes            String?
 
   audit            InventoryAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)

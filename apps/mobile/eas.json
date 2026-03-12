@@ -10,7 +10,9 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1"
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
+        "EAS_BUILD_WORKINGDIR": "apps/mobile",
+        "EAS_PROJECT_ROOT": "apps/mobile"
       },
       "android": {
         "buildType": "apk"

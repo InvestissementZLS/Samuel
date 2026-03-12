@@ -145,7 +145,43 @@ export function AIAssistantWidget() {
         );
     }
 
-    if (insights.length === 0) return null;
+    if (insights.length === 0) {
+        return (
+            <Card className="border-emerald-200 shadow-xl overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-800 p-4 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-50" />
+                        </div>
+                        <div>
+                            <h2 className="font-bold text-lg leading-tight flex items-center gap-2">
+                                Praxis AI <Sparkles className="w-4 h-4 text-yellow-300" />
+                            </h2>
+                            <p className="text-emerald-100 text-xs">
+                                {isFr ? "Directeur des Opérations Virtuel" : "Virtual Operations Director"}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-medium bg-emerald-900/50 px-3 py-1 rounded-full border border-emerald-500/30">
+                        {isFr ? "Actif & À l'écoute" : "Active & Monitoring"}
+                    </div>
+                </div>
+                <CardContent className="p-6 bg-emerald-50/30 flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
+                        <Bot className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <h3 className="text-emerald-900 font-semibold text-lg">
+                        {isFr ? "Opérations Optimisées" : "Operations Optimized"}
+                    </h3>
+                    <p className="text-emerald-700/80 text-sm max-w-sm">
+                        {isFr
+                            ? "Je surveille activement votre inventaire, votre facturation et votre rentabilité. Aucune action urgente n'est requise pour le moment."
+                            : "I am actively monitoring your inventory, billing, and profitability. No urgent tasks require your attention right now."}
+                    </p>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className="border-indigo-200 shadow-xl overflow-hidden">

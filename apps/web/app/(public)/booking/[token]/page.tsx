@@ -5,13 +5,16 @@ import { verifyBookingToken, confirmBooking, getClientServices, confirmGuestBook
 import { findSmartSlots, SmartSlot } from "@/app/actions/scheduling-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Check, Calendar, MapPin, Package, User, Leaf } from "lucide-react";
+import { Check, Calendar, MapPin, Package, User, Leaf, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useParams } from "next/navigation";
 import { dictionary, Locale } from "@/lib/i18n/dictionary";
 
 export default function ClientBookingPage() {
     const params = useParams();
+    const router = useRouter();
     // casting to string to avoid array issues, though usually string in this case
     const token = typeof params?.token === 'string' ? params.token : Array.isArray(params?.token) ? params.token[0] : '';
 
@@ -236,6 +239,15 @@ export default function ClientBookingPage() {
                         <p className="opacity-90">{b.welcome}{clientData ? `, ${clientData.name}` : ''}</p>
                     </div>
                     <div className="flex bg-blue-700 rounded-lg p-1">
+                        {!isNew && (
+                            <Link 
+                                href={`/portal/${token}`}
+                                className="mr-4 text-blue-100 hover:text-white flex items-center gap-1 text-sm font-medium"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                {language === 'fr' ? 'Retour au portail' : 'Back to Portal'}
+                            </Link>
+                        )}
                         <button
                             onClick={() => setLanguage('fr')}
                             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${language === 'fr' ? 'bg-white text-blue-600' : 'text-blue-100 hover:bg-blue-600'}`}

@@ -60,7 +60,11 @@ export function DivisionSwitcher() {
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0 bg-gray-900 border-gray-700 text-white">
+            <PopoverContent 
+                className="w-[200px] p-0 bg-gray-900 border-gray-700 text-white z-[9999] absolute" 
+                sideOffset={8}
+                align="start"
+            >
                 <div className="flex flex-col p-1">
                     {allowedDivisions.map((d) => (
                         <button

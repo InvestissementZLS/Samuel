@@ -69,14 +69,28 @@ export function useCurrentUser() {
         // Check specific division access
         const access = userProfile.accesses?.find(a => a.division === divToCheck);
 
-        if (!access) return {
-            canViewReports: false,
-            canManageTimesheets: false,
-            canManageExpenses: false,
-            canManageUsers: false,
-            canManageCommissions: false,
-            hasDivisionAccess: false
-        };
+        if (!access) {
+            // Fallback to old flat array
+            if (userProfile.divisions?.includes(divToCheck)) {
+                 return {
+                    canViewReports: false,
+                    canManageTimesheets: false,
+                    canManageExpenses: false,
+                    canManageUsers: false,
+                    canManageCommissions: false,
+                    hasDivisionAccess: true
+                };
+            }
+
+            return {
+                canViewReports: false,
+                canManageTimesheets: false,
+                canManageExpenses: false,
+                canManageUsers: false,
+                canManageCommissions: false,
+                hasDivisionAccess: false
+            };
+        }
 
         return {
             canViewReports: access.canViewReports,

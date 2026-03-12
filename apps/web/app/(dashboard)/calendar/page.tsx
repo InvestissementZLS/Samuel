@@ -41,7 +41,7 @@ export default async function CalendarPage() {
             }),
             prisma.user.findMany({
                 where: {
-                    role: 'TECHNICIAN',
+                    role: { in: ['TECHNICIAN', 'ADMIN', 'OFFICE'] },
                     isActive: true,
                 },
                 orderBy: {

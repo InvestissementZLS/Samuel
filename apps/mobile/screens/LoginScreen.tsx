@@ -26,12 +26,20 @@ export default function LoginScreen() {
             const response = await axios.post(`${API_URL}/api/auth/login`, {
                 email,
                 password,
+            }, {
+                headers: {
+                    "Bypass-Tunnel-Reminder": "true"
+                }
             });
 
             const user = response.data;
 
             try {
-                const timesheetRes = await axios.get(`${API_URL}/api/timesheets/active?userId=${user.id}`);
+                const timesheetRes = await axios.get(`${API_URL}/api/timesheets/active?userId=${user.id}`, {
+                    headers: {
+                        "Bypass-Tunnel-Reminder": "true"
+                    }
+                });
                 const activeTimesheet = timesheetRes.data.timesheet;
 
                 if (activeTimesheet) {

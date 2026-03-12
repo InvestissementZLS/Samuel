@@ -18,6 +18,7 @@ type JobListScreenRouteProp = RouteProp<RootStackParamList, 'JobList'>;
 interface Job {
     id: string;
     scheduledAt: string;
+    scheduledEndAt?: string | null;
     status: string;
     description: string;
     property: {
@@ -34,6 +35,7 @@ export default function JobListScreen() {
     const { userId } = route.params;
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
     const [punchLoading, setPunchLoading] = useState(false);
 
@@ -49,7 +51,7 @@ export default function JobListScreen() {
 
         // 2. Sync with Server
         try {
-            const fresh = await syncData(userId);
+            const fresh = await syncData(userId, selectedDate.toISOString());
             if (fresh) setJobs(fresh);
         } catch (error) {
             console.log("Sync failed, staying with local");
@@ -69,7 +71,7 @@ export default function JobListScreen() {
             setSyncState(queue.length > 0 ? 'PENDING_UPLOAD' : 'SYNCED');
         }, 5000);
         return () => clearInterval(interval);
-    }, [userId]);
+    }, [userId, selectedDate]);
 
     const checkPunchStatus = async () => {
         try {
@@ -201,7 +203,25 @@ export default function JobListScreen() {
                         )}
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.date}>{format(new Date(), 'EEEE, MMM d')}</Text>
+
+                {/* Date Navigator */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 12, gap: 15 }}>
+                    <TouchableOpacity onPress={() => {
+                        const d = new Date(selectedDate);
+                        d.setDate(d.getDate() - 1);
+                        setSelectedDate(d);
+                    }}>
+                        <Text style={{ fontSize: 24, paddingHorizontal: 10 }}>⬅️</Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.date, { marginTop: 0, fontWeight: 'bold' }]}>{format(selectedDate, 'EEEE, MMM d')}</Text>
+                    <TouchableOpacity onPress={() => {
+                        const d = new Date(selectedDate);
+                        d.setDate(d.getDate() + 1);
+                        setSelectedDate(d);
+                    }}>
+                        <Text style={{ fontSize: 24, paddingHorizontal: 10 }}>➡️</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {/* AI / Actions Row */}
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const InvoiceForm = dynamic(() => import("@/components/invoices/invoice-form").then(mod => mod.InvoiceForm), {
     loading: () => <div className="h-96 flex items-center justify-center bg-gray-50 rounded-lg animate-pulse">Loading form...</div>
@@ -79,6 +80,8 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
     // Search & filter state
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+    const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();

@@ -2,6 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 
+import { cookies } from "next/headers";
+import { Division } from "@prisma/client";
+
 export type SearchResult = {
     id: string;
     type: "CLIENT" | "INVOICE" | "JOB" | "PROPERTY";
@@ -16,11 +19,16 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
 
     const lowerQuery = query.toLowerCase();
 
+    const cookieStore = cookies();
+    const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
+    const division = divisionVal as Division;
+
     // Parallelize queries for better performance
     const [clients, invoices, jobs, properties] = await Promise.all([
         // Search Clients
         prisma.client.findMany({
             where: {
+                divisions: { has: division },
                 OR: [
                     { name: { contains: lowerQuery, mode: "insensitive" } },
                     { email: { contains: lowerQuery, mode: "insensitive" } },
@@ -32,6 +40,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         // Search Invoices
         prisma.invoice.findMany({
             where: {
+                division,
                 number: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { client: true },
@@ -40,6 +49,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         // Search Jobs
         prisma.job.findMany({
             where: {
+                division,
                 description: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { property: true },
@@ -48,6 +58,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         // Search Properties
         prisma.property.findMany({
             where: {
+                client: { divisions: { has: division } },
                 address: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { client: true },

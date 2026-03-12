@@ -8,6 +8,7 @@ import { Client } from "@prisma/client";
 import { useDivision } from "@/components/providers/division-provider";
 import { useLanguage } from "@/components/providers/language-provider";
 import { useUser } from "@/components/providers/user-provider";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 
 interface ClientDialogProps {
     isOpen: boolean;
@@ -254,11 +255,11 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
 
                 <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
-                    <textarea
+                    <AddressAutocomplete 
                         value={billingAddress}
-                        onChange={(e) => setBillingAddress(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                        rows={3}
+                        onChange={(val) => setBillingAddress(val)}
+                        onSelectAddress={(val) => setBillingAddress(val)}
+                        placeholder={t.clientDialog.billingAddress}
                     />
                 </div>
 

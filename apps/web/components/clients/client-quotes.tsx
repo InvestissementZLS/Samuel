@@ -22,7 +22,7 @@ export function ClientQuotes({ clientId, quotes, products }: ClientQuotesProps) 
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
-    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
+    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES" | "RENOVATION">(division);
 
     useEffect(() => {
         setDivisionFilter(division);
@@ -100,6 +100,7 @@ export function ClientQuotes({ clientId, quotes, products }: ClientQuotesProps) 
                             <option value="ALL">All Divisions</option>
                             <option value="EXTERMINATION">Extermination</option>
                             <option value="ENTREPRISES">Entreprises</option>
+                            <option value="RENOVATION">Rénovation Esthéban</option>
                         </select>
                     </div>
                     <Button onClick={handleCreateNew}>

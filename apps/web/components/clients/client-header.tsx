@@ -7,9 +7,10 @@ import { ClientDialog } from "./client-dialog";
 
 interface ClientHeaderProps {
     client: Client;
+    portalToken: string;
 }
 
-export function ClientHeader({ client }: ClientHeaderProps) {
+export function ClientHeader({ client, portalToken }: ClientHeaderProps) {
     const [isEditOpen, setIsEditOpen] = useState(false);
 
     return (
@@ -20,7 +21,7 @@ export function ClientHeader({ client }: ClientHeaderProps) {
             </div>
             <div className="space-x-4 flex items-center">
                 <Link
-                    href={`/portal/${client.id}`}
+                    href={`/portal/${portalToken}`}
                     target="_blank"
                     className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
                 >

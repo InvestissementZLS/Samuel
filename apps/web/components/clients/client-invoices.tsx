@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Invoice, Product } from "@prisma/client";
 import { createInvoice, updateInvoiceStatus, updateInvoice } from "@/app/actions/client-portal-actions";
 import { createCheckoutSession } from "@/app/actions/payment-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Trash2, Plus, FileText, Filter } from "lucide-react";
+import { Trash2, Plus, FileText, Filter, DollarSign, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PaymentDialog } from "@/components/invoices/payment-dialog";
-import { DollarSign, RefreshCcw } from "lucide-react";
+import { useDivision } from "@/components/providers/division-provider";
+import { InvoiceForm } from "@/components/invoices/invoice-form";
+
+interface ClientInvoicesProps {
+    clientId: string;
+    invoices: any[];
+    products: Product[];
+}
 
 export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
-    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES">(division);
+    const [divisionFilter, setDivisionFilter] = useState<"ALL" | "EXTERMINATION" | "ENTREPRISES" | "RENOVATION">(division);
 
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [paymentModalType, setPaymentModalType] = useState<"PAYMENT" | "REFUND">("PAYMENT");
@@ -103,6 +110,7 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
                             <option value="ALL">All Divisions</option>
                             <option value="EXTERMINATION">Extermination</option>
                             <option value="ENTREPRISES">Entreprises</option>
+                            <option value="RENOVATION">Rénovation Esthéban</option>
                         </select>
                     </div>
                     <Button onClick={handleCreateNew}>

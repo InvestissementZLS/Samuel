@@ -218,6 +218,9 @@ export const dictionary = {
             stock: "Stock",
             duration: "Duration",
             manageStock: "Manage Distribution",
+            importCostsCSV: "Import Costs CSV",
+            importSupplierPrices: "Import Supplier Price List",
+            importCostsDesc: "Upload a CSV with purchase costs to auto-calibrate profitability.",
             noItems: "No items found.",
         },
         productDialog: {
@@ -802,6 +805,9 @@ export const dictionary = {
             stock: "Stock",
             duration: "Durée",
             manageStock: "Gérer la Distribution",
+            importCostsCSV: "Importer Coûts CSV",
+            importSupplierPrices: "Importer Liste de Prix Fournisseur",
+            importCostsDesc: "Importez un fichier CSV avec vos coûts d'achat pour calibrer automatiquement la rentabilité.",
             noItems: "Aucun article trouvé.",
         },
         productDialog: {

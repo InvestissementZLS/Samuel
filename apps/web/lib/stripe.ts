@@ -7,6 +7,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'mock_key_for_build', {
-    apiVersion: '2024-04-10', // Use latest API version compatible with the package
+    // @ts-ignore
+    apiVersion: '2025-01-27.acacia',
     typescript: true,
 });

@@ -18,10 +18,10 @@ export async function POST(request: Request) {
             user = await prisma.user.findUnique({
                 where: { email },
             });
-        } catch (dbError) {
+        } catch (dbError: any) {
             console.error("Login DB Error:", dbError);
             return NextResponse.json(
-                { error: "Database service unavailable" },
+                { error: "Database service unavailable", details: String(dbError.message || dbError) },
                 { status: 503 }
             );
         }

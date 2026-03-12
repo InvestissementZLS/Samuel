@@ -1,0 +1,92 @@
+﻿components\clients\client-import-dialog.tsx:                    toast.error(isFr ? "Le fichier semble vide" : "The file seems empty");
+components\clients\client-import-dialog.tsx:            toast.error(isFr ? "Veuillez au moins associer la colonne Nom" : "Please map at least the Name column");
+components\clients\client-import-dialog.tsx:                            isFr ? `Import?? avec succ??s: ${res.imported} clients (${res.errors} erreurs)`
+components\clients\client-import-dialog.tsx:                            {isFr ? "Importer des clients (GorillaDesk / Excel)" : "Import Clients (GorillaDesk / Excel)"}
+components\clients\client-import-dialog.tsx:                                {isFr ? "Cliquez pour uploader un fichier CSV" : "Click to upload a CSV file"}
+components\clients\client-import-dialog.tsx:                                {isFr ? "Exportez vos clients depuis GorillaDesk sous format CSV (.csv) et d??posez-le ici." : "Export your clients from GorillaDesk in CSV format and drop it here."}
+components\clients\client-import-dialog.tsx:                                    {isFr ? "Retirer" : "Remove"}
+components\clients\client-import-dialog.tsx:                                    {isFr ? "Associer les colonnes (Mapping)" : "Map columns"}
+components\clients\client-import-dialog.tsx:                                    {isFr
+components\clients\client-import-dialog.tsx:                                        { key: "phone", label: isFr ? "T??l??phone" : "Phone" },
+components\clients\client-import-dialog.tsx:                                        { key: "billingAddress", label: isFr ? "Adresse de facturation" : "Billing Address" },
+components\clients\client-import-dialog.tsx:                                        { key: "propertyAddress", label: isFr ? "Adresse de service (Propri??t??)" : "Service Address (Property)" },
+components\clients\client-import-dialog.tsx:                                                <option value="">-- {isFr ? "Ignorer" : "Ignore"} --</option>
+components\clients\client-import-dialog.tsx:                        {isFr ? "Annuler" : "Cancel"}
+components\clients\client-import-dialog.tsx:                            isFr ? "Importation..." : "Importing..."
+components\clients\client-import-dialog.tsx:                            <><CheckCircle2 className="w-4 h-4 mr-2" /> {isFr ? "Importer la base de donn??es" : "Import Database"}</>
+components\dashboard\ai-assistant-widget.tsx:                    isFr
+components\dashboard\ai-assistant-widget.tsx:            toast.error(isFr ? "??chec de l'action IA." : "AI Action failed.");
+components\dashboard\ai-assistant-widget.tsx:                            {isFr ? "Directeur des Op??rations Virtuel" : "Virtual Operations Director"}
+components\dashboard\ai-assistant-widget.tsx:                    {insights.length} {isFr ? "missions d??tect??es" : "tasks detected"}
+components\dashboard\ai-assistant-widget.tsx:                                            {isFr ? "Comment ??a marche ?" : "Preview Action"}
+components\dashboard\ai-assistant-widget.tsx:                            {isFr ? "Mon Plan d'Action" : "My Action Plan"}
+components\dashboard\ai-assistant-widget.tsx:                            {isFr ? "Annuler" : "Cancel"}
+components\dashboard\ai-assistant-widget.tsx:                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {isFr ? "Ex??cution..." : "Executing..."}</>
+components\dashboard\priority-alerts.tsx:                <span className="text-sm font-medium">{isFr ? 'Tout est ?? jour ??? aucune action requise.' : 'All caught up ??? no actions required.'}</span>
+components\dashboard\priority-alerts.tsx:                            {isFr ? 'Actions Prioritaires' : 'Priority Actions'}
+components\dashboard\priority-alerts.tsx:                            {loading ? (isFr ? 'Chargement???' : 'Loading???') : (
+components\dashboard\priority-alerts.tsx:                                    {criticalCount > 0 && <span className="text-red-600 font-medium">{criticalCount} {isFr ? 'critique' : 'critical'}{criticalCount > 1 ? 's' : ''}</span>}
+components\dashboard\priority-alerts.tsx:                                    {warningCount > 0 && <span className="text-amber-600 font-medium">{warningCount} {isFr ? 'avertissement' : 'warning'}{warningCount > 1 ? 's' : ''}</span>}
+components\dashboard\priority-alerts.tsx:                                    {visible.length > 0 && ` ?? ${visible.length} ${isFr ? 'au total' : 'total'}`}
+components\dashboard\priority-alerts.tsx:                    title={isFr ? 'Actualiser' : 'Refresh'}
+components\dashboard\priority-alerts.tsx:                                            {isFr ? meta.labelFr : meta.label}
+components\dashboard\priority-alerts.tsx:                                            title={isFr ? 'Voir' : 'View'}
+components\dashboard\priority-alerts.tsx:                                        title={isFr ? 'Ignorer' : 'Dismiss'}
+components\dashboard\priority-alerts.tsx:                            ? (isFr ? '??? R??duire' : '??? Show less')
+components\dashboard\priority-alerts.tsx:                            : (isFr ? `??? Voir ${visible.length - INITIAL_LIMIT} de plus` : `??? Show ${visible.length - INITIAL_LIMIT} more`)}
+components\dashboard\renewal-opportunities.tsx:            isFr
+components\dashboard\renewal-opportunities.tsx:                            {isFr ? "Opportunit??s de Renouvellement" : "Renewal Opportunities"}
+components\dashboard\renewal-opportunities.tsx:                            {isFr
+components\dashboard\renewal-opportunities.tsx:                        {isFr ? "Voir tout (Campagnes)" : "View all (Campaigns)"}
+components\dashboard\renewal-opportunities.tsx:                                    title={isFr ? "Envoyer un courriel" : "Send email"}
+components\dashboard\renewal-opportunities.tsx:                                    title={isFr ? "Planifier maintenant" : "Schedule now"}
+components\invoices\invoice-list.tsx:        { key: 'ALL', label: isFr ? 'Toutes' : 'All' },
+components\invoices\invoice-list.tsx:        { key: 'SENT', label: isFr ? 'Envoy??es' : 'Sent' },
+components\invoices\invoice-list.tsx:        { key: 'PAID', label: isFr ? 'Pay??es' : 'Paid' },
+components\invoices\invoice-list.tsx:        { key: 'OVERDUE', label: isFr ? 'En retard' : 'Overdue' },
+components\invoices\invoice-list.tsx:        { key: 'PARTIALLY_PAID', label: isFr ? 'Partielles' : 'Partial' },
+components\invoices\invoice-list.tsx:        { key: 'DRAFT', label: isFr ? 'Brouillons' : 'Drafts' },
+components\invoices\invoice-list.tsx:                        {isFr ? `Affichage des factures pour ${clients.find(c => c.id === clientId)?.name || 'le client'}` : `Showing invoices for ${clients.find(c => c.id === clientId)?.name || 'client'}`}
+components\invoices\invoice-list.tsx:                        {isFr ? 'Effacer' : 'Clear'}
+components\invoices\invoice-list.tsx:                        {isFr ? `${totalUnpaid.toFixed(2)}$ en attente de paiement` : `${totalUnpaid.toFixed(2)}$ outstanding`}
+components\invoices\invoice-list.tsx:                        placeholder={isFr ? 'Rechercher par client, num??ro???' : 'Search by client, number???'}
+components\invoices\invoice-list.tsx:                                <option value="ALL">{isFr ? 'Toutes divisions' : 'All divisions'}</option>
+components\invoices\invoice-list.tsx:                {filtered.length} {isFr ? 'r??sultat' : 'result'}{filtered.length !== 1 ? 's' : ''}
+components\invoices\invoice-list.tsx:                                    { key: 'number' as SortKey, label: isFr ? 'Num??ro' : 'Number' },
+components\invoices\invoice-list.tsx:                                    { key: 'client' as SortKey, label: isFr ? 'Client' : 'Client' },
+components\invoices\invoice-list.tsx:                                    { key: 'total' as SortKey, label: isFr ? 'Total' : 'Total' },
+components\invoices\invoice-list.tsx:                                    { key: 'status' as SortKey, label: isFr ? 'Statut' : 'Status' },
+components\invoices\invoice-list.tsx:                                    { key: 'createdAt' as SortKey, label: isFr ? 'Date' : 'Date' },
+components\invoices\invoice-list.tsx:                                    {isFr ? 'Solde d??' : 'Balance'}
+components\invoices\invoice-list.tsx:                                    {isFr ? 'Actions' : 'Actions'}
+components\invoices\invoice-list.tsx:                                        {search ? (isFr ? 'Aucun r??sultat.' : 'No results.') : t.invoices.noInvoices}
+components\invoices\invoice-list.tsx:                        {isFr
+components\invoices\invoice-list.tsx:                            ??? {isFr ? 'Pr??c??dent' : 'Previous'}
+components\invoices\invoice-list.tsx:                            {isFr ? 'Suivant' : 'Next'} ???
+components\layout\notification-bell.tsx:                        {isFr ? 'Alertes' : 'Alerts'}
+components\layout\notification-bell.tsx:                        <p className="text-sm">{isFr ? 'Aucune alerte active' : 'No active alerts'}</p>
+components\layout\notification-bell.tsx:                        {isFr ? 'Tout ignorer' : 'Dismiss all'}
+components\layout\notification-bell.tsx:                        {isFr ? 'Actualiser' : 'Refresh'}
+components\quotes\quote-list.tsx:        { key: 'ALL', label: isFr ? 'Tous' : 'All' },
+components\quotes\quote-list.tsx:        { key: 'SENT', label: isFr ? 'Envoy??es' : 'Sent' },
+components\quotes\quote-list.tsx:        { key: 'ACCEPTED', label: isFr ? 'Accept??s' : 'Accepted' },
+components\quotes\quote-list.tsx:        { key: 'REJECTED', label: isFr ? 'Refus??s' : 'Rejected' },
+components\quotes\quote-list.tsx:        { key: 'DRAFT', label: isFr ? 'Brouillons' : 'Drafts' },
+components\quotes\quote-list.tsx:                        {isFr ? `Affichage des devis pour ${clients.find(c => c.id === clientId)?.name || 'le client'}` : `Showing quotes for ${clients.find(c => c.id === clientId)?.name || 'client'}`}
+components\quotes\quote-list.tsx:                        {isFr ? 'Effacer' : 'Clear'}
+components\quotes\quote-list.tsx:                        placeholder={isFr ? 'Rechercher par client, num??ro???' : 'Search by client, number???'}
+components\quotes\quote-list.tsx:                            <option value="ALL">{isFr ? 'Toutes divisions' : 'All divisions'}</option>
+components\quotes\quote-list.tsx:                {filtered.length} {isFr ? 'r??sultat' : 'result'}{filtered.length !== 1 ? 's' : ''}
+components\quotes\quote-list.tsx:                                    { key: 'number' as SortKey, label: isFr ? 'Num??ro' : 'Number' },
+components\quotes\quote-list.tsx:                                    { key: 'client' as SortKey, label: isFr ? 'Client' : 'Client' },
+components\quotes\quote-list.tsx:                                    { key: 'total' as SortKey, label: isFr ? 'Montant' : 'Amount' },
+components\quotes\quote-list.tsx:                                    { key: 'status' as SortKey, label: isFr ? 'Statut' : 'Status' },
+components\quotes\quote-list.tsx:                                    { key: 'createdAt' as SortKey, label: isFr ? 'Date' : 'Date' },
+components\quotes\quote-list.tsx:                                    {isFr ? 'Actions' : 'Actions'}
+components\quotes\quote-list.tsx:                                        {search ? (isFr ? 'Aucun r??sultat pour cette recherche.' : 'No results for this search.') : t.quotes.noQuotes}
+components\quotes\quote-list.tsx:                                {isFr ? 'Pr??c??dent' : 'Previous'}
+components\quotes\quote-list.tsx:                                {isFr ? 'Suivant' : 'Next'}
+components\quotes\quote-list.tsx:                                    {isFr ? 'Affichage de' : 'Showing'}{' '}
+components\quotes\quote-list.tsx:                                    {isFr ? '??' : 'to'}{' '}
+components\quotes\quote-list.tsx:                                    {isFr ? 'sur' : 'of'}{' '}
+components\quotes\quote-list.tsx:                                    {isFr ? 'r??sultats' : 'results'}
