@@ -1,25 +1,21 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
+// Find the project and workspace directories
 const projectRoot = __dirname;
+// This can be replaced with `find-yarn-workspace-root`
+const workspaceRoot = path.resolve(projectRoot, '../..');
+
 const config = getDefaultConfig(projectRoot);
 
-// SANDBOX MODE: Force Metro to ONLY look in the current directory
-config.watchFolders = [projectRoot];
-
+// 1. Watch all files within the monorepo
+config.watchFolders = [workspaceRoot];
+// 2. Let Metro know where to resolve packages and in what order
 config.resolver.nodeModulesPaths = [
-    path.resolve(projectRoot, 'node_modules')
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'node_modules'),
 ];
-
+// 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
-
-// EXPLICIT MAPPING: Brute force resolution for problematic packages
-config.resolver.extraNodeModules = {
-    ...config.resolver.extraNodeModules,
-    'promise': path.resolve(projectRoot, 'node_modules/promise'),
-    'react': path.resolve(projectRoot, 'node_modules/react'),
-    'react-native': path.resolve(projectRoot, 'node_modules/react-native'),
-    '@expo/vector-icons': path.resolve(projectRoot, 'node_modules/@expo/vector-icons'),
-};
 
 module.exports = config;
