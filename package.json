@@ -9,19 +9,21 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "next": "latest",
     "prettier": "^3.0.0",
     "prisma": "^5.22.0",
-    "turbo": "latest",
-    "next": "latest",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "turbo": "latest"
   },
   "packageManager": "npm@10.0.0",
   "workspaces": [
     "apps/web",
+    "apps/mobile",
     "packages/*"
   ],
   "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^5.22.0",
+    "pg": "^8.20.0"
   }
 }
