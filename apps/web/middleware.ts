@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
         path === '/api/auth/login' ||
         path === '/api/auth/logout' ||
         path.startsWith('/api/auth/reset') ||
+        path === '/api/setup' ||
         path.startsWith('/api/setup/')
 
     const token = request.cookies.get('auth_token')?.value
