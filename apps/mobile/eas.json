@@ -16,6 +16,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "installCommand": "cd /home/expo/workingdir/build && yarn install --production false",
       "env": {
         "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
         "EXPO_NO_DOCTOR": "true",
@@ -27,11 +28,15 @@
       }
     },
     "production": {
+      "installCommand": "cd /home/expo/workingdir/build && yarn install --production false",
       "env": {
         "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
         "EXPO_NO_DOCTOR": "true",
         "SKIP_POSTINSTALL": "1"
       }
+    },
+    "development_install": {
+      "installCommand": "cd /home/expo/workingdir/build && yarn install --production false"
     }
   },
   "submit": {
