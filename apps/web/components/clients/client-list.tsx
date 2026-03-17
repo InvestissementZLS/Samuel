@@ -67,7 +67,7 @@ export function ClientList({
     const handleGenerateLink = async (e: React.MouseEvent, clientId: string) => {
         e.stopPropagation();
         try {
-            const token = await createBookingLink(clientId);
+            const token = await createBookingLink(clientId, division);
             const url = `${window.location.origin}/booking/${token}`;
             await navigator.clipboard.writeText(url);
             toast.success(t.clients.bookingLinkCopied);
