@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, CheckCircle, Loader2 } from 'lucide-react';
-import { startJob } from '@/app/actions/report-actions';
+import { startJob } from '@/app/actions/job-completion-actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { CompleteJobDialog } from './complete-job-dialog';

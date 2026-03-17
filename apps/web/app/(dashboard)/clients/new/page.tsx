@@ -1,4 +1,4 @@
-import { createClient } from '@/app/actions/clients';
+import { createClient } from '@/app/actions/client-actions';
 
 export default function NewClientPage() {
     return (

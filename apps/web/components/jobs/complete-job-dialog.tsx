@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import SignatureCanvas from 'react-signature-canvas';
-import { completeJob } from '@/app/actions/report-actions';
+import { completeJob } from '@/app/actions/job-completion-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
