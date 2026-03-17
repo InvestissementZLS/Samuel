@@ -2,7 +2,7 @@
   "name": "praxis-zls-system",
   "private": true,
   "scripts": {
-    "postinstall": "turbo run generate",
+    "postinstall": "node -e \"if (!process.env.SKIP_POSTINSTALL) require('child_process').execSync('turbo run generate', {stdio: 'inherit'});\"",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
@@ -17,11 +17,23 @@
     "turbo": "latest"
   },
   "packageManager": "yarn@1.22.22",
-  "workspaces": [
-    "apps/web",
-    "apps/mobile",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/web",
+      "apps/mobile",
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/react-native",
+      "**/react-native/**",
+      "**/react",
+      "**/react/**",
+      "**/expo",
+      "**/expo/**",
+      "**/lucide-react-native",
+      "**/lucide-react-native/**"
+    ]
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "pg": "^8.20.0"
