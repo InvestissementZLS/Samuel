@@ -17,8 +17,7 @@ export function middleware(request: NextRequest) {
         // Allow specific public API routes
         path === '/api/auth/login' ||
         path === '/api/auth/logout' ||
-        path.startsWith('/api/auth/reset') ||
-        path.startsWith('/api/dev/')
+        path.startsWith('/api/auth/reset')
 
     const token = request.cookies.get('auth_token')?.value
 
