@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { sendEmail } from "@/lib/email-service";
+import { sendGenericEmail } from "@/lib/email";
 import { addDays, startOfDay, endOfDay, format } from "date-fns";
 
 export async function GET() {
@@ -31,10 +31,11 @@ export async function GET() {
         for (const job of upcomingJobs) {
             const clientEmail = job.property.client.email;
             if (clientEmail) {
-                await sendEmail(
+                await sendGenericEmail(
                     clientEmail,
                     `Reminder: Upcoming Appointment Tomorrow`,
-                    `Dear ${job.property.client.name},\n\nThis is a reminder that you have a service appointment scheduled for tomorrow, ${format(job.scheduledAt, 'PP p')}.\n\nLocation: ${job.property.address}\n\nSee you soon,\nZLS Team`
+                    `Dear ${job.property.client.name},\n\nThis is a reminder that you have a service appointment scheduled for tomorrow, ${format(job.scheduledAt, 'PP p')}.\n\nLocation: ${job.property.address}\n\nSee you soon,\nZLS Team`,
+                    job.division
                 );
             }
         }

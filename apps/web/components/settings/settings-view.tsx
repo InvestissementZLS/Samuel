@@ -3,9 +3,10 @@
 import { useLanguage } from "@/components/providers/language-provider";
 import { PasswordSettings } from "./password-settings";
 import { TechnicianLanguageSettings } from "./technician-language-settings";
+import { DivisionEmailSettings } from "./division-email-settings";
 import Link from 'next/link';
 
-export function SettingsView({ technicians }: { technicians: any[] }) {
+export function SettingsView({ technicians, divisionSettings = [] }: { technicians: any[], divisionSettings?: any[] }) {
     const { t } = useLanguage();
 
     return (
@@ -15,6 +16,10 @@ export function SettingsView({ technicians }: { technicians: any[] }) {
                 <PasswordSettings />
                 <div className="border-t pt-8">
                     <TechnicianLanguageSettings technicians={technicians} />
+                </div>
+                {/* Division Email Settings Section */}
+                <div className="border-t pt-8">
+                    <DivisionEmailSettings initialSettings={divisionSettings} />
                 </div>
                 {/* Warranties Section */}
                 <div className="border-t pt-8">

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { addDays } from 'date-fns';
 import { createCalendarJob } from './calendar-actions';
 import { JobStatus } from '@prisma/client';
-import { sendBookingConfirmation } from '@/lib/email-service';
+import { sendBookingConfirmation, sendPortalAccessEmail } from '@/lib/email';
 
 export async function createBookingLink(clientId: string) {
     // Generate a link valid for 7 days
@@ -78,7 +78,10 @@ export async function confirmBooking(
             link.client.email,
             link.client.name,
             scheduledAt,
-            description
+            description,
+            job.division,
+            // @ts-ignore
+            link.client.language || 'FR'
         );
     }
 
@@ -148,7 +151,10 @@ export async function confirmGuestBooking(
             client.email,
             client.name,
             scheduledAt,
-            description
+            description,
+            job.division,
+            // @ts-ignore
+            client.language || 'FR'
         );
     }
 
@@ -198,23 +204,10 @@ export async function sendPortalLink(clientId: string) {
 
     const token = await createBookingLink(clientId);
 
-    // In a real app, use a dedicated email template. 
-    // For now, re-using booking confirmation implies "Here is your link".
-    // Or better: Just allow the UI to redirect if we are in a 'trusted' flow?
-    // User requested "Option to connect". 
-    // Security: We can't just log them in without password/email proof. 
-    // Sending email is the secure way.
-
-    // TODO: Create a specific 'Send Access Link' email template.
-    // For now, we simulate success and maybe sending a generic note.
-
-    // Let's rely on the existing "Booking Confirmation" service but strictly for the link?
-    // Actually, let's just create a quick helper here or assume the user gets the email.
-
-    // MOCK EMAIL for Link (Replace with 'resend' call if template exists)
     console.log(`[EMAIL SEND] Portal Link for ${client.email}: /portal/${token}`);
-
-    return { success: true, email: client.email };
+    
+    // @ts-ignore
+    return await sendPortalAccessEmail(client, token);
 }
 
 export async function getClientServices() {

@@ -5,6 +5,8 @@ import { QuotePDF } from '@/components/pdf/quote-pdf';
 import { ServiceReportPDF } from '@/components/pdf/service-report-pdf';
 import { Invoice, Quote, Client, Product, Job, User, UsedProduct, Division } from '@prisma/client';
 
+import { prisma } from './prisma';
+
 // Initialize Resend Clients
 const resendEntreprises = process.env.RESEND_API_KEY_ENTREPRISES
     ? new Resend(process.env.RESEND_API_KEY_ENTREPRISES)
@@ -14,26 +16,58 @@ const resendExtermination = process.env.RESEND_API_KEY_EXTERMINATION
     ? new Resend(process.env.RESEND_API_KEY_EXTERMINATION)
     : null;
 
-function getEmailConfig(division: string) {
+// Fallback logic to get default config if DB settings are missing
+function getDefaultEmailConfig(division: string) {
     if (division === "EXTERMINATION" && resendExtermination) {
         return {
             resend: resendExtermination,
-            from: "Extermination ZLS <extermination@praxiszls.com>"
+            from: "Extermination ZLS <extermination@praxiszls.com>",
+            companyName: "Extermination ZLS"
         };
     }
 
     if (division === "RENOVATION") {
         return {
-            resend: resendEntreprises, // Share API key with Entreprises for now
-            from: "Rénovation Esthéban <renovationestheban@praxiszls.com>"
+            resend: resendEntreprises,
+            from: "Rénovation Esthéban <renovationestheban@praxiszls.com>",
+            companyName: "Rénovation Esthéban"
         };
     }
 
-    // Default to Entreprises
     return {
         resend: resendEntreprises,
-        from: "Les Entreprises ZLS <Lesentrepriseszls@praxiszls.com>"
+        from: "Les Entreprises ZLS <Lesentrepriseszls@praxiszls.com>",
+        companyName: "Les Entreprises ZLS"
     };
+}
+
+export async function getEmailConfig(division: Division) {
+    // Attempt to fetch custom settings from the database
+    let dbSettings = null;
+    try {
+        dbSettings = await prisma.divisionSettings.findUnique({
+            where: { division }
+        });
+    } catch (e) {
+        console.warn("Could not fetch division settings from DB, falling back to defaults.", e);
+    }
+
+    const defaultConfig = getDefaultEmailConfig(division);
+
+    if (dbSettings) {
+        // If they provided a custom API key, instantiate a new Resend client
+        const customResend = dbSettings.resendApiKey 
+            ? new Resend(dbSettings.resendApiKey) 
+            : defaultConfig.resend;
+
+        return {
+            resend: customResend,
+            from: `${dbSettings.emailSenderName} <${dbSettings.emailSenderAddress}>`,
+            companyName: dbSettings.emailSenderName,
+        };
+    }
+
+    return defaultConfig;
 }
 
 
@@ -55,7 +89,7 @@ const getAppUrl = () => {
 };
 
 export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
-    const config = getEmailConfig(invoice.division);
+    const config = await getEmailConfig(invoice.division);
 
     if (!config.resend) {
         console.log("Resend API Key missing for division: " + invoice.division);
@@ -63,11 +97,7 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     }
 
     try {
-        const companyName = invoice.division === 'EXTERMINATION'
-            ? 'Extermination ZLS'
-            : invoice.division === 'RENOVATION'
-                ? 'Rénovation Esthéban'
-                : 'Les Entreprises ZLS';
+        const companyName = config.companyName;
 
         const subject = (invoice.client as any).language === 'EN'
             ? `Invoice #${invoice.number} from ${companyName}`
@@ -126,7 +156,7 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
 }
 
 export async function sendQuoteEmail(quote: QuoteWithDetails) {
-    const config = getEmailConfig(quote.division);
+    const config = await getEmailConfig(quote.division);
 
     if (!config.resend) {
         console.log("Resend API Key missing for division: " + quote.division);
@@ -134,11 +164,7 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
     }
 
     try {
-        const companyName = quote.division === 'EXTERMINATION'
-            ? 'Extermination ZLS'
-            : quote.division === 'RENOVATION'
-                ? 'Rénovation Esthéban'
-                : 'Les Entreprises ZLS';
+        const companyName = config.companyName;
 
         const subject = (quote.client as any).language === 'EN'
             ? `Quote #${quote.number} from ${companyName}`
@@ -236,15 +262,15 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
 export async function sendPreparationListEmail(client: Client, division: Division, items: any[]) {
     // items must be list of { listUrl: string, serviceName: string }
-    const config = getEmailConfig(division);
+    const config = await getEmailConfig(division);
 
     if (!config.resend) return;
 
     try {
         const isEn = (client as any).language === 'EN';
         const subject = isEn
-            ? `Preparation for your upcoming service - ${division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
-            : `Préparation pour votre service à venir - ${division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+            ? `Preparation for your upcoming service - ${config.companyName}`
+            : `Préparation pour votre service à venir - ${config.companyName}`;
 
         const listHtml = items.map(item => `
             <div style="margin-bottom: 12px; padding: 12px; border: 1px solid #ddd; rounded: 4px;">
@@ -289,7 +315,7 @@ export async function sendPreparationListEmail(client: Client, division: Divisio
 }
 
 export async function sendServiceReportEmail(job: Job & { client: Client; property: any; products: (UsedProduct & { product: Product })[]; technicians: User[] }) {
-    const config = getEmailConfig(job.division);
+    const config = await getEmailConfig(job.division);
 
     if (!config.resend) return;
 
@@ -316,8 +342,8 @@ export async function sendServiceReportEmail(job: Job & { client: Client; proper
 
         const isEn = (job.client as any).language === 'EN';
         const subject = isEn
-            ? `Service Report - ${job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`
-            : `Rapport de Service - ${job.division === 'EXTERMINATION' ? 'Extermination ZLS' : 'Les Entreprises ZLS'}`;
+            ? `Service Report - ${config.companyName}`
+            : `Rapport de Service - ${config.companyName}`;
 
         const html = isEn
             ? `
@@ -358,3 +384,155 @@ export async function sendServiceReportEmail(job: Job & { client: Client; proper
         return { success: false, error };
     }
 }
+
+export async function sendPortalAccessEmail(client: Client, token: string) {
+    // @ts-ignore
+    const division = client.divisions && client.divisions.length > 0 
+        // @ts-ignore
+        ? client.divisions[0] 
+        : "EXTERMINATION";
+
+    const config = await getEmailConfig(division);
+    if (!config.resend) return { success: false, error: "Missing API Key" };
+
+    const companyName = config.companyName;
+
+    // @ts-ignore
+    const isEn = client.language === 'EN';
+    const subject = isEn 
+        ? `Your Client Portal Access - ${companyName}`
+        : `Votre accès au portail client - ${companyName}`;
+
+    const portalUrl = `${getAppUrl()}/portal/${token}`;
+
+    const html = isEn
+        ? `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Hello ${client.name},</h2>
+                <p>Welcome to ${companyName}. You can access your client portal to manage your bookings, quotes, and invoices using the link below:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${portalUrl}" style="background-color: #4F46E5; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                        Access My Portal
+                    </a>
+                </div>
+                <p style="color: #666; font-size: 14px;">Or copy this link into your browser: <br/><a href="${portalUrl}" style="color: #4F46E5;">${portalUrl}</a></p>
+                <br/>
+                <p>Thank you,<br/>The ${companyName} Team</p>
+            </div>
+        `
+        : `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2>Bonjour ${client.name},</h2>
+                <p>Bienvenue chez ${companyName}. Vous pouvez accéder à votre portail client pour gérer vos réservations, soumissions et factures via le lien ci-dessous :</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${portalUrl}" style="background-color: #4F46E5; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                        Accéder à mon portail
+                    </a>
+                </div>
+                <p style="color: #666; font-size: 14px;">Ou copiez ce lien dans votre navigateur : <br/><a href="${portalUrl}" style="color: #4F46E5;">${portalUrl}</a></p>
+                <br/>
+                <p>Merci,<br/>L'équipe ${companyName}</p>
+            </div>
+        `;
+
+    try {
+        const data = await config.resend.emails.send({
+            from: config.from,
+            to: [client.email || ''],
+            subject: subject,
+            html: html,
+        });
+        return { success: true, data };
+    } catch (error) {
+        console.error("Failed to send portal access email:", error);
+        return { success: false, error };
+    }
+}
+
+export async function sendBookingConfirmation(
+    to: string,
+    clientName: string,
+    scheduledAt: Date,
+    description: string,
+    division: Division = "EXTERMINATION",
+    language: string = "FR"
+) {
+    const config = await getEmailConfig(division);
+    if (!config.resend) return { success: false, error: "Missing API Key" };
+
+    const companyName = config.companyName;
+
+    const isEn = language === 'EN';
+
+    const formattedDate = new Intl.DateTimeFormat(isEn ? 'en-CA' : 'fr-CA', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: 'America/New_York'
+    }).format(scheduledAt);
+
+    const subject = isEn 
+        ? `Booking Confirmation - ${companyName}`
+        : `Confirmation de réservation - ${companyName}`;
+
+    const html = isEn ? `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1>Appointment Confirmation</h1>
+            <p>Hello ${clientName},</p>
+            <p>We are writing to confirm your appointment for the following service:</p>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Date & Time:</strong> ${formattedDate}</p>
+                <p><strong>Description:</strong> ${description}</p>
+            </div>
+            <p>Our technician will arrive at the scheduled time.</p>
+            <p>If you have any questions, please do not hesitate to contact us.</p>
+            <br/>
+            <p>Thank you,<br/>The ${companyName} Team</p>
+        </div>
+    ` : `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1>Confirmation de votre rendez-vous</h1>
+            <p>Bonjour ${clientName},</p>
+            <p>Nous confirmons votre rendez-vous pour le service suivant :</p>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Date et heure :</strong> ${formattedDate}</p>
+                <p><strong>Description :</strong> ${description}</p>
+            </div>
+            <p>Notre technicien se présentera à l'heure convenue.</p>
+            <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
+            <br/>
+            <p>Merci,<br/>L'équipe ${companyName}</p>
+        </div>
+    `;
+
+    try {
+        const data = await config.resend.emails.send({
+            from: config.from,
+            to: [to],
+            subject: subject,
+            html: html,
+        });
+        return { success: true, data };
+    } catch (error) {
+        console.error("Failed to send booking confirmation email:", error);
+        return { success: false, error };
+    }
+}
+
+export async function sendGenericEmail(to: string, subject: string, html: string, division: Division = "EXTERMINATION") {
+    const config = await getEmailConfig(division);
+    if (!config.resend) return { success: false, error: "Missing API Key" };
+
+    try {
+        const data = await config.resend.emails.send({
+            from: config.from,
+            to: [to],
+            subject: subject,
+            html: html,
+        });
+        return { success: true, data };
+    } catch (error) {
+        console.error("Failed to send generic email:", error);
+        return { success: false, error };
+    }
+}
+

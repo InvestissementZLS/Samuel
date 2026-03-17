@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { JobStatus } from "@prisma/client";
-import { sendEmail } from "@/lib/email-service";
+import { sendGenericEmail } from "@/lib/email";
 
 export async function GET(
     request: Request,
@@ -91,10 +91,11 @@ export async function PATCH(
                 // Send Email
                 const clientEmail = job.property.client.email;
                 if (clientEmail) {
-                    await sendEmail(
+                    await sendGenericEmail(
                         clientEmail,
                         `Invoice for Job at ${job.property.address}`,
-                        `Dear ${job.property.client.name},\n\nYour job has been completed. An invoice (ID: ${newInvoice.id}) has been generated.\n\nPlease log in to the portal to view and pay.\n\nThanks,\nZLS Team`
+                        `Dear ${job.property.client.name},\n\nYour job has been completed. An invoice (ID: ${newInvoice.id}) has been generated.\n\nPlease log in to the portal to view and pay.\n\nThanks,\nZLS Team`,
+                        job.division
                     );
                 }
             }
