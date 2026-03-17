@@ -1,13 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import { cookies } from "next/headers";
+import { Division } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 
 export default async function CommissionReportPage() {
+    const cookieStore = await cookies();
+    const division = (cookieStore.get('division')?.value || 'EXTERMINATION') as Division;
+
     const jobs = await prisma.job.findMany({
         where: {
+            division,
             commissions: {
-                some: {} // Only jobs with commissions
+                some: {}
             }
         },
         include: {
