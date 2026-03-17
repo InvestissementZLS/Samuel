@@ -1,10 +1,23 @@
 {
-    "extends": "@repo/tsconfig/react-native.json",
     "compilerOptions": {
-        "jsx": "react-native"
+        "target": "ESNext",
+        "lib": ["ESNext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "noEmit": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "jsx": "react-native",
+        "baseUrl": "."
     },
     "include": [
         "**/*.ts",
         "**/*.tsx"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }
