@@ -31,6 +31,7 @@ export default function ClientBookingPage() {
     const [loading, setLoading] = useState(true);
     const [clientData, setClientData] = useState<any>(null);
     const [services, setServices] = useState<any[]>([]);
+    const [bookingDivision, setBookingDivision] = useState<string>('EXTERMINATION');
 
     // Existing Client Detection State
     const [existingClient, setExistingClient] = useState<{ exists: boolean; name?: string; maskedEmail?: string; clientId?: string } | null>(null);
@@ -59,25 +60,27 @@ export default function ClientBookingPage() {
     const availableDates = Object.keys(slotsByDate).sort();
 
 
-    // Use token derived from params
     useEffect(() => {
         const init = async () => {
-            if (!token) return; // Wait for token
+            if (!token) return;
 
             try {
                 if (token === 'new') {
                     setIsGuest(true);
                     setStep(0);
-                    const s = await getClientServices();
+                    // Guest bookings default to EXTERMINATION (the public booking page)
+                    const s = await getClientServices('EXTERMINATION');
                     setServices(s);
                 } else {
                     const link = await verifyBookingToken(token);
                     if (link) {
                         setClientData(link.client);
+                        const div = (link as any).division || 'EXTERMINATION';
+                        setBookingDivision(div);
                         if (link.client.properties.length > 0) {
                             setSelectedPropertyId(link.client.properties[0].id);
                         }
-                        const s = await getClientServices();
+                        const s = await getClientServices(div);
                         setServices(s);
                     }
                 }
@@ -178,24 +181,12 @@ export default function ClientBookingPage() {
         try {
             if (isGuest) {
                 await confirmGuestBooking(
-                    guestInfo,
-                    selectedService.id,
-                    new Date(selectedSlot.date),
-                    selectedSlot.technicianId,
-                    `Guest Self-Booking: ${selectedService.name}`
-                ); // confirmGuestBooking now handles language if passed in clientInfo, but signature is (clientInfo, ...)
-                // Wait, I need to pass language inside guestInfo or as separate arg?
-                // logic in action: clientInfo: { ..., language?: string }
-                // So I need to add language to guestInfo passed here.
-                // But confirmGuestBooking calculates it from clientInfo.
-
-                // Let's modify the call:
-                await confirmGuestBooking(
                     { ...guestInfo, language },
                     selectedService.id,
                     new Date(selectedSlot.date),
                     selectedSlot.technicianId,
-                    `Guest Self-Booking: ${selectedService.name}`
+                    `Guest Self-Booking: ${selectedService.name}`,
+                    bookingDivision
                 );
             } else {
                 await confirmBooking(

@@ -620,6 +620,7 @@ model BookingLink {
   status    String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
   expiresAt DateTime
   createdAt DateTime @default(now())
+  division  Division @default(EXTERMINATION)
   
   client    Client   @relation(fields: [clientId], references: [id])
 }

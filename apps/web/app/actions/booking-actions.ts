@@ -6,15 +6,15 @@ import { createCalendarJob } from './calendar-actions';
 import { JobStatus } from '@prisma/client';
 import { sendBookingConfirmation, sendPortalAccessEmail } from '@/lib/email';
 
-export async function createBookingLink(clientId: string) {
-    // Generate a link valid for 7 days
+export async function createBookingLink(clientId: string, division: string = 'EXTERMINATION') {
     const expiresAt = addDays(new Date(), 7);
 
     // @ts-ignore
     const link = await prisma.bookingLink.create({
         data: {
             clientId,
-            expiresAt
+            expiresAt,
+            division: division as any,
         }
     });
 
@@ -46,7 +46,6 @@ export async function confirmBooking(
     const link = await verifyBookingToken(token);
     if (!link) throw new Error("Invalid Token");
 
-    // 1. Create the Job
     // @ts-ignore
     const job = await prisma.job.create({
         data: {
@@ -55,14 +54,13 @@ export async function confirmBooking(
             scheduledAt,
             status: 'SCHEDULED',
             technicians: { connect: [{ id: techId }] },
-            // Add the product/service
             products: {
                 create: {
                     productId,
                     quantity: 1
                 }
             },
-            division: 'EXTERMINATION' // Default for now
+            division: (link.division || 'EXTERMINATION') as any
         }
     });
 
@@ -93,7 +91,8 @@ export async function confirmGuestBooking(
     productId: string,
     scheduledAt: Date,
     techId: string,
-    description: string
+    description: string,
+    division: string = 'EXTERMINATION'
 ) {
     const fullAddress = `${clientInfo.street}, ${clientInfo.city}, ${clientInfo.postalCode}`;
 
@@ -104,14 +103,13 @@ export async function confirmGuestBooking(
             name: clientInfo.name,
             email: clientInfo.email,
             phone: clientInfo.phone,
-            billingAddress: fullAddress, // Use composite address for billing default
+            billingAddress: fullAddress,
             language: clientInfo.language === 'en' ? 'EN' : 'FR',
+            divisions: [division as any],
         }
     });
 
     // 2. Create the Property
-    // We ALWAYS create a new property record for a new client, even if address matches another client (Scene: House Sold)
-    // This preserves history for the previous owner.
     // @ts-ignore
     const property = await prisma.property.create({
         data: {
@@ -141,7 +139,7 @@ export async function confirmGuestBooking(
                     quantity: 1
                 }
             },
-            division: 'EXTERMINATION'
+            division: division as any
         }
     });
 
@@ -210,11 +208,10 @@ export async function sendPortalLink(clientId: string) {
     return await sendPortalAccessEmail(client, token);
 }
 
-export async function getClientServices() {
-    // Return Series/Packages that are eligible for self-service
-    // For now, return all SERVICE products
+export async function getClientServices(division: string = 'EXTERMINATION') {
+    // Return SERVICE products scoped to the booking link's division
     // @ts-ignore
     return await prisma.product.findMany({
-        where: { type: 'SERVICE' }
+        where: { type: 'SERVICE', division: division as any }
     });
 }
