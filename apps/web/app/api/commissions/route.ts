@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validateAuth } from "@/lib/auth";
 
 // GET /api/commissions
-// Fetch all commissions with related User and Job info
 export async function GET(request: NextRequest) {
+    const user = await validateAuth();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     try {
         const { searchParams } = new URL(request.url);
         const status = searchParams.get('status');
@@ -50,8 +53,10 @@ export async function GET(request: NextRequest) {
 }
 
 // PATCH /api/commissions
-// Update status of a commission (or bulk update)
 export async function PATCH(request: NextRequest) {
+    const user = await validateAuth();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     try {
         const body = await request.json();
         const { id, ids, status } = body;

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { JobStatus } from "@prisma/client";
 import { sendGenericEmail } from "@/lib/email";
+import { validateAuth } from "@/lib/auth";
 
 export async function GET(
     request: Request,
@@ -45,6 +46,9 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const user = await validateAuth();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
     try {
         const body = await request.json();
@@ -115,6 +119,9 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const user = await validateAuth();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
     try {
         await prisma.job.delete({

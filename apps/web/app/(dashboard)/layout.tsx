@@ -33,7 +33,7 @@ export default async function DashboardLayout({
     }
 
     if (!user) {
-        redirect("/api/auth/logout");
+        redirect("/login");
     }
 
     return (

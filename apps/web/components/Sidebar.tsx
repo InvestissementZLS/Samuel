@@ -111,7 +111,7 @@ export function Sidebar() {
                     <div className="flex items-center justify-between">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <p className="text-sm font-medium text-white">{t.common.adminUser}</p>
+                                <p className="text-sm font-medium text-white">{user?.name || t.common.adminUser}</p>
                             </div>
                             <button
                                 onClick={handleLogout}

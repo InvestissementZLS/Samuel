@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
     try {
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         } catch (dbError: any) {
             console.error("Login DB Error:", dbError);
             return NextResponse.json(
-                { error: "Database service unavailable", details: String(dbError.message || dbError) },
+                { error: "Database service unavailable" },
                 { status: 503 }
             );
         }
@@ -33,10 +34,41 @@ export async function POST(request: Request) {
             );
         }
 
-        // TODO: Implement real password hashing comparison
-        // For now, we'll just check if the password matches the stored string (if any)
-        // or just allow login if the user exists for the MVP phase as per plan
-        if (user.password && user.password !== password) {
+        if (!user.isActive) {
+            return NextResponse.json(
+                { error: "Account is disabled. Contact an administrator." },
+                { status: 403 }
+            );
+        }
+
+        // Secure password verification using bcrypt
+        // Supports legacy plaintext passwords by falling back if password doesn't look like a hash
+        let passwordValid = false;
+        if (user.password) {
+            if (user.password.startsWith('$2')) {
+                // It's a proper bcrypt hash - compare securely
+                passwordValid = await bcrypt.compare(password, user.password);
+            } else {
+                // Legacy plaintext - compare and then upgrade to hash
+                passwordValid = user.password === password;
+                if (passwordValid) {
+                    // Upgrade to bcrypt hash silently
+                    const hashed = await bcrypt.hash(password, 12);
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { password: hashed }
+                    });
+                }
+            }
+        } else {
+            // No password set - deny login (admin must set one)
+            return NextResponse.json(
+                { error: "Account not configured. Contact an administrator." },
+                { status: 401 }
+            );
+        }
+
+        if (!passwordValid) {
             return NextResponse.json(
                 { error: "Invalid credentials" },
                 { status: 401 }
@@ -45,13 +77,11 @@ export async function POST(request: Request) {
 
         // Return user info (excluding password)
         const { password: _, ...userWithoutPassword } = user;
-
-        // Serialize Date objects to strings for Client Component compatibility
         const safeUser = JSON.parse(JSON.stringify(userWithoutPassword));
 
         const response = NextResponse.json(safeUser);
 
-        // Set a simple auth cookie
+        // Cookie options
         const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -61,15 +91,15 @@ export async function POST(request: Request) {
         };
 
         response.cookies.set('auth_token', user.id, cookieOptions);
-        response.cookies.set('userId', user.id, { ...cookieOptions, httpOnly: false }); // Allow client access for userId if needed by legacy stats
+        // Non-httpOnly version for client-side legacy access
+        response.cookies.set('userId', user.id, { ...cookieOptions, httpOnly: false });
 
         return response;
     } catch (error) {
-        console.error("Login parsing error:", error);
+        console.error("Login error:", error);
         return NextResponse.json(
             { error: "Invalid request body" },
             { status: 400 }
         );
     }
 }
-

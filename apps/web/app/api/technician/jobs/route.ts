@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { startOfDay, endOfDay } from "date-fns";
+import { validateAuth } from "@/lib/auth";
 
 export async function GET(request: Request) {
+    const currentUser = await validateAuth();
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { searchParams } = new URL(request.url);
     const techId = searchParams.get("techId");
 
