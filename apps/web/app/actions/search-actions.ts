@@ -19,7 +19,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
 
     const lowerQuery = query.toLowerCase();
 
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
     const division = divisionVal as Division;
 

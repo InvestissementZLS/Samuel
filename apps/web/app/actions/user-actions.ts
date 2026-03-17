@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
 export async function getUserProfile() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userId = cookieStore.get("auth_token")?.value;
 
     if (!userId) {

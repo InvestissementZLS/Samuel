@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 export async function setDivisionCookie(division: string) {
-    cookies().set('division', division, {
+    const cookieStore = await cookies();
+    cookieStore.set('division', division, {
         path: '/',
         maxAge: 31536000,
         sameSite: 'lax',

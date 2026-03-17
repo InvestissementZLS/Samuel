@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import { calculateJobCosts } from './cost-actions';
 
 async function logJobActivity(jobId: string, action: string, details?: string) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userId = cookieStore.get("auth_token")?.value;
 
     await prisma.jobActivity.create({
@@ -75,7 +75,7 @@ export async function addProductUsed(
     pestIds: string[] = [],
     methodIds: string[] = []
 ) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userId = cookieStore.get("userId")?.value; // Fixed: was auth_token, but we use userId cookie elsewhere
 
     await prisma.$transaction(async (tx) => {
@@ -135,7 +135,7 @@ export async function addProductUsed(
 }
 
 export async function removeProductUsed(id: string, jobId: string) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userId = cookieStore.get("userId")?.value;
 
     await prisma.$transaction(async (tx) => {
