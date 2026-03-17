@@ -22,7 +22,7 @@ import { dictionary } from '@/lib/i18n/dictionary';
 
 export default async function JobDetailsPage({ params }: { params: { id: string } }) {
     const { id } = params;
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
     const lang = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
     const t = dictionary[lang] || dictionary.en;
@@ -53,10 +53,9 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
     } catch (e: any) {
         console.error("Error loading job:", e);
         return (
-            <div className="p-8 text-red-600">
-                <h1 className="text-2xl font-bold">Error Loading Job</h1>
-                <p>ID: {id}</p>
-                <code className="block mt-4 bg-gray-100 p-2 rounded">{e.message}</code>
+            <div className="p-8 text-center">
+                <h1 className="text-2xl font-bold text-gray-700">Job Not Available</h1>
+                <p className="text-gray-500 mt-2">Unable to load this job. Please try again.</p>
             </div>
         );
     }

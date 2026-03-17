@@ -8,7 +8,7 @@ import { dictionary } from '@/lib/i18n/dictionary';
 
 export default async function QuoteDetailsPage({ params }: { params: { id: string } }) {
     const { id } = params;
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
 
@@ -23,11 +23,11 @@ export default async function QuoteDetailsPage({ params }: { params: { id: strin
             }
         });
     } catch (e: any) {
+        console.error("Error loading quote:", e);
         return (
-            <div className="p-8 text-red-600">
-                <h1 className="text-2xl font-bold">Error Loading Quote</h1>
-                <p>ID: {id}</p>
-                <code className="block mt-4 bg-gray-100 p-2 rounded">{e.message}</code>
+            <div className="p-8 text-center">
+                <h1 className="text-2xl font-bold text-gray-700">Quote Not Available</h1>
+                <p className="text-gray-500 mt-2">Unable to load this quote. Please try again.</p>
             </div>
         );
     }
