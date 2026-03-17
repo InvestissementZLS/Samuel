@@ -7,12 +7,14 @@ import { dictionary } from "@/lib/i18n/dictionary";
 const PAGE_SIZE = 50;
 
 export default async function QuotesPage({ searchParams }: { searchParams?: { page?: string } }) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
+    const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
+    const division = divisionVal as any;
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
-    let whereClause: any = {};
+    let whereClause: any = { division };
     if (searchParams?.clientId) {
         whereClause.clientId = searchParams.clientId;
     }
@@ -41,9 +43,10 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
         select: { id: true, name: true, price: true, unit: true }
     });
     const clients = await prisma.client.findMany({ 
+        where: { divisions: { has: division } },
         select: { id: true, name: true, email: true, phone: true },
         orderBy: { name: 'asc' },
-        take: 200 // Limit for the dropdown
+        take: 200
     });
 
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);

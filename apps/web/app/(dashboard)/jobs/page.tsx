@@ -1,14 +1,21 @@
 import { prisma } from '@/lib/prisma';
 import { JobList } from '@/components/jobs/job-list';
 import { serialize } from '@/lib/serialization';
+import { cookies } from 'next/headers';
+import { Division } from '@prisma/client';
 
 const PAGE_SIZE = 50;
 
 export default async function JobsPage({ searchParams }: { searchParams?: { page?: string } }) {
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
+    const cookieStore = await cookies();
+    const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
+    const division = divisionVal as Division;
+
     const [jobsData, totalCount] = await Promise.all([
         prisma.job.findMany({
+            where: { division },
             include: {
                 property: { include: { client: true } },
                 technicians: true,
@@ -22,7 +29,7 @@ export default async function JobsPage({ searchParams }: { searchParams?: { page
             skip: (page - 1) * PAGE_SIZE,
             take: PAGE_SIZE,
         }),
-        prisma.job.count()
+        prisma.job.count({ where: { division } })
     ]);
 
     const services = await prisma.product.findMany({

@@ -9,7 +9,7 @@ const PAGE_SIZE = 50;
 export default async function ClientsPage({ searchParams }: { searchParams?: { page?: string } }) {
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
     
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
     const division = divisionVal as Division;
 

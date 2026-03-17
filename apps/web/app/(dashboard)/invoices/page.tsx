@@ -11,15 +11,18 @@ export const dynamic = 'force-dynamic';
 const PAGE_SIZE = 50;
 
 export default async function InvoicesPage({ searchParams }: { searchParams?: { page?: string } }) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
     const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";
     const t = dictionary[initialLanguage] || dictionary.en;
 
+    const divisionVal = cookieStore.get('division')?.value || 'EXTERMINATION';
+    const division = divisionVal as any;
+
     const user = await getUserProfile();
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
-    let whereClause: any = {};
+    let whereClause: any = { division };
     if (user && !user.canManageDivisions) {
         // @ts-ignore
         const allowedDivisions = user.accesses.map((a: any) => a.division) || [];
@@ -60,11 +63,12 @@ export default async function InvoicesPage({ searchParams }: { searchParams?: { 
         prisma.invoice.count({ where: whereClause })
     ]);
 
-    // Clients : seulement id + nom, le dropdown n'a pas besoin de toutes les données
+    // Clients : seulement id + nom, filtré par division
     const clients = await prisma.client.findMany({
+        where: { divisions: { has: division } },
         select: { id: true, name: true, email: true, phone: true },
         orderBy: { name: 'asc' },
-        take: 200  // Limite raisonnable pour le formulaire
+        take: 200
     });
 
     // Produits : seulement ce qui est nécessaire pour le formulaire

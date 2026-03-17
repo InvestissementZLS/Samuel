@@ -86,7 +86,7 @@ export default async function DashboardPage() {
     // Dictionary is fetched client side usually but here it is server.
     // We can keep dictionary logic but need safe fallback if dictionary hook not used? 
     // dictionary.ts is imported.
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const lang = (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'fr';
     const t = dictionary[lang];
 

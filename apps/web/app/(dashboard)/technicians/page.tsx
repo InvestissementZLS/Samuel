@@ -4,7 +4,7 @@ import { TechnicianList } from '@/components/technicians/technician-list';
 import { cookies } from "next/headers";
 import { dictionary } from "@/lib/i18n/dictionary";
 export default async function TechniciansPage() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
     const userId = cookieStore.get("auth_token")?.value;
