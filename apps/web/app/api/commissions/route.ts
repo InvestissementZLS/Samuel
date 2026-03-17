@@ -4,7 +4,7 @@ import { validateAuth } from "@/lib/auth";
 
 // GET /api/commissions
 export async function GET(request: NextRequest) {
-    const user = await validateAuth();
+    const user = await validateAuth(request);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
 // PATCH /api/commissions
 export async function PATCH(request: NextRequest) {
-    const user = await validateAuth();
+    const user = await validateAuth(request);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {

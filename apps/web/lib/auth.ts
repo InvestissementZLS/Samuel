@@ -1,26 +1,39 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { prisma } from './prisma';
 
 /**
- * Validates the auth_token cookie and returns the current user.
- * Returns null if the user is not authenticated.
- * 
+ * Validates auth from either:
+ * 1. Cookie `auth_token` (web dashboard)
+ * 2. `Authorization: Bearer <userId>` header (mobile app)
+ *
  * Usage in API routes:
  * ```
- * const user = await validateAuth();
+ * const user = await validateAuth(request);
  * if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
  * ```
  */
-export async function validateAuth() {
+export async function validateAuth(request?: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        let userId: string | undefined;
 
-        if (!token) return null;
+        // 1. Try Authorization Bearer header first (mobile app)
+        if (request) {
+            const authHeader = request.headers.get('Authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                userId = authHeader.substring(7).trim();
+            }
+        }
 
-        // The token is the user ID for now
+        // 2. Fall back to cookie (web dashboard)
+        if (!userId) {
+            const cookieStore = await cookies();
+            userId = cookieStore.get('auth_token')?.value;
+        }
+
+        if (!userId) return null;
+
         const user = await prisma.user.findUnique({
-            where: { id: token },
+            where: { id: userId },
             select: {
                 id: true,
                 email: true,
@@ -48,11 +61,11 @@ export async function validateAuth() {
 
 /**
  * Validates that the current user has ADMIN or OFFICE role.
- * Returns null if the user is not an admin.
  */
-export async function validateAdminAuth() {
-    const user = await validateAuth();
+export async function validateAdminAuth(request?: Request) {
+    const user = await validateAuth(request);
     if (!user) return null;
     if (user.role !== 'ADMIN' && user.role !== 'OFFICE') return null;
     return user;
 }
+

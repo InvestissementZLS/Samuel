@@ -4,7 +4,7 @@ import { startOfDay, endOfDay } from "date-fns";
 import { validateAuth } from "@/lib/auth";
 
 export async function GET(request: Request) {
-    const currentUser = await validateAuth();
+    const currentUser = await validateAuth(request);
     if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);

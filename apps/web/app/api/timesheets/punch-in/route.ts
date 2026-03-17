@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { validateAuth } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-    const currentUser = await validateAuth();
+    const currentUser = await validateAuth(req);
     if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
