@@ -2,29 +2,31 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-// TEMPORARY SEED ROUTE - DELETE AFTER USE
-export async function GET() {
-    if (process.env.NODE_ENV === 'production') {
-        // Allow only with secret key
+// ONE-TIME EMERGENCY SEED ROUTE — DELETE IMMEDIATELY AFTER USE
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const secret = searchParams.get('key');
+    
+    // Require a secret key to prevent abuse
+    if (secret !== 'praxis-restore-2024') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    
+
     const email = 'samuel.leveille.forex@gmail.com';
     const password = 'Admin1234!';
 
     try {
+        const hashed = await bcrypt.hash(password, 12);
+        
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
-            // Just update the password
-            const hashed = await bcrypt.hash(password, 12);
             await prisma.user.update({
                 where: { email },
                 data: { password: hashed, isActive: true, role: 'ADMIN' }
             });
-            return NextResponse.json({ message: 'Password reset for existing user', email });
+            return NextResponse.json({ message: 'Password reset', email, password });
         }
 
-        const hashed = await bcrypt.hash(password, 12);
         const user = await prisma.user.create({
             data: {
                 name: 'Samuel Léveillé',
@@ -34,7 +36,7 @@ export async function GET() {
                 isActive: true,
             }
         });
-        return NextResponse.json({ message: 'Admin created', email: user.email });
+        return NextResponse.json({ message: 'Admin created', email: user.email, password });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }
