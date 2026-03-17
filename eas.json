@@ -5,14 +5,37 @@
   },
   "build": {
     "development": {
+      "projectRoot": "apps/mobile",
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_NO_DOCTOR": "true",
+        "TURBO_TELEMETRY_DISABLED": "1",
+        "SKIP_POSTINSTALL": "1"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "projectRoot": "apps/mobile",
+      "distribution": "internal",
+      "env": {
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_NO_DOCTOR": "true",
+        "TURBO_TELEMETRY_DISABLED": "1",
+        "SKIP_POSTINSTALL": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "projectRoot": "apps/mobile",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
+        "EXPO_NO_DOCTOR": "true",
+        "SKIP_POSTINSTALL": "1"
+      }
     }
   },
   "submit": {
