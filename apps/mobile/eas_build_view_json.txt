@@ -1,8 +1,0 @@
-★ eas-cli@18.4.0 is now available.
-To upgrade, run:
-npm install -g eas-cli
-Proceeding with outdated version.
-
-Nonexistent flag: --non-interactive
-See more help with --help
-    Error: build:view command failed.
