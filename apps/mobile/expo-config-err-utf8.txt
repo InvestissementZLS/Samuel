@@ -1,0 +1,90 @@
+﻿node.exe : PluginError: 
+Unable to resolve a valid 
+config plugin for 
+expo-sqlite.
+Au caractère Ligne:1 : 1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified    : 
+(PluginError: Un.    ..or 
+expo-sqlite.:S    tring) [], 
+RemoteEx    ception
+    + FullyQualifiedErr    
+orId : NativeComman    dError
+ 
+ÔÇó No "app.plugin.js" file 
+found in expo-sqlite: config 
+plugins are typically 
+exported from an 
+"app.plugin.js" file in the 
+package root.
+ÔÇó main export of 
+expo-sqlite does not appear 
+to be a config plugin: the 
+following error was thrown 
+when importing C:\Users\samue
+\OneDrive\Desktop\Antigravity
+ - Folder\node_modules\expo-s
+qlite\build\index.js: Cannot 
+find module 'C:\Users\samue\O
+neDrive\Desktop\Antigravity 
+- Folder\node_modules\expo-sq
+lite\build\SQLiteDatabase' 
+imported from C:\Users\samue\
+OneDrive\Desktop\Antigravity 
+- Folder\node_modules\expo-sq
+lite\build\index.js 
+ERR_MODULE_NOT_FOUND
+Verify that expo-sqlite 
+includes a config plugin. If 
+it does not, then remove the 
+entry from plugins in your 
+app config file. Learn more: 
+https://docs.expo.dev/guides/
+config-plugins/
+Error 
+[ERR_MODULE_NOT_FOUND]: 
+Cannot find module 'C:\Users\
+samue\OneDrive\Desktop\Antigr
+avity - Folder\node_modules\e
+xpo-sqlite\build\SQLiteDataba
+se' imported from C:\Users\sa
+mue\OneDrive\Desktop\Antigrav
+ity - Folder\node_modules\exp
+o-sqlite\build\index.js
+    at finalizeResolution (no
+de:internal/modules/esm/resol
+ve:274:11)
+    at moduleResolve (node:in
+ternal/modules/esm/resolve:86
+4:10)
+    at defaultResolve (node:i
+nternal/modules/esm/resolve:9
+90:11)
+    at #cachedDefaultResolve 
+(node:internal/modules/esm/lo
+ader:737:20)
+    at #resolveAndMaybeBlockO
+nLoaderThread (node:internal/
+modules/esm/loader:773:38)
+    at 
+ModuleLoader.resolveSync (nod
+e:internal/modules/esm/loader
+:796:52)
+    at #cachedResolveSync (no
+de:internal/modules/esm/loade
+r:756:25)
+    at ModuleLoader.getModule
+JobForRequire (node:internal/
+modules/esm/loader:450:50)
+    at #link (node:internal/m
+odules/esm/module_job:447:34)
+    at new ModuleJobSync (nod
+e:internal/modules/esm/module
+_job:420:17)

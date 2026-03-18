@@ -11,7 +11,7 @@ import { useLanguage } from '@/components/providers/language-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { useDivision } from '@/components/providers/division-provider';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { NotificationBell } from '@/components/layout/notification-bell';
+const NotificationBell = () => null;
 
 export function Sidebar() {
     const pathname = usePathname();

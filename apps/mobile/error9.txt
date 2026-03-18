@@ -1,0 +1,14 @@
+PluginError: Package "expo-sqlite" does not contain a valid config plugin. Module must export a function from file: C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\expo-sqlite\build\index.js
+Learn more: https://docs.expo.dev/guides/config-plugins/
+PluginError: Package "expo-sqlite" does not contain a valid config plugin. Module must export a function from file: C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\node_modules\expo-sqlite\build\index.js
+Learn more: https://docs.expo.dev/guides/config-plugins/
+    at resolveConfigPluginExport (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\utils\plugin-resolver.js:210:13)
+    at resolveConfigPluginFunctionWithInfo (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\utils\plugin-resolver.js:172:18)
+    at resolveConfigPluginFunction (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\utils\plugin-resolver.js:136:7)
+    at withStaticPlugin (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\plugins\withStaticPlugin.js:85:70)
+    at C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\plugins\withPlugins.js:30:84
+    at Array.reduce (<anonymous>)
+    at withPlugins (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config-plugins\build\plugins\withPlugins.js:30:18)
+    at withConfigPlugins (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config\build\plugins\withConfigPlugins.js:35:47)
+    at fillAndReturnConfig (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config\build\Config.js:236:78)
+    at getConfig (C:\Users\samue\OneDrive\Desktop\Antigravity - Folder\apps\mobile\node_modules\@expo\config\build\Config.js:293:10)

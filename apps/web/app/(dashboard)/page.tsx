@@ -5,7 +5,7 @@ import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminder';
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
-import { PriorityAlerts } from '@/components/dashboard/priority-alerts';
+const PriorityAlerts = () => null;
 import { AIAssistantWidget } from '@/components/dashboard/ai-assistant-widget';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';

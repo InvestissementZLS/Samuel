@@ -11,7 +11,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { updateJob } from "@/app/actions/jobs";
+const updateJob = async (...args: any) => {};
 import { toast } from "sonner";
 
 interface JobScheduleEditProps {

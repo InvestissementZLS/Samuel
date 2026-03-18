@@ -1,0 +1,90 @@
+﻿node.exe : ÔÇó turbo 
+2.8.17
+Au caractère Ligne:1 : 
+1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : 
+NotSpecified: (ÔÇó     
+turbo 2.8.17:String)   
+  [], RemoteException
+    + 
+FullyQualifiedErrorI   
+ d : NativeCommandError
+ 
+ÔÇó Packages in scope: web
+ÔÇó Running build in 1 packages
+ÔÇó Remote caching disabled
+@repo/db:generate: cache bypass, force executing 9e102f45f735d045
+@repo/db:generate: yarn run v1.22.22
+@repo/db:generate: $ prisma generate
+@repo/db:generate: Environment variables loaded from .env
+@repo/db:generate: Prisma schema loaded from prisma\schema.prisma
+@repo/db:generate: 
+@repo/db:generate: Ô£ö Generated Prisma Client (v5.22.0) to .\..\..\node_modules\@prisma\client in 297ms
+@repo/db:generate: 
+@repo/db:generate: Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+@repo/db:generate: 
+@repo/db:generate: Tip: Want to react to database changes in your app as they happen? Discover how with Pulse: https://pris.ly/tip-1-pulse
+@repo/db:generate: 
+@repo/db:generate: Done in 1.39s.
+web:build: cache miss, executing c395d723749965c3
+web:build: yarn run v1.22.22
+web:build: $ next build
+web:build:   Ôû▓ Next.js 14.2.35
+web:build:   - Environments: .env.local, .env
+web:build: 
+web:build:    Creating an optimized production build ...
+web:build: Failed to compile.
+web:build: 
+web:build: ./app/(dashboard)/page.tsx
+web:build: Module not found: Can't resolve '@/components/dashboard/ai-assistant-widget'
+web:build: 
+web:build: https://nextjs.org/docs/messages/module-not-found
+web:build: 
+web:build: ./app/(dashboard)/reports/page.tsx
+web:build: Module not found: Can't resolve '@/components/page-header'
+web:build: 
+web:build: https://nextjs.org/docs/messages/module-not-found
+web:build: 
+web:build: ./app/(dashboard)/settings/page.tsx
+web:build: Module not found: Can't resolve '@/app/actions/settings-actions'
+web:build: 
+web:build: https://nextjs.org/docs/messages/module-not-found
+web:build: 
+web:build: 
+web:build: > Build failed because of webpack errors
+web:build: error Command failed with exit code 1.
+web:build: info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+web:build: ERROR: 
+command finished with 
+error: command (C:\User
+s\samue\OneDrive\Deskto
+p\Antigravity - 
+Folder\apps\web) C:\Use
+rs\samue\AppData\Roamin
+g\npm\yarn.cmd run 
+build exited (1)
+web#build: command (C:\
+Users\samue\OneDrive\De
+sktop\Antigravity - 
+Folder\apps\web) C:\Use
+rs\samue\AppData\Roamin
+g\npm\yarn.cmd run 
+build exited (1)
+
+ Tasks:    1 successful, 2 total
+Cached:    0 cached, 2 total
+  Time:    19.045s 
+Failed:    web#build
+
+ ERROR  run failed: 
+command  exited (1)

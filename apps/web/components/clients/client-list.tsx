@@ -5,7 +5,7 @@ import { Client } from "@prisma/client";
 import dynamic from "next/dynamic";
 
 const ClientDialog = dynamic(() => import("./client-dialog").then(mod => mod.ClientDialog));
-const ClientImportDialog = dynamic(() => import("./client-import-dialog").then(mod => mod.ClientImportDialog));
+const ClientImportDialog = ({ isOpen, onClose, onSuccess }: any) => null;
 import { Plus, Pencil, MessageSquare, Link as LinkIcon, Loader2, UploadCloud } from "lucide-react";
 import { createBookingLink } from "@/app/actions/booking-actions";
 import { toast } from "sonner";

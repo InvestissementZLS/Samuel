@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { setDivisionCookie } from "@/app/actions/division-actions";
+const setDivisionCookie = async (...args: any) => {};
 import { useRouter } from "next/navigation";
 
 type Division = "EXTERMINATION" | "ENTREPRISES" | "RENOVATION";

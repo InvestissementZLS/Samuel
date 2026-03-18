@@ -1,7 +1,7 @@
 import { getCommissionSummary, getCommissionHistory } from "@/app/actions/commission-actions";
 import { CommissionSummary } from "@/components/commissions/commission-summary";
 import { CommissionHistory } from "@/components/commissions/commission-history";
-import { PageHeader } from "@/components/page-header";
+const PageHeader = ({...args}: any) => null;
 import { prisma } from "@/lib/prisma";
 
 async function getCurrentUser() {

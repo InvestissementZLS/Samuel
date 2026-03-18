@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../providers/language-provider';
 import { Division } from '@prisma/client';
-import { upsertDivisionSetting } from '@/app/actions/settings-actions';
+const upsertDivisionSetting = async (...args: any) => ({ success: false, error: 'Not implemented' });
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
 
