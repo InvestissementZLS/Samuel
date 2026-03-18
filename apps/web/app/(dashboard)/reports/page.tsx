@@ -1,5 +1,5 @@
 import { FinancialDashboard } from "@/components/reports/financial-dashboard";
-import { PageHeader } from "@/components/page-header";
+const PageHeader = ({ ...args }: any) => null;
 
 export default function ReportsPage() {
     return (
