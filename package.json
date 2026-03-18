@@ -13,23 +13,11 @@
     "turbo": "latest"
   },
   "packageManager": "yarn@1.22.22",
-  "workspaces": {
-    "packages": [
-      "apps/web",
-      "apps/mobile",
-      "packages/*"
-    ],
-    "nohoist": [
-      "**/react-native",
-      "**/react-native/**",
-      "**/react",
-      "**/react/**",
-      "**/expo",
-      "**/expo/**",
-      "**/lucide-react-native",
-      "**/lucide-react-native/**"
-    ]
-  },
+  "workspaces": [
+    "apps/web",
+    "apps/mobile",
+    "packages/*"
+  ],
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "pg": "^8.20.0"
