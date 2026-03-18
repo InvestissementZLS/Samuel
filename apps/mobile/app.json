@@ -32,13 +32,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-sqlite"
-    ],
     "extra": {
       "eas": {
-        "projectId": "e4bf99f4-1ffb-4fd4-b528-4bc3a18358a5"
+        "projectId": "f83ec387-998e-4e57-a5a7-adf1dee0e63b"
       }
-    }
+    },
+    "owner": "exterminationzls"
   }
 }
