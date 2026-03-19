@@ -33,24 +33,7 @@ export default function LoginScreen() {
             });
 
             const user = response.data;
-
-            try {
-                const timesheetRes = await axios.get(`${API_URL}/api/timesheets/active?userId=${user.id}`, {
-                    headers: {
-                        "Bypass-Tunnel-Reminder": "true"
-                    }
-                });
-                const activeTimesheet = timesheetRes.data.timesheet;
-
-                if (activeTimesheet) {
-                    navigation.replace('JobList', { userId: user.id });
-                } else {
-                    navigation.replace('PunchIn', { userId: user.id });
-                }
-            } catch (tError) {
-                console.error('Failed to check timesheet status', tError);
-                navigation.replace('JobList', { userId: user.id });
-            }
+            navigation.replace('JobList', { userId: user.id });
 
         } catch (error: any) {
             console.error(error);

@@ -37,6 +37,7 @@ export default function JobListScreen() {
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
+    const [activeTimesheetId, setActiveTimesheetId] = useState<string | null>(null);
     const [punchLoading, setPunchLoading] = useState(false);
 
     const [syncState, setSyncState] = useState('SYNCED');
@@ -75,41 +76,27 @@ export default function JobListScreen() {
 
     const checkPunchStatus = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/technician/time?userId=${userId}`);
-            setPunchStatus(response.data ? 'OPEN' : 'CLOSED');
+            const response = await axios.get(`${API_URL}/api/timesheets/active?userId=${userId}`);
+            const ts = response.data.timesheet;
+            if (ts) {
+                setPunchStatus('OPEN');
+                setActiveTimesheetId(ts.id);
+            } else {
+                setPunchStatus('CLOSED');
+                setActiveTimesheetId(null);
+            }
         } catch (error) {
             console.error('Failed to check punch status:', error);
-            setPunchStatus('CLOSED'); // Default safely
+            setPunchStatus('CLOSED');
+            setActiveTimesheetId(null);
         }
     };
 
-    const handlePunch = async () => {
-        setPunchLoading(true);
-        try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Permission denied', 'Allow location access to punch in/out.');
-                setPunchLoading(false);
-                return;
-            }
-
-            const location = await Location.getCurrentPositionAsync({});
-            const action = punchStatus === 'OPEN' ? 'PUNCH_OUT' : 'PUNCH_IN';
-
-            await axios.post(`${API_URL}/api/technician/time`, {
-                userId,
-                action,
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-            });
-
-            setPunchStatus(action === 'PUNCH_IN' ? 'OPEN' : 'CLOSED');
-            Alert.alert('Success', `Successfully ${action === 'PUNCH_IN' ? 'Punched In' : 'Punched Out'}`);
-        } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to update timesheet');
-        } finally {
-            setPunchLoading(false);
+    const handlePunch = () => {
+        if (punchStatus === 'OPEN' && activeTimesheetId) {
+            navigation.navigate('PunchOut', { timesheetId: activeTimesheetId });
+        } else if (punchStatus === 'CLOSED') {
+            navigation.navigate('PunchIn', { userId });
         }
     };
 
