@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { Division } from '@prisma/client';
+import { Division, ExpenseStatus } from '@prisma/client';
 
 export async function createExpense(data: FormData) {
     try {
@@ -63,6 +63,7 @@ export async function getExpenses(month?: number, year?: number) {
                 lte: endDate
             }
         },
+        include: { user: true },
         orderBy: {
             date: 'desc'
         }
@@ -71,6 +72,20 @@ export async function getExpenses(month?: number, year?: number) {
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
     return { expenses, total };
+}
+
+export async function updateExpenseStatus(id: string, status: ExpenseStatus) {
+    try {
+        await prisma.expense.update({
+            where: { id },
+            data: { status }
+        });
+        revalidatePath('/expenses');
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating expense status:", error);
+        return { success: false, error: "Failed to update expense status" };
+    }
 }
 
 export async function getExpenseCategories() {

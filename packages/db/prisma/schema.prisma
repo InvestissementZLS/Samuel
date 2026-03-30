@@ -44,6 +44,7 @@ model User {
   timesheets                      TimesheetEntry[]
   language                        Language     @default(FR)
   accesses                        UserDivisionAccess[]
+  expenses                        Expense[]
 }
 
 model UserDivisionAccess {
@@ -726,6 +727,18 @@ model Expense {
   // Potential future links
   receiptUrl  String?
   paymentMethod String @default("CREDIT_CARD") // Credit, Cash, Transfer...
+
+  // Employee relation
+  userId      String?
+  user        User?         @relation(fields: [userId], references: [id])
+  status      ExpenseStatus @default(PENDING)
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
 }
 
 enum ExpenseFrequency {

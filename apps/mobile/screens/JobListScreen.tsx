@@ -227,12 +227,21 @@ export default function JobListScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                    style={[styles.inventoryBtn, { marginTop: 8 }]}
-                    onPress={() => navigation.navigate('Inventory')}
-                >
-                    <Text style={styles.inventoryBtnText}>📦 Inventory</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
+                    <TouchableOpacity
+                        style={[styles.inventoryBtn, { flex: 1, marginTop: 0 }]}
+                        onPress={() => navigation.navigate('Inventory')}
+                    >
+                        <Text style={styles.inventoryBtnText}>📦 Inventory</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.inventoryBtn, { flex: 1, marginTop: 0, backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}
+                        onPress={() => navigation.navigate('AddExpense', { userId })}
+                    >
+                        <Text style={[styles.inventoryBtnText, { color: '#d97706' }]}>🧾 Dépense</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <FlatList

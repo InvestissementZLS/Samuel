@@ -15,13 +15,14 @@ export type RootStackParamList = {
     Inventory: undefined;
     Signature: { onOK: (signature: string) => void };
     CreateQuote: undefined;
+    AddExpense: { userId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
     return (
-        <Stack.Navigator initialRouteName="Login">
+        <Stack.Navigator initialRouteName="Login" id={undefined}>
             <Stack.Screen
                 name="Login"
                 component={LoginScreen}
@@ -61,6 +62,11 @@ export default function AppNavigator() {
                 name="CreateQuote"
                 component={require('../screens/CreateQuoteScreen').default}
                 options={{ title: 'New Quote' }}
+            />
+            <Stack.Screen
+                name="AddExpense"
+                component={require('../screens/AddExpenseScreen').default}
+                options={{ title: 'Nouvelle Dépense' }}
             />
         </Stack.Navigator>
     );

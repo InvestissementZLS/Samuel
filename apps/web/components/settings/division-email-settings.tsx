@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useLanguage } from '../providers/language-provider';
 import { Division } from '@prisma/client';
-const upsertDivisionSetting = async (...args: any) => ({ success: false, error: 'Not implemented' });
+import { upsertDivisionSetting } from '@/app/actions/settings-actions';
+import { sendTestEmail } from '@/app/actions/email-actions';
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
 
@@ -18,17 +19,18 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
     const [settings, setSettings] = useState<Record<string, { name: string, email: string }>>(() => {
         // Initialize with existing data or defaults
         const defaults = {
-            'EXTERMINATION': { name: 'Extermination ZLS', email: 'extermination@praxiszls.com' },
-            'ENTREPRISES': { name: 'Les Entreprises ZLS', email: 'Lesentrepriseszls@praxiszls.com' },
-            'RENOVATION': { name: 'Rénovation Esthéban', email: 'renovation@praxiszls.com' } // placeholder
+            'EXTERMINATION': { name: 'Extermination ZLS', email: 'extermination@praxiszls.com', resendApiKey: '' },
+            'ENTREPRISES': { name: 'Les Entreprises ZLS', email: 'lesentrepriseszls@praxiszls.com', resendApiKey: '' },
+            'RENOVATION': { name: 'Rénovation Esthéban', email: 'renovation@praxiszls.com', resendApiKey: '' }
         };
 
         const current = { ...defaults };
         for (const s of initialSettings) {
             if (current[s.division]) {
                 current[s.division] = {
-                    name: s.emailSenderName,
-                    email: s.emailSenderAddress
+                    name: s.emailSenderName || current[s.division].name,
+                    email: s.emailSenderAddress || current[s.division].email,
+                    resendApiKey: s.resendApiKey || ''
                 };
             }
         }
@@ -49,7 +51,8 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
             const res = await upsertDivisionSetting({
                 division,
                 emailSenderName: data.name,
-                emailSenderAddress: data.email
+                emailSenderAddress: data.email,
+                resendApiKey: data.resendApiKey
             });
 
             if (res.success) {
@@ -61,6 +64,27 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
             toast.error(isEn ? 'An error occurred' : 'Une erreur est survenue');
         } finally {
             setSaving(null);
+        }
+    };
+
+    const [testing, setTesting] = useState<string | null>(null);
+
+    const handleTestEmail = async (division: Division) => {
+        const testEmail = prompt("Entrez une adresse courriel pour recevoir le test :");
+        if (!testEmail) return;
+
+        setTesting(division);
+        try {
+            const res = await sendTestEmail(division, testEmail);
+            if (res.success) {
+                toast.success('Courriel de test envoyé avec succès !');
+            } else {
+                toast.error(res.error || "Échec de l'envoi du courriel");
+            }
+        } catch (e) {
+            toast.error("Une erreur s'est produite lors de l'envoi.");
+        } finally {
+            setTesting(null);
         }
     };
 
@@ -129,6 +153,28 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
                                     className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 border"
                                     placeholder="email@example.com"
                                 />
+                            </div>
+                            <div className="md:col-span-2 space-y-2 mt-2">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Clé API Resend (Commence par re_...)
+                                    <span className="text-gray-400 font-normal ml-2">Obtenez-la sur resend.com</span>
+                                </label>
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <input
+                                        type="password"
+                                        value={settings[division].resendApiKey || ''}
+                                        onChange={(e) => handleChange(division, 'resendApiKey', e.target.value)}
+                                        className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 border"
+                                        placeholder="re_xxxxxxxxxxxxxx"
+                                    />
+                                    <button
+                                        onClick={() => handleTestEmail(division)}
+                                        disabled={testing === division}
+                                        className="px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 text-sm font-medium rounded hover:bg-gray-200 disabled:opacity-50 transition-colors whitespace-nowrap"
+                                    >
+                                        {testing === division ? 'Envoi...' : 'Tester l\'envoi'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

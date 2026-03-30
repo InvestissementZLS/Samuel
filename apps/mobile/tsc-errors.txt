@@ -1,0 +1,1 @@
+navigation/AppNavigator.tsx(24,10): error TS2741: Property 'id' is missing in type '{ children: Element[]; initialRouteName: "Login"; }' but required in type '{ id: string; }'.

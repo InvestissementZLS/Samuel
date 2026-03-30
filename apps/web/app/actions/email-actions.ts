@@ -52,3 +52,32 @@ export async function sendQuote(quoteId: string) {
     console.log(`[Action] Result:`, result);
     return result;
 }
+
+export async function sendTestEmail(division: string, toEmail: string) {
+    try {
+        const { Resend } = await import('resend');
+        const dbSettings = await prisma.divisionSettings.findUnique({
+            where: { division: division as any }
+        });
+
+        if (!dbSettings || !dbSettings.resendApiKey) {
+            return { success: false, error: "Clé API Resend manquante pour cette division. Sauvegardez-la d'abord." };
+        }
+
+        const resend = new Resend(dbSettings.resendApiKey);
+        const data = await resend.emails.send({
+            from: `${dbSettings.emailSenderName} <${dbSettings.emailSenderAddress}>`,
+            to: toEmail,
+            subject: 'Test de Configuration Courriel - ZLS',
+            html: `<h1>Configuration Réussie !</h1><p>Ceci est un test pour la division ${division}. Votre configuration Resend fonctionne parfaitement.</p>`
+        });
+
+        if (data.error) {
+            return { success: false, error: data.error.message };
+        }
+        return { success: true };
+    } catch (e: any) {
+        console.error("Error sending test email:", e);
+        return { success: false, error: e.message };
+    }
+}
