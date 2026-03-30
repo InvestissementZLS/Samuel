@@ -64,9 +64,12 @@ export async function sendTestEmail(division: string, toEmail: string) {
             return { success: false, error: "Clé API Resend manquante pour cette division. Sauvegardez-la d'abord." };
         }
 
+        const fromName = dbSettings.emailSenderName || division;
+        const fromEmail = dbSettings.emailSenderAddress || 'noreply@praxiszls.com';
+
         const resend = new Resend(dbSettings.resendApiKey);
         const data = await resend.emails.send({
-            from: `${dbSettings.emailSenderName} <${dbSettings.emailSenderAddress}>`,
+            from: `${fromName} <${fromEmail}>`,
             to: toEmail,
             subject: 'Test de Configuration Courriel - ZLS',
             html: `<h1>Configuration Réussie !</h1><p>Ceci est un test pour la division ${division}. Votre configuration Resend fonctionne parfaitement.</p>`
