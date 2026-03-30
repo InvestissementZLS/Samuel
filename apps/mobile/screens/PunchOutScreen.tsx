@@ -17,6 +17,7 @@ export default function PunchOutScreen({ navigation, route }: any) {
     // const [type, setType] = useState(CameraType.back);
 
     const timesheetId = route.params?.timesheetId; // Passed from navigation
+    const userId = route.params?.userId; // Passed from navigation
 
     useEffect(() => {
         (async () => {
@@ -54,6 +55,10 @@ export default function PunchOutScreen({ navigation, route }: any) {
                 photo,
                 lat: latitude,
                 lng: longitude,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${userId}`
+                }
             });
 
             Alert.alert('Success', 'Day Ended. Good job!', [

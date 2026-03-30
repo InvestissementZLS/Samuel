@@ -60,6 +60,10 @@ export default function PunchInScreen({ navigation, route }: any) {
                 photo, // This sends the huge base64 string if configured, or just URI.
                 lat: latitude,
                 lng: longitude,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${userId}`
+                }
             });
 
             const { timesheetId } = response.data;

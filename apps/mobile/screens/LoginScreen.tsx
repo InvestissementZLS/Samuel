@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '../config';
 
@@ -33,6 +34,13 @@ export default function LoginScreen() {
             });
 
             const user = response.data;
+            
+            // Fix: Actually save the userId to AsyncStorage so Inventory and Punch screens can use it!
+            await AsyncStorage.setItem('userId', user.id);
+            if (user.role) {
+                await AsyncStorage.setItem('userRole', user.role);
+            }
+
             navigation.replace('JobList', { userId: user.id });
 
         } catch (error: any) {
