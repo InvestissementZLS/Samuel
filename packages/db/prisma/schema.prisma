@@ -1,3 +1,14 @@
+// ============================================================================
+// 🛑🛑🛑 CRITICAL SAFETY WARNING FOR HUMANS AND AI AGENTS 🛑🛑🛑
+// ============================================================================
+// This schema connects to the PRODUCTION Supabase database.
+// DO NOT EVER RUN `npx prisma db push --force` 
+// DO NOT EVER RUN `npx prisma migrate reset`
+// DOING SO WILL PERMANENTLY WIPE ALL PRODUCTION CLIENTS AND INVOICES.
+// IF YOU MUST MODIFY THE SCHEMA, USE `npx prisma migrate dev` OR `db push`
+// ONLY AFTER VERIFYING YOU ARE CONNECTED TO A LOCAL/STAGING DATABASE.
+// ============================================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -92,6 +103,8 @@ model Client {
   properties     Property[]
   quotes         Quote[]
   bookingLinks   BookingLink[]
+  isDeleted      Boolean      @default(false)
+  deletedAt      DateTime?
 }
 
 model Property {
@@ -114,6 +127,8 @@ model Property {
   quotes     Quote[]
   
   warrantyExpiresAt DateTime?
+  isDeleted  Boolean      @default(false)
+  deletedAt  DateTime?
 }
 
 model Job {
@@ -176,6 +191,9 @@ model Job {
   parentJobId           String?
   parentJob             Job?          @relation("JobRecurrence", fields: [parentJobId], references: [id])
   childJobs             Job[]         @relation("JobRecurrence")
+  
+  isDeleted             Boolean       @default(false)
+  deletedAt             DateTime?
 }
 
 model JobNote {
@@ -265,6 +283,8 @@ model Quote {
   salesRep    User?       @relation("QuoteSalesRep", fields: [salesRepId], references: [id])
 
   jobs        Job[]
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
 }
 
 model QuoteItem {
@@ -305,6 +325,8 @@ model Invoice {
   items       InvoiceItem[]
   transactions Transaction[]
   amountPaid  Float         @default(0)
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
 }
 
 model Transaction {

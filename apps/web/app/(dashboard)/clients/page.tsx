@@ -20,7 +20,8 @@ export default async function ClientsPage({ searchParams }: { searchParams?: { p
             where: {
                 divisions: {
                     has: division
-                }
+                },
+                isDeleted: false
             },
             orderBy: { name: 'asc' },
             skip: (page - 1) * PAGE_SIZE,
@@ -30,7 +31,8 @@ export default async function ClientsPage({ searchParams }: { searchParams?: { p
             where: {
                 divisions: {
                     has: division
-                }
+                },
+                isDeleted: false
             }
         })
     ]);

@@ -77,8 +77,9 @@ export async function updateCalendarJob(id: string, data: {
 }
 
 export async function deleteCalendarJob(id: string) {
-    await prisma.job.delete({
+    await prisma.job.update({
         where: { id },
+        data: { isDeleted: true, deletedAt: new Date() }
     });
     revalidatePath('/calendar');
 }

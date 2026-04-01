@@ -21,6 +21,10 @@ export default function PunchInScreen({ navigation, route }: any) {
         (async () => {
             const cameraStatus = await Camera.requestCameraPermissionsAsync();
             const locationStatus = await Location.requestForegroundPermissionsAsync();
+            let bgStatus = null;
+            if (locationStatus.status === 'granted') {
+                bgStatus = await Location.requestBackgroundPermissionsAsync();
+            }
             setHasPermission(cameraStatus.status === 'granted' && locationStatus.status === 'granted');
         })();
     }, []);
@@ -48,7 +52,10 @@ export default function PunchInScreen({ navigation, route }: any) {
 
         setLoading(true);
         try {
-            const location = await Location.getCurrentPositionAsync({});
+            let location = await Location.getLastKnownPositionAsync();
+            if (!location) {
+                location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            }
             const { latitude, longitude } = location.coords;
 
             // In a real app, upload photo to S3/Blob here and get URL. 
@@ -69,17 +76,27 @@ export default function PunchInScreen({ navigation, route }: any) {
             const { timesheetId } = response.data;
 
             // Start Background Tracking
-            await AsyncStorage.setItem('activeTimesheetId', timesheetId);
-            await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-                accuracy: Location.Accuracy.Balanced,
-                timeInterval: 600000, // 10 minutes
-                distanceInterval: 100, // 100 meters
-                showsBackgroundLocationIndicator: true,
-                foregroundService: {
-                    notificationTitle: "Tracking Active",
-                    notificationBody: "Your location is being tracked while working.",
+            try {
+                await AsyncStorage.setItem('activeTimesheetId', timesheetId);
+                const bgStatus = await Location.getBackgroundPermissionsAsync();
+                if (bgStatus.status === 'granted') {
+                    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                        accuracy: Location.Accuracy.Balanced,
+                        timeInterval: 600000, // 10 minutes
+                        distanceInterval: 100, // 100 meters
+                        showsBackgroundLocationIndicator: true,
+                        foregroundService: {
+                            notificationTitle: "Tracking Active",
+                            notificationBody: "Your location is being tracked while working.",
+                        }
+                    });
+                } else {
+                    console.log("Background location permission not granted, skipping tracking.");
                 }
-            });
+            } catch (e) {
+                console.error("Failed to start background tracking", e);
+                // Do not block punch in if tracking fails
+            }
 
             Alert.alert('Success', 'Punch In Successful!', [
                 { text: 'OK', onPress: () => navigation.replace('JobList', { userId }) }

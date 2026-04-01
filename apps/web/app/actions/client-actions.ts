@@ -76,25 +76,38 @@ export async function deleteClient(id: string, force: boolean = false) {
             await prisma.usedProduct.deleteMany({ where: { jobId: { in: jobIds } } });
             await prisma.jobActivity.deleteMany({ where: { jobId: { in: jobIds } } });
 
-            // Delete Jobs
-            await prisma.job.deleteMany({ where: { id: { in: jobIds } } });
+            // Delete Jobs (Soft Delete)
+            await prisma.job.updateMany({ 
+                where: { id: { in: jobIds } },
+                data: { isDeleted: true, deletedAt: new Date() }
+            });
         }
 
-        // 3. Delete Properties
+        // 3. Delete Properties (Soft Delete)
         if (propertyIds.length > 0) {
-            await prisma.property.deleteMany({ where: { id: { in: propertyIds } } });
+            await prisma.property.updateMany({ 
+                where: { id: { in: propertyIds } },
+                data: { isDeleted: true, deletedAt: new Date() }
+            });
         }
 
         // 4. Delete Client direct relations
-        await prisma.invoice.deleteMany({ where: { clientId: id } });
-        await prisma.quote.deleteMany({ where: { clientId: id } });
+        await prisma.invoice.updateMany({ 
+            where: { clientId: id },
+            data: { isDeleted: true, deletedAt: new Date() }
+        });
+        await prisma.quote.updateMany({ 
+            where: { clientId: id },
+            data: { isDeleted: true, deletedAt: new Date() }
+        });
         await prisma.clientNote.deleteMany({ where: { clientId: id } });
         await prisma.bookingLink.deleteMany({ where: { clientId: id } });
     }
 
-    // 5. Finally delete the client
-    await prisma.client.delete({
+    // 5. Finally delete the client (Soft Delete)
+    await prisma.client.update({
         where: { id },
+        data: { isDeleted: true, deletedAt: new Date() }
     });
     revalidatePath('/clients');
 }
@@ -152,7 +165,10 @@ export async function checkClientDuplicates(data: {
 
     const duplicates = await prisma.client.findMany({
         where: {
-            OR: conditions
+            AND: [
+                { isDeleted: false },
+                { OR: conditions }
+            ]
         },
         select: {
             id: true,

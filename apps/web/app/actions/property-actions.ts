@@ -62,8 +62,9 @@ export async function updateProperty(id: string, data: {
 }
 
 export async function deleteProperty(id: string) {
-    const property = await prisma.property.delete({
+    const property = await prisma.property.update({
         where: { id },
+        data: { isDeleted: true, deletedAt: new Date() }
     });
     revalidatePath(`/clients/${property.clientId}`);
 }

@@ -29,6 +29,8 @@
       },
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
@@ -43,6 +45,12 @@
     "owner": "exterminationzls",
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f83ec387-998e-4e57-a5a7-adf1dee0e63b"
+    }
   }
 }

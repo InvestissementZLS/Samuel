@@ -14,7 +14,7 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
     const division = divisionVal as any;
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
-    let whereClause: any = { division };
+    let whereClause: any = { division, isDeleted: false };
     if (searchParams?.clientId) {
         whereClause.clientId = searchParams.clientId;
     }
@@ -43,7 +43,7 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
         select: { id: true, name: true, price: true, unit: true }
     });
     const clients = await prisma.client.findMany({ 
-        where: { divisions: { has: division } },
+        where: { divisions: { has: division }, isDeleted: false },
         select: { id: true, name: true, email: true, phone: true },
         orderBy: { name: 'asc' },
         take: 200

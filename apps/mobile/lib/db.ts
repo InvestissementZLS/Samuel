@@ -1,7 +1,22 @@
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 
-// Open the database (creates it if it doesn't exist)
-const db = SQLite.openDatabaseSync('antigravity.db');
+let db: any = null;
+if (Platform.OS !== 'web') {
+    try {
+        db = SQLite.openDatabaseSync('antigravity.db');
+    } catch(e) {
+        console.error("DB error", e);
+    }
+} else {
+    // Mock for web
+    db = {
+        execSync: () => {},
+        withTransactionSync: (cb: any) => cb(),
+        runSync: () => {},
+        getAllSync: () => []
+    };
+}
 
 export const initDB = () => {
     return new Promise<void>((resolve, reject) => {

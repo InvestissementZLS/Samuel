@@ -20,7 +20,7 @@ export default async function CalendarPage() {
     try {
         [jobs, clients, technicians] = await Promise.all([
             prisma.job.findMany({
-                where: { division },
+                where: { division, isDeleted: false },
                 include: {
                     property: {
                         include: {
@@ -40,7 +40,7 @@ export default async function CalendarPage() {
                 },
             }),
             prisma.client.findMany({
-                where: { divisions: { has: division } },
+                where: { divisions: { has: division }, isDeleted: false },
                 include: {
                     properties: true,
                 },
@@ -50,8 +50,7 @@ export default async function CalendarPage() {
             }),
             prisma.user.findMany({
                 where: {
-                    role: { in: ['TECHNICIAN', 'ADMIN', 'OFFICE'] },
-                    isActive: true,
+                    role: { in: ['TECHNICIAN', 'ADMIN', 'OFFICE'] }
                 },
                 orderBy: {
                     name: 'asc',

@@ -22,7 +22,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams?: { 
     const user = await getUserProfile();
     const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
 
-    let whereClause: any = { division };
+    let whereClause: any = { division, isDeleted: false };
     if (user && !user.canManageDivisions) {
         // @ts-ignore
         const allowedDivisions = user.accesses.map((a: any) => a.division) || [];
@@ -65,7 +65,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams?: { 
 
     // Clients : seulement id + nom, filtré par division
     const clients = await prisma.client.findMany({
-        where: { divisions: { has: division } },
+        where: { divisions: { has: division }, isDeleted: false },
         select: { id: true, name: true, email: true, phone: true },
         orderBy: { name: 'asc' },
         take: 200

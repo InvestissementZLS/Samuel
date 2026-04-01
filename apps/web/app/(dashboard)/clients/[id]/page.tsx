@@ -11,11 +11,12 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
     const client = await prisma.client.findUnique({
         where: { id },
         include: {
-            properties: true,
+            properties: { where: { isDeleted: false } },
             notes: {
                 orderBy: { createdAt: 'desc' },
             },
             quotes: {
+                where: { isDeleted: false },
                 orderBy: { createdAt: 'desc' },
                 include: {
                     items: {
@@ -24,6 +25,7 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 },
             },
             invoices: {
+                where: { isDeleted: false },
                 orderBy: { createdAt: 'desc' },
                 include: {
                     items: {
@@ -44,6 +46,7 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
             property: {
                 clientId: client.id,
             },
+            isDeleted: false,
         },
         include: {
             property: true,

@@ -15,7 +15,7 @@ export default async function JobsPage({ searchParams }: { searchParams?: { page
 
     const [jobsData, totalCount] = await Promise.all([
         prisma.job.findMany({
-            where: { division },
+            where: { division, isDeleted: false },
             include: {
                 property: { include: { client: true } },
                 technicians: true,
@@ -29,7 +29,7 @@ export default async function JobsPage({ searchParams }: { searchParams?: { page
             skip: (page - 1) * PAGE_SIZE,
             take: PAGE_SIZE,
         }),
-        prisma.job.count({ where: { division } })
+        prisma.job.count({ where: { division, isDeleted: false } })
     ]);
 
     const services = await prisma.product.findMany({

@@ -29,6 +29,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         prisma.client.findMany({
             where: {
                 divisions: { has: division },
+                isDeleted: false,
                 OR: [
                     { name: { contains: lowerQuery, mode: "insensitive" } },
                     { email: { contains: lowerQuery, mode: "insensitive" } },
@@ -41,6 +42,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         prisma.invoice.findMany({
             where: {
                 division,
+                isDeleted: false,
                 number: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { client: true },
@@ -50,6 +52,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         prisma.job.findMany({
             where: {
                 division,
+                isDeleted: false,
                 description: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { property: true },
@@ -59,6 +62,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         prisma.property.findMany({
             where: {
                 client: { divisions: { has: division } },
+                isDeleted: false,
                 address: { contains: lowerQuery, mode: "insensitive" },
             },
             include: { client: true },

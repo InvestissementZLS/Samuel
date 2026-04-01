@@ -124,8 +124,9 @@ export async function DELETE(
 
     const { id } = await params;
     try {
-        await prisma.job.delete({
+        await prisma.job.update({
             where: { id },
+            data: { isDeleted: true, deletedAt: new Date() }
         });
 
         return NextResponse.json({ success: true });

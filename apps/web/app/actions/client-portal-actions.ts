@@ -406,8 +406,9 @@ export async function deleteInvoice(id: string) {
         where: { invoiceId: id },
     });
 
-    await prisma.invoice.delete({
+    await prisma.invoice.update({
         where: { id },
+        data: { isDeleted: true, deletedAt: new Date() }
     });
 
     revalidatePath(`/clients/${invoice.clientId}`);

@@ -36,7 +36,7 @@ function getDefaultEmailConfig(division: string) {
 
     return {
         resend: resendEntreprises,
-        from: "Les Entreprises ZLS <Lesentrepriseszls@praxiszls.com>",
+        from: "Les Entreprises ZLS <info@lesentrepriseszls.com>",
         companyName: "Les Entreprises ZLS"
     };
 }

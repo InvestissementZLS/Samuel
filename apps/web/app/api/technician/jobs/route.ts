@@ -28,6 +28,7 @@ export async function GET(request: Request) {
                         id: techId,
                     },
                 },
+                isDeleted: false,
                 scheduledAt: {
                     gte: startOfDay(targetDate),
                     lte: endOfDay(targetDate),

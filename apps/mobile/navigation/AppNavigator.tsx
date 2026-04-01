@@ -1,5 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Platform, View, Text } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
 import JobListScreen from '../screens/JobListScreen';
 import JobDetailsScreen from '../screens/JobDetailsScreen';
@@ -55,7 +56,7 @@ export default function AppNavigator() {
             />
             <Stack.Screen
                 name="Signature"
-                component={require('../screens/SignatureScreen').default}
+                component={Platform.OS === 'web' ? () => <View><Text>Signature not available on Web</Text></View> : require('../screens/SignatureScreen').default}
                 options={{ title: 'Signature' }}
             />
             <Stack.Screen

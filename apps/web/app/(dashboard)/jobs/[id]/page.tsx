@@ -45,6 +45,7 @@ export default async function JobDetailsPage({ params }: { params: { id: string 
                     },
                 },
                 invoices: {
+                    where: { isDeleted: false },
                     include: { items: { include: { product: true } } },
                     orderBy: { createdAt: 'desc' }
                 },

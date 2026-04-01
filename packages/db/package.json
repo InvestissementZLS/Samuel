@@ -3,8 +3,8 @@
     "version": "0.0.0",
     "private": true,
     "scripts": {
-        "db:push": "prisma db push",
-        "db:seed": "prisma db seed",
+        "db:push": "node ../../protect-db.js db push",
+        "db:seed": "node ../../protect-db.js db seed",
         "generate": "prisma generate"
     },
     "prisma": {
