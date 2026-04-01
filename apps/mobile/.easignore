@@ -1,9 +1,0 @@
-node_modules/
-../../node_modules/
-../../tmp/
-../../apps/web/
-../../packages/*/node_modules/
-.expo/
-dist/
-android/
-ios/

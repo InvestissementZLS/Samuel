@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../services/LocationTask';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
+import api from '../services/api';
 import { API_URL } from '../config';
 
 export default function PunchInScreen({ navigation, route }: any) {
@@ -61,16 +61,12 @@ export default function PunchInScreen({ navigation, route }: any) {
             // In a real app, upload photo to S3/Blob here and get URL. 
             // We pass the local URI or base64 to backend for now.
 
-            const response = await axios.post(`${API_URL}/api/timesheets/punch-in`, {
+            const response = await api.post(`/api/timesheets/punch-in`, {
                 userId,
                 km,
                 photo, // This sends the huge base64 string if configured, or just URI.
                 lat: latitude,
                 lng: longitude,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${userId}`
-                }
             });
 
             const { timesheetId } = response.data;

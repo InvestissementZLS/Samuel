@@ -1,4 +1,5 @@
 import * as Network from 'expo-network';
+import api from '../services/api';
 import axios from 'axios';
 import { getOutbox, removeFromOutbox, saveJobsToLocal, addToOutbox } from './db';
 import { API_URL } from '../config';
@@ -35,12 +36,13 @@ export const syncOutbox = async () => {
             // For now, I'll update the calling code to store full URLs or handle it here.
 
             // Assuming stored URL is full for simplicity in this iteration
-            const url = item.url.startsWith('http') ? item.url : `${API_URL}${item.url}`;
+            // We use the new 'api' instance which automatically handles BASE_URL + Token Auth
+            const url = item.url.startsWith('http') ? item.url : item.url; // 'api' appends API_URL if URL is relative!
 
             if (item.method === 'POST') {
-                await axios.post(url, body);
+                await api.post(url, body);
             } else if (item.method === 'PUT') {
-                await axios.put(url, body);
+                await api.put(url, body);
             } else if (item.method === 'UPLOAD') {
                 // Reconstruct FormData
                 const formData = new FormData();
@@ -57,10 +59,9 @@ export const syncOutbox = async () => {
                     formData.append('caption', body.caption);
                 }
 
-                await fetch(url, {
-                    method: 'POST',
-                    body: formData,
+                await api.post(url, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
+                    timeout: 20000 // give extra time for photo uploads
                 });
             }
 
@@ -93,11 +94,11 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
         try {
             console.log("Fetching fresh jobs...");
             const dateParams = dateIsoString ? `&date=${encodeURIComponent(dateIsoString)}` : '';
-            const response = await axios.get(`${API_URL}/api/technician/jobs?techId=${userId}${dateParams}`);
+            const response = await api.get(`/api/technician/jobs?techId=${userId}${dateParams}`);
             saveJobsToLocal(response.data);
             return response.data;
-        } catch (error) {
-            console.error("Fetch failed, using cache", error);
+        } catch (error: any) {
+            console.error("Fetch failed, using cache", error.message);
         }
     }
 
@@ -113,8 +114,8 @@ export const apiCall = async (url: string, method: 'POST' | 'PUT', body: any) =>
 
     if (connected) {
         try {
-            if (method === 'POST') return await axios.post(url, body);
-            if (method === 'PUT') return await axios.put(url, body);
+            if (method === 'POST') return await api.post(url, body);
+            if (method === 'PUT') return await api.put(url, body);
         } catch (error) {
             // If network error during call (flaky), queue it?
             console.warn("Online call failed, falling back to queue", error);
@@ -148,12 +149,10 @@ export const apiUpload = async (url: string, fileAsset: any, caption: string) =>
             formData.append('photo', { uri: fileAsset.uri, name: payload.file.name, type: payload.file.type });
             formData.append('caption', caption);
 
-            const res = await fetch(url, {
-                method: 'POST',
-                body: formData,
+            const res = await api.post(url, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 30000
             });
-            if (!res.ok) throw new Error("Upload failed");
             return res;
         } catch (error) {
             console.warn("Upload failed, queuing", error);

@@ -94,7 +94,7 @@ export default function JobListScreen() {
 
     const handlePunch = () => {
         if (punchStatus === 'OPEN' && activeTimesheetId) {
-            navigation.navigate('PunchOut', { timesheetId: activeTimesheetId, userId });
+            navigation.navigate('PunchOut', { timesheetId: activeTimesheetId });
         } else if (punchStatus === 'CLOSED') {
             navigation.navigate('PunchIn', { userId });
         }

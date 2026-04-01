@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../services/LocationTask';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
+import api from '../services/api';
 import { API_URL } from '../config';
 
 export default function PunchOutScreen({ navigation, route }: any) {
@@ -49,16 +49,12 @@ export default function PunchOutScreen({ navigation, route }: any) {
             const location = await Location.getCurrentPositionAsync({});
             const { latitude, longitude } = location.coords;
 
-            await axios.post(`${API_URL}/api/timesheets/punch-out`, {
+            await api.post(`/api/timesheets/punch-out`, {
                 timesheetId,
                 km,
                 photo,
                 lat: latitude,
                 lng: longitude,
-            }, {
-                headers: {
-                    Authorization: `Bearer ${userId}`
-                }
             });
 
             Alert.alert('Success', 'Day Ended. Good job!', [

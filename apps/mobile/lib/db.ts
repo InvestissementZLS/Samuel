@@ -66,18 +66,22 @@ export const saveJobsToLocal = (jobs: any[]) => {
             db.execSync('DELETE FROM jobs WHERE syncStatus = "SYNCED"'); // Only replace synced jobs
 
             jobs.forEach(job => {
-                db.runSync(
-                    'INSERT OR REPLACE INTO jobs (id, scheduledAt, status, description, clientName, address, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [
-                        job.id,
-                        job.scheduledAt,
-                        job.status,
-                        job.description,
-                        job.property.client.name,
-                        job.property.address,
-                        JSON.stringify(job)
-                    ]
-                );
+                try {
+                    db.runSync(
+                        'INSERT OR REPLACE INTO jobs (id, scheduledAt, status, description, clientName, address, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [
+                            job.id,
+                            job.scheduledAt,
+                            job.status,
+                            job.description || '',
+                            job.property?.client?.name ?? 'Client Inconnu',
+                            job.property?.address ?? 'Adresse Inconnue',
+                            JSON.stringify(job)
+                        ]
+                    );
+                } catch (err) {
+                    console.warn(`Skipped inserting job ${job.id} due to SQLite error: `, err);
+                }
             });
         });
         console.log(`Saved ${jobs.length} jobs to local DB`);
