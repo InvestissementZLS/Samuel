@@ -1,0 +1,58 @@
+﻿{
+    "value":  [
+                  {
+                      "id":  "30c13cdc-652b-469d-bcc8-7359344005a5",
+                      "status":  "ERRORED",
+                      "platform":  "ANDROID",
+                      "error":  {
+                                    "errorCode":  "UNKNOWN_ERROR",
+                                    "message":  "Unknown error. See logs of the Build complete hook build phase for more information."
+                                },
+                      "artifacts":  {
+
+                                    },
+                      "fingerprint":  {
+                                          "id":  "019d022f-e398-7e2c-a83b-3712b0f87031",
+                                          "hash":  "befe8952b62fbc484c7546aeee47ac063838c45a"
+                                      },
+                      "initiatingActor":  {
+                                              "id":  "20a85fc5-eba0-402c-abaa-ed4b4503af59",
+                                              "displayName":  "exterminationzls"
+                                          },
+                      "logFiles":  [
+                                       "https://job-logs.eascdn.net/production/30c13cdc-652b-469d-bcc8-7359344005a5/1773858186603-40a189df-731f-49df-87c6-dc583fc2c341.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256\u0026X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request\u0026X-Goog-Date=20260318T184959Z\u0026X-Goog-Expires=900\u0026X-Goog-SignedHeaders=host\u0026X-Goog-Signature=9fbc743fcefd2c482853d211691d2f1af4f527a709bfd2cc53affa48e29c5f09f1e42b8da6a3b9b9b5d2e72270ddc87426c72675056bd570715c08999439e0cdaf114be709cb9b8251a9a98d9256b22e788c79f9174b9511e46deab7764614d1175a5c5e64d9030271936bc0f99f577bfeb07b130f362f65fc7d21e56922ff97cf5218e772750522e3b4ffb3cfff337c7ae90e329ec9c848e774d170b9938ffeac449c0490a1e5f46c3b04887271e859ac968be55d0de981d98d118af3b28a44d1056517088cd2e51106e4269d287b600a7018d18be72475cf3e343c66c14311246eb8d560ab8d5a28c2a736cb43d234bf2bdaf9c5ab0a5aaa60813530e75961",
+                                       "https://job-logs.eascdn.net/production/30c13cdc-652b-469d-bcc8-7359344005a5/1773859905888-d6a21d1c-d1a6-40f3-996f-8a4e7a620ddb.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256\u0026X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request\u0026X-Goog-Date=20260318T185319Z\u0026X-Goog-Expires=900\u0026X-Goog-SignedHeaders=host\u0026X-Goog-Signature=1da2063e16d34c912199c1d0983c769504023ddcd965a44bf45aec5807b5670482f311c38629777a3da201ca8f463a58a43d747885a7ab0a601dfa5177c8d0bb9632a8ac4b5fe03a7dccfbcbdfc35ce2a012c91f39236615f653bd268c2fcb909d645fb22741145b55121aa1eac3957bfbbdf2a50738f70cc54984cd77e645fc1eff9ce0aa3abab65a05eaa5535009f5118e31198e4587da2ceb2df690937350f87caa5fd8068ec6138daee47a17be792bfe131a80810966df81843e2d9028da0b551bc1bcf313167403c540e80ce8d2d68a2b6ce0d0fd59ae55212f0496be736b237a6f58ffcbbd3aafb586aaa8b043e29debb4ff8582d66efd4b86c5a18adf",
+                                       "https://job-logs.eascdn.net/production/30c13cdc-652b-469d-bcc8-7359344005a5/1773859906096-836ce74f-576c-46a6-9c74-b7637519656c.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256\u0026X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request\u0026X-Goog-Date=20260318T185319Z\u0026X-Goog-Expires=900\u0026X-Goog-SignedHeaders=host\u0026X-Goog-Signature=ccf38837b7860dc9bd263655f5c102467aba6f931fb5d6b533f81047cd02cabeaf58a4dd0c0189d40b46d96bfeda9867f1de75e81381845fb275a4a319e34f9f1a4dfc1da7bef4aabd43d7fc0a02549e99f9517c83952b809c4dc9f920832b15582c9cd3f56e159aae1f0594db2e5996d3000f6801bfbb461976e6e2f9465d88fcc51a61045152900f7dae88b550f335d4abfaac6d941310751b25385d5f3776a7e12eeef45a17f582472261feec83483f94ce20c620accde56fa901c8a9256f5c0e086c39cfa7163e6c42c603b47227288e0f6db6720a826cd2c18d3553b54a5d560624ea5b9fe86832629214a5e51d8d2a5063a5809a8164ddd8624f1c9fc5",
+                                       "https://job-logs.eascdn.net/production/30c13cdc-652b-469d-bcc8-7359344005a5/1773859906289-712dcaeb-2471-4306-b3f6-a1a8307d1c32.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256\u0026X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request\u0026X-Goog-Date=20260318T185319Z\u0026X-Goog-Expires=900\u0026X-Goog-SignedHeaders=host\u0026X-Goog-Signature=e064c37cd49f681d5b5ba72ba7409936be9bff8e987dcaa75abe5d9e51ced3cecb7f7adf3ca4f5e6714f593f01d8e5add3f77e1d96ae1ebcfa1afe891fb4f7d2287f372feaf77da53be776c90f1ebab0ed5e4326fc586d90a6d202c0300bbf719599e3a1ed2206619ec024121cee2cb274a6c36ebf728f73b035b98ac88a7b780de7db0c9a026bbde8599c5fed9e7a945d6d627c05a6b0b63b4164c1f2dbbe429b39cb0e30f3f5fdefecb37e87120fbf2ee0b1119c0ed6fe6b24247c2e6567de97e0c8645ee0fa328fc286a80cdd1d05ed152c417d8e6362451139640f865d9e88651a3e5395f707644d88b9d5a92151a05022761c99dc666dc7a28091925401"
+                                   ],
+                      "project":  {
+                                      "id":  "f83ec387-998e-4e57-a5a7-adf1dee0e63b",
+                                      "name":  "praxis-zls-mobile",
+                                      "slug":  "praxis-zls-mobile",
+                                      "ownerAccount":  {
+                                                           "id":  "3e6edb0b-2332-4821-a7be-8a9261f7f62c",
+                                                           "name":  "exterminationzls"
+                                                       }
+                                  },
+                      "distribution":  "INTERNAL",
+                      "buildProfile":  "preview",
+                      "sdkVersion":  "54.0.0",
+                      "appVersion":  "1.0.0",
+                      "appBuildVersion":  "1",
+                      "gitCommitHash":  "51f20b5ae63c00bb3134bd450b0fd685a97abee0",
+                      "gitCommitMessage":  "chore(mobile): Track eas.json for EAS Build",
+                      "priority":  "NORMAL",
+                      "createdAt":  "2026-03-18T18:23:05.994Z",
+                      "updatedAt":  "2026-03-18T18:52:37.625Z",
+                      "completedAt":  "2026-03-18T18:52:30.799Z",
+                      "expirationDate":  "2026-04-01T18:23:06.089Z",
+                      "isForIosSimulator":  false,
+                      "metrics":  {
+                                      "buildWaitTime":  455,
+                                      "buildQueueTime":  1750879,
+                                      "buildDuration":  13168
+                                  }
+                  }
+              ],
+    "Count":  1
+}

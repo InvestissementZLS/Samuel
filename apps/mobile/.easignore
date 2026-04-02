@@ -1,0 +1,26 @@
+# This file tells EAS which files to EXCLUDE from the build archive
+# The goal: send ONLY the apps/mobile folder content, nothing else
+
+# Monorepo neighbors - not needed for the mobile build
+apps/web
+packages
+scripts
+
+# Dev artifacts
+.expo
+node_modules
+.git
+tmp
+build
+dist
+
+# Temp/debug files
+*.json.bak
+build.json
+build_success.json
+latest_build.json
+eas.json
+
+# Logs
+*.log
+*.txt
