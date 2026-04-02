@@ -9,7 +9,6 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
         "EXPO_NO_DOCTOR": "true",
         "TURBO_TELEMETRY_DISABLED": "1",
         "SKIP_POSTINSTALL": "1"
@@ -30,7 +29,6 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
         "EXPO_NO_DOCTOR": "true",
         "SKIP_POSTINSTALL": "1"
       }
