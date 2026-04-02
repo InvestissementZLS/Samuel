@@ -140,11 +140,6 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
     };
 
     const productOptions = products
-        .filter(p => {
-            // @ts-ignore
-            const productDivision = p.division || "EXTERMINATION";
-            return productDivision === division;
-        })
         .map(p => ({ value: p.id, label: p.name }));
 
     const clientOptions = clients

@@ -169,13 +169,6 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
     };
 
     const productOptions = products
-        .filter(p => {
-            // @ts-ignore
-            const productDivision = p.division || "EXTERMINATION";
-            // @ts-ignore
-            const productType = p.type || "SERVICE"; // Default to service if not specified
-            return productDivision === division && productType === "SERVICE";
-        })
         .map(p => ({ value: p.id, label: p.name }));
 
     // Filter clients based on division
