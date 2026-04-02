@@ -348,10 +348,10 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                                 items={productOptions}
                                                 value={item.productId}
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
-                                                placeholder="Select Item"
-                                                className="bg-transparent border-none text-white hover:bg-gray-800 hover:text-white aria-expanded:text-white justify-between w-full p-0 h-auto"
+                                                placeholder="Select service..."
+                                                className="bg-gray-800 border-gray-700 text-white"
                                                 popoverClassName="bg-gray-800 border-gray-700 text-white"
-                                                itemClassName="text-white aria-selected:bg-indigo-600 aria-selected:text-white hover:bg-indigo-600 hover:text-white"
+                                                itemClassName="text-white hover:bg-gray-700"
                                             />
                                             <div className="flex items-center gap-2">
                                                 {/* @ts-ignore */}
