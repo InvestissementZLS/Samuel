@@ -1,0 +1,142 @@
+{
+  "customers (1).xlsx": {
+    "totalRows": 988,
+    "headers": [
+      "Status",
+      "Account #",
+      "Customer",
+      "Title",
+      "First Name",
+      "Last Name",
+      "Phone",
+      "phones_office",
+      "phones_mobile",
+      "phones_home",
+      "Emails",
+      "Company",
+      "Service Address",
+      "Service Address 1",
+      "Service Address 2",
+      "Service Address City",
+      "Service Address State",
+      "Service Address Zip",
+      "Billing Address",
+      "Billing Address 1",
+      "Billing Address City",
+      "Billing Address State",
+      "Billing Address Zip",
+      "Credit Card",
+      "Balance",
+      "Added By",
+      "Date Added",
+      "Source"
+    ],
+    "sampleFirstRow": {
+      "Status": "Active",
+      "Account #": "5917",
+      "Customer": "7089007 canada inc. ",
+      "Title": "",
+      "First Name": "7089007 canada inc.",
+      "Last Name": "",
+      "Phone": "(450) 240-5014 (Mobile)",
+      "phones_office": "",
+      "phones_mobile": "(450) 240-5014 (Mobile)",
+      "phones_home": "",
+      "Emails": "payables@antrev.com",
+      "Company": "",
+      "Service Address": "61 Rue Saint Vincent, Sainte-Agathe-des-Monts, QC J8C 2A5",
+      "Service Address 1": "61 Rue Saint Vincent",
+      "Service Address 2": "",
+      "Service Address City": "Sainte-Agathe-des-Monts",
+      "Service Address State": "QC",
+      "Service Address Zip": "J8C 2A5",
+      "Billing Address": "61 Rue Saint Vincent, Sainte-Agathe-des-Monts, QC J8C 2A5",
+      "Billing Address 1": "61 Rue Saint Vincent",
+      "Billing Address City": "Sainte-Agathe-des-Monts",
+      "Billing Address State": "QC",
+      "Billing Address Zip": "J8C 2A5",
+      "Credit Card": "",
+      "Balance": "373.67",
+      "Added By": "Zachary Avoine",
+      "Date Added": "02/04/2026",
+      "Source": ""
+    }
+  },
+  "items zls.xlsx": {
+    "totalRows": 114,
+    "headers": [
+      "Name",
+      "Description",
+      "Tax 1",
+      "Tax 2",
+      "Cost"
+    ],
+    "sampleFirstRow": {
+      "Name": "ANTS NO-MORE ANT BAIT STATION",
+      "Description": "Équipement",
+      "Tax 1": "TPS-789615226RT0001",
+      "Tax 2": "TVQ-1231249636TQ0001",
+      "Cost": "CA$42.40"
+    }
+  },
+  "estimate.xlsx": {
+    "totalRows": 560,
+    "headers": [
+      "Estimate",
+      "Account #",
+      "Customer",
+      "Phone",
+      "Billing Email",
+      "Created By",
+      "Date",
+      "Total",
+      "Status",
+      "Signature"
+    ],
+    "sampleFirstRow": {
+      "Estimate": "5603",
+      "Account #": "5942",
+      "Customer": "Tony Mitri",
+      "Phone": "5148920146 (Mobile), 4388891666 (Mobile)",
+      "Billing Email": "",
+      "Created By": "Zachary Avoine",
+      "Date": "03/09/2026",
+      "Total": "517.39",
+      "Status": "Draft",
+      "Signature": "Draft"
+    }
+  },
+  "invoice.xlsx": {
+    "totalRows": 902,
+    "headers": [
+      "Account #",
+      "Invoice #",
+      "Customer",
+      "Job",
+      "Frequency",
+      "Billing Email",
+      "Date",
+      "Total",
+      "Invoice Tags",
+      "Payment Terms",
+      "Status",
+      "Signature",
+      "Discount"
+    ],
+    "sampleFirstRow": {
+      "Account #": "5906",
+      "Invoice #": "6098",
+      "Customer": "Urben Blu ",
+      "Job": "Bi-Monthly Service (599 Boulevard du Curé-Boivin)",
+      "Frequency": "Monthly Monthly, every 2 months With each job",
+      "Billing Email": "c.perron@urbenblu.com",
+      "Date": "04/24/2026",
+      "Total": "201.21",
+      "Invoice Tags": "",
+      "Payment Terms": "Le paiement est requis dans les 14 jours suivant la date de facturation. Modes de paiement acceptés : chèque, virement interac et/ou argent comptant.",
+      "Status": "Draft",
+      "Signature": "Draft",
+      "Discount": "CA$0.00"
+    }
+  }
+}

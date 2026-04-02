@@ -1,0 +1,302 @@
+[
+  {
+    "normalizedName": "urben blu",
+    "count": 2,
+    "clients": [
+      {
+        "id": "910cf813-29ab-4d84-9787-733dd1a187e0",
+        "name": "Urben Blu ",
+        "createdAt": "2026-03-30T23:03:03.180Z",
+        "invoices": 4,
+        "quotes": 0
+      },
+      {
+        "id": "243ead92-33ca-44d4-be9d-63fffac5a540",
+        "name": "Urben Blu",
+        "createdAt": "2026-04-02T02:43:51.768Z",
+        "invoices": 0,
+        "quotes": 2
+      }
+    ]
+  },
+  {
+    "normalizedName": "syndicat sdc qm28",
+    "count": 2,
+    "clients": [
+      {
+        "id": "17d316d3-0874-49e3-801f-f1391d9d3318",
+        "name": "Syndicat SDC QM28 ",
+        "createdAt": "2026-03-30T23:03:04.685Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "6385b60f-daad-4e0f-ac25-e2298fa53f76",
+        "name": "Syndicat SDC QM28",
+        "createdAt": "2026-04-02T02:43:50.387Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "municipalité de lantier",
+    "count": 2,
+    "clients": [
+      {
+        "id": "6ef21c33-881f-4fd3-9e8e-0eb2c17127eb",
+        "name": "Municipalité de Lantier ",
+        "createdAt": "2026-03-30T23:03:06.097Z",
+        "invoices": 8,
+        "quotes": 0
+      },
+      {
+        "id": "99717d65-f5e2-4e62-b1e3-ee160765887d",
+        "name": "Municipalité de Lantier",
+        "createdAt": "2026-04-02T02:43:22.634Z",
+        "invoices": 0,
+        "quotes": 5
+      }
+    ]
+  },
+  {
+    "normalizedName": "7089007 canada inc.",
+    "count": 2,
+    "clients": [
+      {
+        "id": "dea39fe6-aad8-41f4-a97d-d3a954296527",
+        "name": "7089007 canada inc. ",
+        "createdAt": "2026-03-30T23:03:09.492Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "4e288b13-17a2-49d7-8971-d7360529b53b",
+        "name": "7089007 canada inc.",
+        "createdAt": "2026-04-02T02:41:43.460Z",
+        "invoices": 0,
+        "quotes": 0
+      }
+    ]
+  },
+  {
+    "normalizedName": "municipalité de saint-donat",
+    "count": 2,
+    "clients": [
+      {
+        "id": "de096695-25a3-4ac1-a62b-0a561333e40f",
+        "name": "Municipalité de Saint-Donat ",
+        "createdAt": "2026-03-30T23:03:11.347Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "15a6f106-93e5-41ba-ae04-8dc3a984b4c0",
+        "name": "Municipalité de Saint-Donat",
+        "createdAt": "2026-04-02T02:43:22.725Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "jocelyne",
+    "count": 2,
+    "clients": [
+      {
+        "id": "54d56936-1cec-46c5-986b-bb958752c4a6",
+        "name": "Jocelyne ",
+        "createdAt": "2026-03-30T23:03:12.052Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "186b387f-52e5-482a-aed0-3decf153b9eb",
+        "name": "Jocelyne",
+        "createdAt": "2026-04-02T02:42:44.047Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "municipalité de saint-hippolyte",
+    "count": 2,
+    "clients": [
+      {
+        "id": "67b170a1-00ef-4530-aa63-0a6b55dec7b7",
+        "name": "Municipalité de Saint-Hippolyte ",
+        "createdAt": "2026-03-30T23:03:12.217Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "3a66c2f7-a056-4729-9c1d-3a99b0681585",
+        "name": "Municipalité de Saint-Hippolyte",
+        "createdAt": "2026-04-02T02:43:22.818Z",
+        "invoices": 0,
+        "quotes": 0
+      }
+    ]
+  },
+  {
+    "normalizedName": "centre le phénix",
+    "count": 2,
+    "clients": [
+      {
+        "id": "f0332f23-1c2e-40bd-8307-13848ae76233",
+        "name": "Centre Le Phénix ",
+        "createdAt": "2026-03-30T23:03:12.378Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "4493c8c6-2838-4cd6-b20d-cb5492ad948e",
+        "name": "Centre Le Phénix",
+        "createdAt": "2026-04-02T02:42:01.102Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "groupe-gc mécanique du bâtiment",
+    "count": 2,
+    "clients": [
+      {
+        "id": "10ced50a-d0ec-4046-b200-344b1460b005",
+        "name": "Groupe-Gc Mécanique du Bâtiment ",
+        "createdAt": "2026-03-30T23:03:13.558Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "520dd77a-3144-4f83-8c2c-ace4362c2561",
+        "name": "Groupe-Gc Mécanique du Bâtiment",
+        "createdAt": "2026-04-02T02:42:28.669Z",
+        "invoices": 0,
+        "quotes": 0
+      }
+    ]
+  },
+  {
+    "normalizedName": "trattoria la strada",
+    "count": 2,
+    "clients": [
+      {
+        "id": "cfa5d1aa-3ecc-446a-8f66-abdbc8658372",
+        "name": "Trattoria la strada ",
+        "createdAt": "2026-03-30T23:03:17.817Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "d5838acf-1889-4caf-b3d8-72eba3278634",
+        "name": "Trattoria la strada",
+        "createdAt": "2026-04-02T02:43:51.530Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "entreprise maassarani inc.",
+    "count": 2,
+    "clients": [
+      {
+        "id": "13308eac-74cf-4c56-9774-1cbffb4b5332",
+        "name": "Entreprise Maassarani Inc. ",
+        "createdAt": "2026-03-30T23:03:18.239Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "70d20038-3089-427c-886d-c02c38b6d9e9",
+        "name": "Entreprise Maassarani Inc.",
+        "createdAt": "2026-04-02T02:42:17.659Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "cpe l'arche de pierrot",
+    "count": 2,
+    "clients": [
+      {
+        "id": "81deec80-eeb6-4a7f-8633-5f0adf625390",
+        "name": "CPE l'Arche de Pierrot ",
+        "createdAt": "2026-03-30T23:03:20.899Z",
+        "invoices": 7,
+        "quotes": 0
+      },
+      {
+        "id": "c81524c8-9023-467a-96a3-0a3262f37150",
+        "name": "CPE l'Arche de Pierrot",
+        "createdAt": "2026-04-02T02:42:06.255Z",
+        "invoices": 0,
+        "quotes": 0
+      }
+    ]
+  },
+  {
+    "normalizedName": "9482-2541 qc inc.",
+    "count": 2,
+    "clients": [
+      {
+        "id": "57e8f00e-816e-43ae-90f9-311b4f08b994",
+        "name": "9482-2541 QC inc. ",
+        "createdAt": "2026-03-30T23:03:22.345Z",
+        "invoices": 4,
+        "quotes": 0
+      },
+      {
+        "id": "f61ba34d-c12d-4d6e-99c9-a1b0963e5252",
+        "name": "9482-2541 QC inc.",
+        "createdAt": "2026-04-02T02:41:43.725Z",
+        "invoices": 0,
+        "quotes": 2
+      }
+    ]
+  },
+  {
+    "normalizedName": "motel le classique",
+    "count": 2,
+    "clients": [
+      {
+        "id": "a74019a5-b4d0-41eb-9228-9831a7f0db93",
+        "name": "Motel Le Classique ",
+        "createdAt": "2026-03-30T23:03:24.566Z",
+        "invoices": 1,
+        "quotes": 0
+      },
+      {
+        "id": "d0297f36-3c35-4a82-a292-5f071a99dcf0",
+        "name": "Motel Le Classique",
+        "createdAt": "2026-04-02T02:43:22.307Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  },
+  {
+    "normalizedName": "les investissements fard limitée",
+    "count": 2,
+    "clients": [
+      {
+        "id": "344adbaa-21db-49cb-9c1b-a9811c9ac448",
+        "name": "Les investissements Fard Limitée ",
+        "createdAt": "2026-03-30T23:03:25.675Z",
+        "invoices": 2,
+        "quotes": 0
+      },
+      {
+        "id": "1968c73f-0e4f-4815-a2bc-2dfb6e78c6f9",
+        "name": "Les investissements Fard Limitée",
+        "createdAt": "2026-04-02T02:42:56.100Z",
+        "invoices": 0,
+        "quotes": 1
+      }
+    ]
+  }
+]

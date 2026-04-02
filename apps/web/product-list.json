@@ -1,0 +1,1028 @@
+[
+  {
+    "id": "8eb92701-b388-4d78-8e26-4fe5c3f665c1",
+    "name": "Arrosage extÔö£┬«rieur",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "46ff3665-412c-4508-a497-b5a7f3b6a38e",
+    "name": "Bi-weekly visits",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2572f7f1-4ea6-423a-8ece-fec932ecca69",
+    "name": "ContrÔö£Ôöñle mensuel",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f1995387-3f10-43af-86b5-05038b22dc6f",
+    "name": "DÔö£┬«contamination",
+    "price": 3750,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f8b6e107-5308-4196-b078-6eabe835cf7c",
+    "name": "DÔö£┬«duction",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "55c0ea55-4aab-4ee2-ae3a-fb810c693c87",
+    "name": "DÔö£┬«placement",
+    "price": 75,
+    "type": "SERVICE"
+  },
+  {
+    "id": "659a3935-ec8d-4139-97d3-cb0383d9485f",
+    "name": "DeuxiÔö£┬┐me visite ├ö├ç├┤ Plan d├ö├ç├ûarrosage extÔö£┬«rieur et prolongation de garantie",
+    "price": 225,
+    "type": "SERVICE"
+  },
+  {
+    "id": "8cc85d5b-d111-47be-af4a-1b60b90d555a",
+    "name": "Extraction guÔö£┬¼pes de terre",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "7d8c0254-302e-46b6-b28d-50aa4e2f24af",
+    "name": "Famille Ôö£┬«cureuil",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "14d8d747-9d2a-471d-b88d-4fa062dfae63",
+    "name": "Fumigation des murs extÔö£┬«rieurs ├ö├ç├┤ GuÔö£┬¼pes",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ac0fbbd7-c07b-423f-9315-f3ec0d0e43a8",
+    "name": "Garantie de 3 mois",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "01931e43-12c2-415b-83e3-92a7b934a68b",
+    "name": "Garantie d├ö├ç├ûun an sur le service offert",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "116a53bc-fd5e-49b0-bf9f-2cf7f31c71e1",
+    "name": "GuÔö£┬¼pes - Fumigation soffit complet",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "fa88eb02-4c9d-4d22-b96e-6edc52dd81a7",
+    "name": "GuÔö£┬¼pes - Mur intÔö£┬«rieur",
+    "price": 400,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b4acdc0e-06b0-497e-8f1a-56339086a9e2",
+    "name": "Insecte d'humiditÔö£┬«",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c4da7909-1702-4046-a4b2-ca6cd439e32c",
+    "name": "Inspection",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9536ddb3-a5c8-4cdd-9a32-f5cef5599482",
+    "name": "inspection prÔö£┬«liminaire ├ö├ç├Â Cafards",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "d99c467f-c54c-4b9e-985d-88a0509c2dac",
+    "name": "Instalation de cage et camÔö£┬«ra ( controle du grenier)",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a56a167b-3fe4-4fb3-be0e-313faf04d85a",
+    "name": "Installation de camÔö£┬«ras d'inspection",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "11d6d0df-74be-43d6-9341-463d21d31cab",
+    "name": "installation de one way-out",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "830a08af-3996-4c3e-a03e-deaffc2cc86d",
+    "name": "one way out Ôö£┬«cureuil + camÔö£┬«ras",
+    "price": 400,
+    "type": "SERVICE"
+  },
+  {
+    "id": "00992a1f-a686-4c9a-b26c-55e160b3b407",
+    "name": "Ouverture de dossier",
+    "price": 220,
+    "type": "SERVICE"
+  },
+  {
+    "id": "13693303-4561-41a2-92de-e81abe20b5e3",
+    "name": "ouverture du dossier",
+    "price": 220,
+    "type": "SERVICE"
+  },
+  {
+    "id": "add654da-513a-4bd9-a80c-0cd1274db635",
+    "name": "Capture et relocalisation d├ö├ç├ûune famille d├ö├ç├ûÔö£┬«cureuils",
+    "price": 625,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2ea4aa48-c1ec-4bf4-a149-46741269ff63",
+    "name": "capture marmotte",
+    "price": 150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "5943e3a6-a229-4bcf-9b61-c3f29ec30d6f",
+    "name": "Plan d├ö├ç├ûarrosage annuel prÔö£┬«ventif contre les insectes",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "59defe6a-1b0f-402f-a29f-edcfd469531d",
+    "name": "Pose de cage (ouverture de dossier)",
+    "price": 200,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2afa480c-e701-409e-8643-354c0f4e6812",
+    "name": "PrÔö£┬«ventif",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ca2184cf-7c78-4d48-a349-de0110370f1b",
+    "name": "PrÔö£┬«vention extÔö£┬«rieure",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "826494c2-79ec-473b-b340-e60d6ef2013b",
+    "name": "rabais",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "71da17c7-d7b2-49fc-a2eb-976af5733852",
+    "name": "Rapport d├ö├ç├ûobservation",
+    "price": 150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9014c6ff-f2c8-4575-acbe-c8b2b6362bfd",
+    "name": "retrait plancher bois-franc",
+    "price": 1739.51,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9c267dd2-1304-4dd3-a7fd-5fcb007dd8ba",
+    "name": "Sauvage",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "5c34f0c1-cacf-431b-8c48-0f60b0794027",
+    "name": "Service Bi-Mensuel",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c7ef7de5-cc59-4d6a-9ee5-bf59ce3bd06f",
+    "name": "Service complet (guÔö£┬¼pes)",
+    "price": 2500,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f3392c37-7d88-4126-bbcd-cca4666e8e32",
+    "name": "Service de garantie",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a4dd0844-8821-474f-b6f2-c70c2c330874",
+    "name": "service mensuel",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "71eedc22-45b2-4cf8-9cbf-9101f5a18678",
+    "name": "Service Trimestriel",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9d41d9c2-42c3-4cf7-ac1a-8677c66cc8b8",
+    "name": "Sous-traitance",
+    "price": 7734.12,
+    "type": "SERVICE"
+  },
+  {
+    "id": "cc1561cc-bfa0-4665-a464-b1c00b8eeec5",
+    "name": "Surplus",
+    "price": 1739.51,
+    "type": "SERVICE"
+  },
+  {
+    "id": "676ee897-171a-4b1f-8401-5f04286c708a",
+    "name": "Traitement (punaises de l'Ôö£┬«rable)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "175ea37d-e190-4b29-b47c-050efb688257",
+    "name": "Traitement choc contre les puces",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "94164304-8426-4f17-a4af-0822b0ab69e9",
+    "name": "Traitement choc dermestes du lard",
+    "price": 1850,
+    "type": "SERVICE"
+  },
+  {
+    "id": "eec4d966-2f6c-4a76-b4f5-400828218e3a",
+    "name": "Blocage marmotte/mouffette",
+    "price": 1200,
+    "type": "SERVICE"
+  },
+  {
+    "id": "d894b798-cf98-45d1-bb92-d46b1a37b3ff",
+    "name": "Capture Ôö£┬«cureuil",
+    "price": 130,
+    "type": "SERVICE"
+  },
+  {
+    "id": "37b038ea-862a-495d-8913-75a573b70394",
+    "name": "traitement complet (dermestes du lard)",
+    "price": 3250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "fe9fa919-3157-40f0-a199-59a95890798b",
+    "name": "Traitement intÔö£┬«rieur",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9453364e-5291-4405-8e00-20238918a846",
+    "name": "Traitement intÔö£┬«rieur (punaises de l'Ôö£┬«rable)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "bc481716-f0e1-45db-ae91-1026468d289c",
+    "name": "Traitement prÔö£┬«ventif",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9de3728d-8864-466a-92d1-3b90ec99bad3",
+    "name": "Traitement unique",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e3aa567d-35a2-4c7d-979a-cf53d03324a8",
+    "name": "traitetement abeilles",
+    "price": 675,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f9865147-83d3-4563-b79b-a7c2ef7e657f",
+    "name": "Visite d'urgence",
+    "price": 217.44,
+    "type": "SERVICE"
+  },
+  {
+    "id": "4f151b63-52ff-4c9b-910f-65ad7f8c8b49",
+    "name": "visite de suivi",
+    "price": 150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "48d9c0c9-7ebf-415c-8fbc-2bc9fe6f56f7",
+    "name": "Visite unique",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "6b3b41ee-4929-4dd9-af3b-33e6d9209481",
+    "name": "Blocage",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "578f70ea-e868-4d9c-96b4-2335532ecda4",
+    "name": "blocage GÔö£┬«nÔö£┬«ral",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "970fdb0b-a20c-4070-b7eb-f7d60968762a",
+    "name": "Calfeutrage",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "4f173a31-f37e-44e1-b075-a4a7d6f34a43",
+    "name": "calfeutrage accÔö£┬┐s en hauteur",
+    "price": 650,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a7e91ae9-4c78-42d8-9edd-791357af3832",
+    "name": "Colmatage",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "8b0e2e1b-a009-4e31-9319-ddbf79c754ba",
+    "name": "capture ecureuil x2 et ouverture",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "dbb2d6c7-ff29-4b78-b3f5-c171559e6e2c",
+    "name": "Raccoon Trapping and Removal Service",
+    "price": 650,
+    "type": "SERVICE"
+  },
+  {
+    "id": "83bd636e-3688-485d-beda-080270da789c",
+    "name": "Squirrels service",
+    "price": 650,
+    "type": "SERVICE"
+  },
+  {
+    "id": "04115033-74a0-4c12-9d82-81f3db1aa89f",
+    "name": "Traitement appÔö£├│t - coquerelle",
+    "price": 521.85,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ac1afba7-14ea-4b0e-bfcd-d711aa677dc6",
+    "name": "Traitement choc - Coquerelles",
+    "price": 2174.39,
+    "type": "SERVICE"
+  },
+  {
+    "id": "165c4466-fb79-48d7-bdf6-094ec379001d",
+    "name": "Traitement choc ├ö├ç├┤ blattes germanique ├ö├ç├┤ Extermination ZLS",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "18ba2f07-28de-4c2d-b441-c31c43eda827",
+    "name": "Fourmis CharpentiÔö£┬┐re Forfait 1",
+    "price": 640,
+    "type": "SERVICE"
+  },
+  {
+    "id": "43c192db-036b-4ebc-b578-052a8718950b",
+    "name": "Fourmis CharpentiÔö£┬┐re Forfait 2",
+    "price": 975,
+    "type": "SERVICE"
+  },
+  {
+    "id": "1c99aa36-026e-4ac2-82f4-8c973e931dcd",
+    "name": "Fourmis CharpentiÔö£┬┐res - Forfait 1",
+    "price": 675,
+    "type": "SERVICE"
+  },
+  {
+    "id": "195a1421-cf61-4f20-b959-7d5f3d9a9134",
+    "name": "Fourmis CharpentiÔö£┬┐res - Forfait 2",
+    "price": 975,
+    "type": "SERVICE"
+  },
+  {
+    "id": "72b92b10-30a2-4784-b07b-2cc20cc11066",
+    "name": "IntÔö£┬«rieur/extÔö£┬«rieur fourmis - Traitement choc",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c4ee00c4-617b-4e09-8c33-6149834d05f9",
+    "name": "traitement appÔö£├│t fourmis",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "20328113-9105-48cd-8f46-f1821345f583",
+    "name": "Traitement choc fourmis charpentiÔö£┬┐res",
+    "price": 700,
+    "type": "SERVICE"
+  },
+  {
+    "id": "1484b978-443d-44c9-9f3c-803b77c7fb73",
+    "name": "Traitement fourmis charpentiÔö£┬┐res",
+    "price": 700,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b4012f06-eeea-4b7a-b4a0-3ec41bbdf952",
+    "name": "Traitement fourmis pharaon",
+    "price": 725,
+    "type": "SERVICE"
+  },
+  {
+    "id": "3be09cf3-2a17-4681-8130-9ba8bd80d163",
+    "name": "GuÔö£┬¼pes - Nid visible",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "937a30ca-786f-406f-8db4-d22eab757ce0",
+    "name": "Traitement de guÔö£┬¼pes - nid cachÔö£┬«",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f36d97ab-137c-494d-83a4-194cf0f2392b",
+    "name": "Traitement de guÔö£┬¼pes - nid de terre",
+    "price": 225,
+    "type": "SERVICE"
+  },
+  {
+    "id": "56a25e8b-8b2b-45b6-b078-fe0487c5a7cc",
+    "name": "traitement de guÔö£┬¼pes - nid visible facile d'accÔö£┬┐s",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "7eb09c93-8911-4e99-9e33-34c8b725714b",
+    "name": "traitement et extraction nid de thon",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "d8e00c90-ea9d-425f-8844-9287808c4be4",
+    "name": "inspection canine - punaises de lit",
+    "price": 325,
+    "type": "SERVICE"
+  },
+  {
+    "id": "3186f9ca-427b-4a0a-949f-471b7b70e335",
+    "name": "Punaises de lit - Traitement choc",
+    "price": 800,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e6fe4ce7-03e0-43d4-b3d8-38b8ef4ef8c5",
+    "name": "Traitement choc prÔö£┬«ventif (punaises de lit)",
+    "price": 5000,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e3665ca0-7fba-4ae2-a4e5-0e9950cae158",
+    "name": "Traitement des punaises de lit - Aprehend",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ac440635-e244-4853-8ae9-9a756905f908",
+    "name": "Traitement de souris - Premium",
+    "price": 625,
+    "type": "SERVICE"
+  },
+  {
+    "id": "16a0e302-4dd6-4d34-a911-28bdfc645f47",
+    "name": "Traitement punaises de lit - Aprehend",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a051c6e4-96e9-481e-9026-7963a580d3a6",
+    "name": "Traitement punaises de lit - chimique",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b9d8cfab-1077-44b2-8243-548e59d806a9",
+    "name": "Ôö£├½viction de raton laveur",
+    "price": 300,
+    "type": "SERVICE"
+  },
+  {
+    "id": "0d5dc99f-047d-473c-a0ff-60318b9f88aa",
+    "name": "Bi-Weekly mouse treatment",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f1ca76b4-ddc3-47b3-8c84-a21618c3de02",
+    "name": "Blocage PrÔö£┬«ventif (Base et Hauteur ├ö├ç├┤ Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "fd4487e3-2797-420d-9eb2-c89e29a7077f",
+    "name": "Blocage PrÔö£┬«ventif (Hauteur + Correctifs Ôö£├í la Base ├ö├ç├┤ Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "49245693-b528-4ff6-afa5-9693e2049cf0",
+    "name": "Blocage PrÔö£┬«ventif Ôö£├í la Base (Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "92900ed8-41e0-4882-95ab-0208d8c7cc85",
+    "name": "Traitement choc fourmis charpentières",
+    "price": 700,
+    "type": "SERVICE"
+  },
+  {
+    "id": "038d135a-2342-4f31-9b4d-769b556cf0c3",
+    "name": "Blocage raton",
+    "price": 1000,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2a18ee0c-4afb-4d00-8408-753c2caf53f2",
+    "name": "Calfeutrage & Blocage souris",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c97a4606-db87-40b7-ab89-68d3523ef7cf",
+    "name": "Capture raton",
+    "price": 130,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a4e11822-8e05-409a-af2f-08884b74f6f6",
+    "name": "ContrÔö£Ôöñle souris",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "968f9f2a-0412-45ab-bb93-4252e2eac5ce",
+    "name": "Contrat 2 ans souris/mulots",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "00cb3d96-7192-4558-a0c7-5e63a1d51ff1",
+    "name": "Contrat 3 ans souris/mulots",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2040379b-67e5-43f4-81c5-df107d9667ab",
+    "name": "Contrat de 4 ans souris/mulots",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "7d2eb2e8-28ec-43c8-8c86-40649fa12f02",
+    "name": "dÔö£┬«duction traitement souris",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "0ba3725d-5880-4db8-bd30-b27a82528b7a",
+    "name": "Famille de raton",
+    "price": 600,
+    "type": "SERVICE"
+  },
+  {
+    "id": "af963c3d-b62e-4ca7-93ba-78b0e76ef730",
+    "name": "Inspection et installation de trappes Ôö£├í rats",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "262ed0bf-a752-4ef5-b5ab-500ee0b2c096",
+    "name": "Souris - Service RÔö£┬«gulier",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "0420f03f-6bf3-4810-a980-5e8ba9069f15",
+    "name": "Souris - Sous le toit de l'Ôö£├½chelon",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b0e46041-6ec1-43b6-a30c-dabaa85850bf",
+    "name": "Traitement de souris",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "16e20c19-bc36-44ca-9de7-0e879b7761ff",
+    "name": "Traitement de souris - RÔö£┬«gulier",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "05997ca2-0470-4b05-a9a6-208a9da627d4",
+    "name": "traitement prÔö£┬«ventif souris/mulots",
+    "price": 875,
+    "type": "SERVICE"
+  },
+  {
+    "id": "4b559c08-a8bc-49e0-932a-b4165567d281",
+    "name": "traitement rat bi-mensuel",
+    "price": 255,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c612472f-75ee-487c-8d57-5f3affd6da4e",
+    "name": "Traitement rats",
+    "price": 300,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ab52b987-517f-4d63-9127-7ff82e5e6eaa",
+    "name": "Traitement Souris Trappes MÔö£┬«caniques",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f7218693-a525-449a-bd71-15dcd05660ff",
+    "name": "visite de suivi traitement rats",
+    "price": 150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "9ca26947-166d-490b-95b0-6a7808a92b33",
+    "name": "Visite mensuel prÔö£┬«vention souris",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "14637b93-387c-45d6-acb4-4e0c977bfb35",
+    "name": "Service Importé",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ed03f765-a18d-441e-96a1-adb02c348fd8",
+    "name": "ANTS NO-MORE ANT BAIT STATION",
+    "price": 42.4,
+    "type": "EQUIPMENT"
+  },
+  {
+    "id": "c84401c4-479d-4413-9ecc-4d1c1c6a1e3b",
+    "name": "Arrosage extérieur",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "5df30cd2-5e9a-4420-85bf-c9bc2efcb80d",
+    "name": "Autre",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "6eaa7ea6-082d-4396-a30a-6a48cf132876",
+    "name": "B&G MOUSE STATION 48/CASE CASE",
+    "price": 95,
+    "type": "SERVICE"
+  },
+  {
+    "id": "d71e5847-a4c5-44dc-81b6-ba341ea4a025",
+    "name": "blocage Général",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "bf93b864-9c23-4123-a6f0-3bdff2cf7834",
+    "name": "Blocage Préventif à la Base (Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "64dd7ce9-cd80-4faf-813c-01dd769882a5",
+    "name": "Blocage Préventif (Base et Hauteur – Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "c3d3a065-f30a-497d-9e1e-7e0c86871aef",
+    "name": "Blocage Préventif (Hauteur + Correctifs à la Base – Souris et Mulots)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "d47eb75f-7ec5-4c4e-908a-a195b9e7f69f",
+    "name": "calfeutrage accès en hauteur",
+    "price": 650,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b2cc76c8-0d62-49a8-a49f-dcd1868d886f",
+    "name": "Capture écureuil",
+    "price": 130,
+    "type": "SERVICE"
+  },
+  {
+    "id": "3b6f7a6d-cdb3-4979-9c1c-087f113f8751",
+    "name": "Capture et relocalisation d’une famille d’écureuils",
+    "price": 625,
+    "type": "SERVICE"
+  },
+  {
+    "id": "debe32c9-f54f-45b0-8795-ab0fdbd63bb6",
+    "name": "Contrat annuel Lee Brozak",
+    "price": 1150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "5f04f2d2-d234-461f-8838-b8a34afd339c",
+    "name": "Contrôle mensuel",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "936fa47b-11b7-44d0-b8d0-5bb7a1127ad9",
+    "name": "Contrôle souris",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "ecc159b5-ecef-47b4-8f0e-99ba2e462814",
+    "name": "Décontamination",
+    "price": 3750,
+    "type": "SERVICE"
+  },
+  {
+    "id": "f81a1aa7-312c-461c-8550-be2638e044f2",
+    "name": "Déduction",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "4c3fcf46-5666-4932-8038-4bb087816a1e",
+    "name": "déduction traitement souris",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2bdf2f18-0690-45e8-991c-8357e76764fb",
+    "name": "Déplacement",
+    "price": 75,
+    "type": "SERVICE"
+  },
+  {
+    "id": "83c01ba9-0e85-421b-9559-7fa9a7897f9f",
+    "name": "Deuxième visite – Plan d’arrosage extérieur et prolongation de garantie",
+    "price": 225,
+    "type": "SERVICE"
+  },
+  {
+    "id": "8fd788f3-151d-4013-abd4-0bd3b1b47dbb",
+    "name": "Éviction de raton laveur",
+    "price": 300,
+    "type": "SERVICE"
+  },
+  {
+    "id": "22e08c41-e662-43bb-b3f2-ac9eb84e1e27",
+    "name": "Extraction guêpes de terre",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a1ca4ca1-2df1-4cf9-b481-fe06814f2d25",
+    "name": "Famille écureuil",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "337eebae-143e-4708-a987-d9f1c7abe8ce",
+    "name": "Fourmis Charpentière Forfait 1",
+    "price": 640,
+    "type": "SERVICE"
+  },
+  {
+    "id": "abcca1d3-89be-43ef-ad59-642818c8a4ee",
+    "name": "Fourmis Charpentière Forfait 2",
+    "price": 975,
+    "type": "SERVICE"
+  },
+  {
+    "id": "6da30b5a-80e6-49e7-ac06-6ad7505eb186",
+    "name": "Fumigation des murs extérieurs – Guêpes",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e053839b-c5d5-41b5-ac38-6c74292bdff3",
+    "name": "Garantie d’un an sur le service offert",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "46ffd492-bd3a-4b9b-b67b-8fd44bc2ad05",
+    "name": "Insecte d'humidité",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "dd6f349f-73d8-4c24-a5c3-ac944d0a1977",
+    "name": "Inspection et installation de trappes à rats",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "db6764ed-4dfa-4d09-a387-62686259e8de",
+    "name": "inspection préliminaire — Cafards",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "689c078f-97ba-49b4-83db-889e9f5c8231",
+    "name": "Instalation de cage et caméra ( controle du grenier)",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e2759b57-eb9c-41fa-8fc7-442985f64d7e",
+    "name": "Installation de caméras d'inspection",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2fb142bc-7cfe-49fc-aeac-ed3c70524efe",
+    "name": "Intérieur/extérieur fourmis - Traitement choc",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "92ba2b70-d1ad-45e4-ac67-a60e2b82c9d2",
+    "name": "one way out écureuil + caméras",
+    "price": 400,
+    "type": "SERVICE"
+  },
+  {
+    "id": "fac77d39-e5f7-4bbf-a281-a261ac9dfbf4",
+    "name": "Pizza Dorval Cucina San Leone",
+    "price": 125,
+    "type": "SERVICE"
+  },
+  {
+    "id": "2a8a2aa3-cf24-4c7a-a059-3b19666dd48b",
+    "name": "Plan d’arrosage annuel préventif contre les insectes",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "8818bcd0-f053-4b44-80b6-f6dde1ffc2a0",
+    "name": "Préventif",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "052f1338-2aff-4b07-8288-893773b27646",
+    "name": "Prévention extérieure",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e7b7bc03-d296-4837-9dd4-3cb98c0ca5a8",
+    "name": "Rapport d’observation",
+    "price": 150,
+    "type": "SERVICE"
+  },
+  {
+    "id": "6c00dffc-eca1-4283-99ac-9a8b021b1270",
+    "name": "Service complet (guêpes)",
+    "price": 2500,
+    "type": "SERVICE"
+  },
+  {
+    "id": "395864a5-17ab-41e6-bdd4-23310aa6f421",
+    "name": "Souris - Sous le toit de l'Échelon",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "add6920c-c50e-4623-b8aa-f3ec0638b8f2",
+    "name": "Surveillance et évaluation de l’infestation",
+    "price": 300,
+    "type": "SERVICE"
+  },
+  {
+    "id": "64bf23ac-e228-494e-9140-b798435ec9a5",
+    "name": "Test",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "19b77837-f0b8-4b2b-af92-b289da570dd7",
+    "name": "Traitement appât - coquerelle",
+    "price": 521.85,
+    "type": "SERVICE"
+  },
+  {
+    "id": "69b19e1e-05c5-4c85-913b-19e3f0616ba9",
+    "name": "traitement appât fourmis",
+    "price": 350,
+    "type": "SERVICE"
+  },
+  {
+    "id": "35085a10-97eb-4dad-b152-4d594c7febc6",
+    "name": "Traitement choc – blattes germanique – Extermination ZLS",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a73128ed-2dbf-4764-9a60-0f29b80cc73a",
+    "name": "Traitement choc préventif (punaises de lit)",
+    "price": 5000,
+    "type": "SERVICE"
+  },
+  {
+    "id": "37628be4-7a1e-4edd-9e28-e84801dc87b6",
+    "name": "Traitement de guêpes - nid caché",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a9dd590b-cda7-4b92-a853-c4441f4cc9b5",
+    "name": "Traitement de guêpes - nid de terre",
+    "price": 225,
+    "type": "SERVICE"
+  },
+  {
+    "id": "a3552c85-6577-46be-baa7-3ef3886fd1dc",
+    "name": "traitement de guêpes - nid visible facile d'accès",
+    "price": 175,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b21ea85d-2382-4aa1-84de-17085f41e5f8",
+    "name": "Traitement de souris - Régulier",
+    "price": 450,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b0e63022-98ba-4e8f-aebf-78345497fdb7",
+    "name": "Traitement fourmis charpentières",
+    "price": 700,
+    "type": "SERVICE"
+  },
+  {
+    "id": "93a36b55-a2a9-48f8-a39d-94f16df191f5",
+    "name": "Traitement intérieur",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "63584e37-e5d9-4249-9289-813c31702553",
+    "name": "Traitement intérieur (punaises de l'érable)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "e2be7600-dca2-46ef-ba35-cf37c0c785a4",
+    "name": "Traitement préventif",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "b3267b1d-3f29-4c88-9d48-65fa329a0ab9",
+    "name": "traitement préventif souris/mulots",
+    "price": 875,
+    "type": "SERVICE"
+  },
+  {
+    "id": "8a1a2bd3-4d6f-4441-b4a1-9c976dd9f6f6",
+    "name": "Traitement (punaises de l'érable)",
+    "price": 0,
+    "type": "SERVICE"
+  },
+  {
+    "id": "71a3ec69-84fd-4f84-b53d-b6cb2264974c",
+    "name": "Traitement Souris Trappes Mécaniques",
+    "price": 250,
+    "type": "SERVICE"
+  },
+  {
+    "id": "7d29f2b2-6c08-48d7-836d-3e0801fbfa96",
+    "name": "Visite mensuel prévention souris",
+    "price": 0,
+    "type": "SERVICE"
+  }
+]
