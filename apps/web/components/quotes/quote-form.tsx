@@ -154,11 +154,11 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
         (quote as any)?.client;
 
     return (
-        <div className="bg-[#1e1e1e] text-gray-300 p-6 rounded-lg shadow-xl max-w-5xl mx-auto font-sans">
+        <div className="bg-gray-900/40 backdrop-blur-md border border-gray-800 text-gray-300 p-8 rounded-2xl shadow-2xl max-w-[1400px] mx-auto font-sans">
             {/* Header */}
-            <div className="flex justify-between items-start mb-8 border-b border-gray-800 pb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gray-800 rounded-lg">
+            <div className="flex justify-between items-center mb-10 border-b border-gray-800/60 pb-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-500/30">
                         <FileText className="w-6 h-6 text-indigo-400" />
                     </div>
                     <h1 className="text-xl font-semibold text-white">
@@ -180,8 +180,11 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                 onClose={() => setIsClientDialogOpen(false)}
             />
 
+            <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex-1 space-y-10">
+
             {/* Metadata Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 {/* Client Info */}
                 <div className="space-y-4">
                     <div className="space-y-1">
@@ -456,9 +459,14 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                 }}
             />
 
-            {/* Footer / Totals */}
-            <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1 space-y-6">
+            </div> {/* Close Left Workspace */}
+
+            {/* Right Sticky Summary Panel */}
+            <div className="w-full lg:w-[400px] shrink-0">
+                <div className="sticky top-6 flex flex-col gap-8">
+                    
+                    {/* Notes logic wrapper */}
+                    <div className="flex flex-col space-y-6">
                     {/* Terms & Notes */}
                     <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
                         <div className="flex justify-between items-center mb-2">
@@ -486,9 +494,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                             rows={3}
                         />
                     </div>
-                </div>
+                </div> {/* Closes Notes logic wrapper */}
 
-                <div className="w-full md:w-80 space-y-4">
+                <div className="bg-gray-800/40 rounded-xl p-5 border border-gray-700/50 space-y-5 shadow-inner">
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Subtotal</span>
                         <span className="text-white">${subtotal.toFixed(2)}</span>
@@ -571,7 +579,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                         <span className="text-gray-400 font-medium">Total</span>
                         <span className="text-2xl font-bold text-white">${total.toFixed(2)}</span>
                     </div>
+                    </div>
                 </div>
+            </div>
             </div>
         </div>
     );
