@@ -26,16 +26,22 @@ interface InvoiceFormProps {
     products: Product[];
     clients?: Client[];
     clientId: string;
+    prefilledClient?: any;
     onSave: (data: any) => Promise<void>;
 }
 
-export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] }: InvoiceFormProps) {
+export function InvoiceForm({ invoice, products, clientId, onSave, clients = [], prefilledClient }: InvoiceFormProps) {
     const [loading, setLoading] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const { language, t } = useLanguage();
     const { user } = useUser();
+
+    // Use prefilledClient (from client page) if available, otherwise look in clients list
+    const resolvedClient = prefilledClient ||
+        clients.find(c => c.id === selectedClientId) ||
+        (invoice?.client?.id === selectedClientId ? (invoice as any).client : undefined);
 
 
     // Form State
@@ -180,9 +186,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [] 
             return divisions.includes(division);
         })
         .map(c => ({ value: c.id, label: c.name }));
-    const selectedClient = clients.find(c => c.id === selectedClientId) ||
-        // @ts-ignore
-        (invoice?.client?.id === selectedClientId ? invoice.client : undefined);
+    const selectedClient = resolvedClient;
 
     return (
         <div className="bg-[#1e1e1e] text-gray-300 p-6 rounded-lg shadow-xl max-w-5xl mx-auto font-sans">

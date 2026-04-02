@@ -14,11 +14,12 @@ import { useEffect } from "react";
 
 interface ClientQuotesProps {
     clientId: string;
+    client?: any;
     quotes: (Quote & { items: (any & { product: Product })[] })[];
     products: Product[];
 }
 
-export function ClientQuotes({ clientId, quotes, products }: ClientQuotesProps) {
+export function ClientQuotes({ clientId, client, quotes, products }: ClientQuotesProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedQuote, setSelectedQuote] = useState<any>(null);
     const { division } = useDivision();
@@ -79,6 +80,7 @@ export function ClientQuotes({ clientId, quotes, products }: ClientQuotesProps) 
                     quote={selectedQuote}
                     products={products}
                     clientId={clientId}
+                    prefilledClient={client}
                     onSave={handleSave}
                 />
             </div>

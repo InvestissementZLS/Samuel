@@ -14,11 +14,12 @@ import { InvoiceForm } from "@/components/invoices/invoice-form";
 
 interface ClientInvoicesProps {
     clientId: string;
+    client?: any;
     invoices: any[];
     products: Product[];
 }
 
-export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesProps) {
+export function ClientInvoices({ clientId, client, invoices, products }: ClientInvoicesProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const { division } = useDivision();
@@ -89,6 +90,7 @@ export function ClientInvoices({ clientId, invoices, products }: ClientInvoicesP
                     invoice={selectedInvoice}
                     products={products}
                     clientId={clientId}
+                    prefilledClient={client}
                     onSave={handleSave}
                 />
             </div>

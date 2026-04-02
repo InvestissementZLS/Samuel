@@ -24,10 +24,11 @@ interface QuoteFormProps {
     products: Product[];
     clients?: Client[];
     clientId: string;
+    prefilledClient?: any;
     onSave: (data: any) => Promise<void>;
 }
 
-export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: QuoteFormProps) {
+export function QuoteForm({ quote, products, clientId, onSave, clients = [], prefilledClient }: QuoteFormProps) {
     const [loading, setLoading] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || quote?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
@@ -153,7 +154,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [] }: Q
             return divisions.includes(division);
         })
         .map(c => ({ value: c.id, label: c.name }));
-    const selectedClient = clients.find(c => c.id === selectedClientId);
+    const selectedClient = prefilledClient ||
+        clients.find(c => c.id === selectedClientId) ||
+        (quote as any)?.client;
 
     return (
         <div className="bg-[#1e1e1e] text-gray-300 p-6 rounded-lg shadow-xl max-w-5xl mx-auto font-sans">

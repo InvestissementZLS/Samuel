@@ -134,11 +134,11 @@ export function ClientTabs({ client, jobs, notes, quotes, invoices, products }: 
                 )}
 
                 {activeTab === "quotes" && (
-                    <ClientQuotes clientId={client.id} quotes={quotes} products={products} />
+                    <ClientQuotes clientId={client.id} client={client} quotes={quotes} products={products} />
                 )}
 
                 {activeTab === "invoices" && (
-                    <ClientInvoices clientId={client.id} invoices={invoices} products={products} />
+                    <ClientInvoices clientId={client.id} client={client} invoices={invoices} products={products} />
                 )}
             </div>
         </div>
