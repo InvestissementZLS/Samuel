@@ -1,0 +1,51 @@
+﻿{
+  "id": "48f143fe-70c7-4edf-8aad-94c92b95e0f6",
+  "status": "ERRORED",
+  "platform": "ANDROID",
+  "error": {
+    "errorCode": "UNKNOWN_ERROR",
+    "message": "Unknown error. See logs of the Build complete hook build phase for more information."
+  },
+  "artifacts": {},
+  "fingerprint": {
+    "id": "019d0217-db78-70db-a9d8-c05b6af49afa",
+    "hash": "058e03a923cfff71117a65fb00a25ed2760f93d1"
+  },
+  "initiatingActor": {
+    "id": "20a85fc5-eba0-402c-abaa-ed4b4503af59",
+    "displayName": "exterminationzls"
+  },
+  "logFiles": [
+    "https://job-logs.eascdn.net/production/48f143fe-70c7-4edf-8aad-94c92b95e0f6/1773856707841-6345cc43-ce06-4a0f-9110-62ae58760d6e.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260318T180242Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=12a69444ea51526ce040075620bd2156f5141d6c8932d754ce1521726da07afb10e8634fb98adcd7cbb08d0b62ee7fcc71095fbfe23dbccb74efd08048192c8df480f2705460d2178bfcccfe3fa53a7d5c466f7c841c9c85a13d5dd8ae18b8d3cc168386ec299a8833330375834a84dc1effb0da617454b0f5e7fc3ad2687667e241f95f3344d6e59b1038ebdc7b8249998f72da20a23122215be35e22d2e547dff35d01a2bc402dd91e6055d172e0bde98bb674bace5b4011b185ac1ab022e64966d0fc4be1228c01eb6bdaf36e1e0f2996ba27c4d01cfa73b4ddc8f6a964e08a5c0359dbaf27c917ce514e37b56427b8fa27be2afdf499014fdb08646c3906",
+    "https://job-logs.eascdn.net/production/48f143fe-70c7-4edf-8aad-94c92b95e0f6/1773856714865-eec30a6c-b89b-4a59-9d31-1afced147070.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260318T180242Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=9825108a4fe261b07d98e28837a8c4de693da3630c1de60b82191d0d95ed2d08edfa086ab3d9bebcf5e494021b15387e0a0898024dd1b1d885b4771eed6854a6a005fa7b0750634c0dc5f15a34bc7b04b7d83d572709653f204db4bb8ee6d532785c8f385b06e0c82fdc2e4b5edce4ea6219989052ccef6b2e16b58d735b4ceaa33b281a87b2ff29ae954d8c4399462e7e19e8d2a646e9c8c508409a70aae3b29d736239afee862c12346a31c0394a84f8d03f319cc46e865b79e6f3ce9dbb45b12b57a96f115cdc45730c0185ab083307f77580a00e4cf2eaaf4756665a1aa07e9411b940102271ce19ed70c5a65f6cefb3aa5848ed894021a602ca581e0d7c",
+    "https://job-logs.eascdn.net/production/48f143fe-70c7-4edf-8aad-94c92b95e0f6/1773856715119-1932a4e7-5115-458c-ab0b-4dea5d7d6149.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260318T180242Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=1a0b0836e27b3d8aa765342fb31983e4c0b2cce9b8ba5655974db57bdef320c9cf3fc42c2f3e26b2e8df7e2ff089f91ee49c253993f1f4129c10c6d2fcd18bee935cb49783a39a75fed08caae676c234bc3f82353ee47a8d1f7620a7db0e5f1f3d0d03e952b78254648dc298f6a6458f56f30c537cfac2cfdaabca31246e284a72508197af5d0c596ee106f56a012719fbe98d9e1a3f551dc3d0b8bbb67a40e58d145cbf48d349cf40718442995e723502e88755400f6b9b78b08ad17e33788266249868af58f78c3e41c95b5ad3149f1082a153a800788f29c5870d7a4f3d36813642ecdd765d53c599fff207a8a37a197f5997a6f011a8a585ef6aa2cb7845",
+    "https://job-logs.eascdn.net/production/48f143fe-70c7-4edf-8aad-94c92b95e0f6/1773856715326-628108b9-51e9-48f3-babd-29bc621422c8.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260318%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260318T180242Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=81c04816b29ed55021a7aa93021154230619735c28c443cf0f01329d20aab23d00876e85c8a96c0afe6d05056bad5250d37005eb0ee6878e2b473a0ed284ecc7e4e3c4467b54ec0908bc5893fe623680581f16c056076bb974946fc7b3da42d9f454bd2c6ea919652155ef12189a45a2e33c3936f035ca7eaa86d039e5f762f231f2b75109e9643fa3628dcfa12b670f661cb70ced26f4680f82c38c2ac2c3c902c80fb3a5246b40562486737c9385d17ed5d8d58b951224af71f909202830fb3dfa0446015d7825377dccd966160a05230b5a061ec48ba4cc6ef6fdefbb4fc643da2d3df3eb03c4ce842e9658c9b4b7b1caacb3b342503f63cc24dbb0e0b13d"
+  ],
+  "project": {
+    "id": "f83ec387-998e-4e57-a5a7-adf1dee0e63b",
+    "name": "praxis-zls-mobile",
+    "slug": "praxis-zls-mobile",
+    "ownerAccount": {
+      "id": "3e6edb0b-2332-4821-a7be-8a9261f7f62c",
+      "name": "exterminationzls"
+    }
+  },
+  "distribution": "INTERNAL",
+  "buildProfile": "preview",
+  "sdkVersion": "54.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "efbe3798b8b0a7db2e15604fe7e3bc04bd50acb8",
+  "gitCommitMessage": "Final Vercel trigger after manual queue clear",
+  "priority": "NORMAL_PLUS",
+  "createdAt": "2026-03-18T17:58:27.534Z",
+  "updatedAt": "2026-03-18T17:59:27.024Z",
+  "completedAt": "2026-03-18T17:59:21.757Z",
+  "expirationDate": "2026-04-01T17:58:27.614Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 189,
+    "buildQueueTime": 40665,
+    "buildDuration": 12900
+  }
+}
