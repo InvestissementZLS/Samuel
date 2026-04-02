@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import axios from 'axios';
+import { API_URL } from '../config';
 import { useNavigation } from '@react-navigation/native';
 
 export default function InventoryScreen() {
@@ -26,7 +27,7 @@ export default function InventoryScreen() {
                 return;
             }
 
-            const res = await api.get(`/api/inventory/audit?userId=${userId}`);
+            const res = await axios.get(`${API_URL}/api/inventory/audit?userId=${userId}`);
 
             // Initialize inputs with current quantities
             const initialCounts: any = {};
@@ -63,7 +64,7 @@ export default function InventoryScreen() {
                     actualQuantity: parseInt(counts[item.product.id] || "0", 10),
                     notes: ""
                 }));
-                await api.post(`/api/inventory/audit`, { userId, items });
+                await axios.post(`${API_URL}/api/inventory/audit`, { userId, items });
                 Alert.alert("Success", "Inventory Audit Submitted!");
             } else {
                 // ... Return Logic
@@ -81,7 +82,7 @@ export default function InventoryScreen() {
                     return;
                 }
 
-                await api.post(`/api/inventory/transfer`, { userId, items: itemsToReturn });
+                await axios.post(`${API_URL}/api/inventory/transfer`, { userId, items: itemsToReturn });
                 Alert.alert("Success", "Stock returned to Warehouse.");
                 fetchInventory(); // Refresh after return
                 setCounts({});

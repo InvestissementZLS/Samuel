@@ -2,21 +2,7 @@
   "name": "mobile",
   "version": "1.0.0",
   "main": "App.tsx",
-  "expo": {
-    "monorepoDepth": 2
-  },
-  "workspaces": {
-    "nohoist": [
-      "**/react-native",
-      "**/react-native/**",
-      "**/react",
-      "**/react/**",
-      "**/expo",
-      "**/expo/**",
-      "**/lucide-react-native",
-      "**/lucide-react-native/**"
-    ]
-  },
+  "expo": {},
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",

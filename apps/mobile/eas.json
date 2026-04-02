@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 18.3.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "requireCommit": false
   },
   "build": {
     "development": {
@@ -23,7 +24,7 @@
         "SKIP_POSTINSTALL": "1"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       }
     },
     "production": {

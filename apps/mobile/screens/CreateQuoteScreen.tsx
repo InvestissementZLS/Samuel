@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { LucideSearch, LucidePlus, LucideX, LucideShoppingCart } from 'lucide-react-native';
-import api from '../services/api';
-import { API_URL } from '../config';
+
+const API_URL = 'http://192.168.10.123:3000'; // Make sure this matches your environment
 
 export default function CreateQuoteScreen({ navigation }: any) {
     const [clients, setClients] = useState<any[]>([]);
@@ -26,13 +27,14 @@ export default function CreateQuoteScreen({ navigation }: any) {
 
     const loadData = async () => {
         try {
-            // Fetch Clients via centralized API wrapper (handles auth, retries, etc)
-            const clientsRes = await api.get(`/api/clients`);
+            const token = await AsyncStorage.getItem('token');
+            // Fetch Clients (simplified endpoint needed or filter existing)
+            const clientsRes = await axios.get(`${API_URL}/api/clients`, { headers: { Authorization: `Bearer ${token}` } });
             setClients(clientsRes.data);
             setFilteredClients(clientsRes.data);
 
             // Fetch Products
-            const prodRes = await api.get(`/api/products`);
+            const prodRes = await axios.get(`${API_URL}/api/products`); // Public or auth? Assuming open or add token
             setProducts(prodRes.data);
         } catch (error) {
             console.error("Failed to load data", error);
@@ -84,10 +86,12 @@ export default function CreateQuoteScreen({ navigation }: any) {
             const userStr = await AsyncStorage.getItem('user');
             const user = userStr ? JSON.parse(userStr) : null;
 
-            await api.post(`/api/quotes`, {
+            await axios.post(`${API_URL}/api/quotes`, {
                 clientId: selectedClient.id,
                 items: selectedItems.map(i => ({ productId: i.id, quantity: i.qty, price: i.price })),
-                salesRepId: user?.id
+                salesRepId: user?.id // Vital for commission!
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
             Alert.alert("Success", "Quote created and sent!");
