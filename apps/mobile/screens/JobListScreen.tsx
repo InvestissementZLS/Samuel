@@ -11,29 +11,18 @@ import { syncData } from '../lib/sync';
 import { optimizeRoute } from '../lib/ai';
 import { format } from 'date-fns';
 import * as Location from 'expo-location';
+import { DailyRunJob } from '../lib/run-schema';
 
 type JobListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'JobList'>;
 type JobListScreenRouteProp = RouteProp<RootStackParamList, 'JobList'>;
 
-interface Job {
-    id: string;
-    scheduledAt: string;
-    scheduledEndAt?: string | null;
-    status: string;
-    description: string;
-    property: {
-        address: string;
-        client: {
-            name: string;
-        };
-    };
-}
+// Replaced by DailyRunJob
 
 export default function JobListScreen() {
     const navigation = useNavigation<JobListScreenNavigationProp>();
     const route = useRoute<JobListScreenRouteProp>();
     const { userId } = route.params;
-    const [jobs, setJobs] = useState<Job[]>([]);
+    const [jobs, setJobs] = useState<DailyRunJob[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
@@ -100,7 +89,7 @@ export default function JobListScreen() {
         }
     };
 
-    const renderItem = ({ item }: { item: Job }) => (
+    const renderItem = ({ item }: { item: DailyRunJob }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => navigation.navigate('JobDetails', { jobId: item.id })}
@@ -149,7 +138,7 @@ export default function JobListScreen() {
                 jobs
             );
 
-            setJobs(optimized as Job[]);
+            setJobs(optimized as DailyRunJob[]);
             // Optional: Save this new order to DB? 
             // For now, it's a visual sort. If we save, we need to handle "order" field.
             // saveJobsToLocal(optimized); 

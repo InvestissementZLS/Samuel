@@ -54,18 +54,20 @@ export const initDB = () => {
 
 export const getDB = () => db;
 
-// Data Access Helpers
-
 export const saveJobsToLocal = (jobs: any[]) => {
     try {
         db.withTransactionSync(() => {
-            // Clear old cache? Or just upsert?
-            // For simplicity, let's clear and replace for the schedule list. 
-            // BUT we must be careful not to delete DIRTY jobs if we were doing 2-way sync.
-            // For now, simple cache: delete all and re-insert.
-            db.execSync('DELETE FROM jobs WHERE syncStatus = "SYNCED"'); // Only replace synced jobs
-
             jobs.forEach(job => {
+                if (job.isDeleted) {
+                    try {
+                        db.runSync('DELETE FROM jobs WHERE id = ?', [job.id]);
+                        console.log(`Deleted job ${job.id} from local cache (Delta Sync)`);
+                    } catch (err) {
+                        console.warn(`Failed to delete job ${job.id}:`, err);
+                    }
+                    return; // Skip insert
+                }
+
                 try {
                     db.runSync(
                         'INSERT OR REPLACE INTO jobs (id, scheduledAt, status, description, clientName, address, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)',

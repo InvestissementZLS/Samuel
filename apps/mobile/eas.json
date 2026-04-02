@@ -18,13 +18,12 @@
       "node": "20.19.4",
       "distribution": "internal",
       "env": {
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1",
         "EXPO_NO_DOCTOR": "true",
         "TURBO_TELEMETRY_DISABLED": "1",
         "SKIP_POSTINSTALL": "1"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     },
     "production": {

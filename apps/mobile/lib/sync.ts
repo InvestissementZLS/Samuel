@@ -4,6 +4,8 @@ import axios from 'axios';
 import { getOutbox, removeFromOutbox, saveJobsToLocal, addToOutbox } from './db';
 import { API_URL } from '../config';
 import { Alert } from 'react-native';
+import { DailyRunPayloadSchema } from './run-schema';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const isConnected = async () => {
     const state = await Network.getNetworkStateAsync();
@@ -92,11 +94,34 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
     // 2. Fetch fresh data if online
     if (connected) {
         try {
-            console.log("Fetching fresh jobs...");
+            console.log("Fetching fresh jobs with Delta Sync...");
             const dateParams = dateIsoString ? `&date=${encodeURIComponent(dateIsoString)}` : '';
-            const response = await api.get(`/api/technician/jobs?techId=${userId}${dateParams}`);
-            saveJobsToLocal(response.data);
-            return response.data;
+            
+            // DELTA SYNC IMPLEMENTATION: Pass updatedSince to fetch partials
+            const lastSync = await AsyncStorage.getItem(`lastSync_${userId}`);
+            const syncParam = lastSync ? `&updatedSince=${encodeURIComponent(lastSync)}` : '';
+
+            const response = await api.get(`/api/technician/jobs?techId=${userId}${dateParams}${syncParam}`);
+            
+            // PAYLOAD VALIDATION: Zod Sanitization to prevent crashes
+            const validationResult = DailyRunPayloadSchema.safeParse(response.data);
+            
+            if (!validationResult.success) {
+                console.error("Payload Validation Error! Malformed Schema from Server", validationResult.error);
+                Alert.alert(
+                    "Erreur de données",
+                    "Le serveur a envoyé des données corrompues. L'application empêche un crash pur et dur. Utilisez le cache."
+                );
+                return [];
+            }
+
+            const cleanData = validationResult.data;
+            saveJobsToLocal(cleanData); // Uses the strictly sanitized data
+            
+            // Update Sync Time
+            await AsyncStorage.setItem(`lastSync_${userId}`, new Date().toISOString());
+
+            return cleanData;
         } catch (error: any) {
             console.error("Fetch failed, using cache", error.message);
         }
