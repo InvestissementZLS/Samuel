@@ -437,7 +437,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                 popoverClassName="bg-white border-gray-200 text-gray-900 shadow-md"
                                                 itemClassName="text-gray-700 aria-selected:bg-indigo-50 aria-selected:text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
                                             />
-                                            <div className="group/desc relative mt-1">
+                                            <div className="flex flex-col gap-1 mt-1">
                                                 <textarea
                                                     value={item.description}
                                                     onChange={(e) => handleItemChange(index, 'description', e.target.value)}
@@ -445,9 +445,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                     rows={Math.max(1, (item.description || "").split("\n").length)}
                                                     className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
                                                 />
-                                                <div className="absolute right-0 top-0 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                                <div className="flex justify-end">
                                                     <TemplateSelector 
-                                                        label={<FileText className="w-3 h-3" />}
+                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded"><FileText className="w-3 h-3" /> Templates</span>}
                                                         side="right"
                                                         onSelect={(text) => handleItemChange(index, 'description', item.description ? `${item.description}\n\n${text}` : text)}
                                                     />
