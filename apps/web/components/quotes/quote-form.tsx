@@ -3,7 +3,9 @@
 import { useDivision } from "@/components/providers/division-provider";
 import { useUser } from "@/components/providers/user-provider";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
+import { useLanguage } from "@/components/providers/language-provider";
 import { Quote, Product, QuoteItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Calculator } from "lucide-react";
@@ -40,7 +42,38 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
     const [dueDate, setDueDate] = useState<Date | undefined>(quote?.dueDate ? new Date(quote.dueDate) : undefined);
     const { division: globalDivision } = useDivision();
     const { user } = useUser();
+    const { t } = useLanguage();
     const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">((quote?.division as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION") || globalDivision);
+
+    const [templates, setTemplates] = useState<{id: string, name: string, text: string}[]>([]);
+
+    useEffect(() => {
+        getWarrantyTemplates().then(setTemplates).catch(console.error);
+    }, []);
+
+    const TemplateSelector = ({ onSelect, label, side = "bottom" }: { onSelect: (text: string) => void, label?: React.ReactNode, side?: "bottom" | "top" | "right" | "left" }) => (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-0">{label || t?.common?.insert || "Insert"}</Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-0 shadow-lg" side={side}>
+                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">{t?.settings?.warranties || "Templates"}</div>
+                <div className="max-h-60 overflow-y-auto">
+                    {templates.length === 0 ? <div className="p-4 text-xs text-center text-gray-500">No templates found</div> : templates.map(temp => (
+                        <button
+                            key={temp.id}
+                            type="button"
+                            onClick={() => onSelect(temp.text)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 border-b border-gray-100 last:border-0 hover:text-indigo-600 transition-colors"
+                        >
+                            <div className="font-medium text-gray-900">{temp.name}</div>
+                            <div className="text-xs text-gray-500 line-clamp-2 mt-0.5 whitespace-pre-wrap">{temp.text}</div>
+                        </button>
+                    ))}
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
 
     const [items, setItems] = useState<any[]>(quote?.items.map(item => ({
         id: item.id,
@@ -360,13 +393,22 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                                         $
                                                     </span>
                                                 )}
-                                                <input
-                                                    type="text"
+                                            <div className="group/desc relative mt-1">
+                                                <textarea
                                                     value={item.description}
                                                     onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                                                     placeholder="Add a description"
-                                                    className="w-full bg-transparent border-none p-0 px-1 mt-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400"
+                                                    rows={Math.max(1, (item.description || "").split("\n").length)}
+                                                    className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
                                                 />
+                                                <div className="absolute right-0 top-0 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                                    <TemplateSelector 
+                                                        label={<FileText className="w-3 h-3" />}
+                                                        side="right"
+                                                        onSelect={(text) => handleItemChange(index, 'description', item.description ? `${item.description}\n\n${text}` : text)}
+                                                    />
+                                                </div>
+                                            </div>
                                             </div>
                                         </div>
                                     </td>
@@ -464,7 +506,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                             <div className="flex justify-between items-center bg-gray-50 border-b border-gray-200 px-4 py-2">
                                 <label className="text-xs font-semibold text-gray-600 uppercase">Terms</label>
-                                <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500 hover:text-gray-700">Insert</Button>
+                                <TemplateSelector onSelect={(text) => setTerms(terms ? `${terms}\n\n${text}` : text)} />
                             </div>
                             <textarea
                                 value={terms}
@@ -477,7 +519,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                             <div className="flex justify-between items-center bg-gray-50 border-b border-gray-200 px-4 py-2">
                                 <label className="text-xs font-semibold text-gray-600 uppercase">Notes</label>
-                                <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500 hover:text-gray-700">Insert</Button>
+                                <TemplateSelector onSelect={(text) => setNotes(notes ? `${notes}\n\n${text}` : text)} />
                             </div>
                             <textarea
                                 value={notes}
