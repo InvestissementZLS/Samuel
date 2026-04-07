@@ -6,6 +6,7 @@ import JobListScreen from '../screens/JobListScreen';
 import JobDetailsScreen from '../screens/JobDetailsScreen';
 import PunchInScreen from '../screens/PunchInScreen';
 import PunchOutScreen from '../screens/PunchOutScreen';
+import QuickAddJobScreen from '../screens/QuickAddJobScreen';
 
 export type RootStackParamList = {
     Login: undefined;
@@ -17,6 +18,7 @@ export type RootStackParamList = {
     Signature: { onOK: (signature: string) => void };
     CreateQuote: undefined;
     AddExpense: { userId: string };
+    QuickAddJob: { userId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,7 +44,7 @@ export default function AppNavigator() {
             <Stack.Screen
                 name="PunchIn"
                 component={PunchInScreen}
-                options={{ headerShown: false, gestureEnabled: false }} // No back gesture
+                options={{ headerShown: false, gestureEnabled: false }}
             />
             <Stack.Screen
                 name="PunchOut"
@@ -68,6 +70,11 @@ export default function AppNavigator() {
                 name="AddExpense"
                 component={require('../screens/AddExpenseScreen').default}
                 options={{ title: 'Nouvelle Dépense' }}
+            />
+            <Stack.Screen
+                name="QuickAddJob"
+                component={QuickAddJobScreen}
+                options={{ title: '📞 Appel entrant', headerBackTitle: 'Retour' }}
             />
         </Stack.Navigator>
     );
