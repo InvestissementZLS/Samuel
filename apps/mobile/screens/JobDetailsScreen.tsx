@@ -20,7 +20,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import axios from 'axios';
+import api from '../services/api';
 import { API_URL } from '../config';
 import { format } from 'date-fns';
 import { LucideMapPin, LucidePhone, LucideClock, LucideFileText } from 'lucide-react-native';
@@ -74,7 +74,7 @@ export default function JobDetailsScreen() {
 
     const fetchJobDetails = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/jobs/${jobId}`);
+            const response = await api.get(`/api/jobs/${jobId}`);
             setJob(response.data);
             // Reset state on refresh
             setCapturedSignature(null);
@@ -89,7 +89,7 @@ export default function JobDetailsScreen() {
 
     // Fetch products for modal
     useEffect(() => {
-        axios.get(`${API_URL}/api/products`)
+        api.get('/api/products')
             .then(res => setProducts(res.data))
             .catch(err => console.log('Products fetch error', err));
 
@@ -102,7 +102,7 @@ export default function JobDetailsScreen() {
 
         setSavingProduct(true);
         try {
-            await axios.post(`${API_URL}/api/jobs/${jobId}/products`, {
+            await api.post(`/api/jobs/${jobId}/products`, {
                 productId: selectedProduct.id,
                 quantity: parseFloat(quantity)
             });
@@ -124,7 +124,7 @@ export default function JobDetailsScreen() {
         const finalSignature = signature || capturedSignature;
 
         try {
-            await axios.post(`${API_URL}/api/jobs/${jobId}/complete`, {
+            await api.post(`/api/jobs/${jobId}/complete`, {
                 signature: finalSignature,
                 isClientUnreachable,
                 notes: technicianNotes
@@ -164,7 +164,7 @@ export default function JobDetailsScreen() {
     const updateStatus = async (newStatus: string) => {
         setUpdating(true);
         try {
-            await axios.patch(`${API_URL}/api/jobs/${jobId}`, { status: newStatus });
+            await api.patch(`/api/jobs/${jobId}`, { status: newStatus });
             setJob(prev => prev ? { ...prev, status: newStatus } : null);
             Alert.alert('Success', `Job marked as ${newStatus}`);
         } catch (error) {

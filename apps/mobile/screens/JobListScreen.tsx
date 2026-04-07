@@ -4,8 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import axios from 'axios';
-import { API_URL } from '../config';
+import api from '../services/api';
 import { getLocalJobs, getOutbox, saveJobsToLocal } from '../lib/db';
 import { syncData } from '../lib/sync';
 import { optimizeRoute } from '../lib/ai';
@@ -65,7 +64,7 @@ export default function JobListScreen() {
 
     const checkPunchStatus = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/timesheets/active?userId=${userId}`);
+            const response = await api.get(`/api/timesheets/active?userId=${userId}`);
             const ts = response.data.timesheet;
             if (ts) {
                 setPunchStatus('OPEN');
@@ -199,20 +198,28 @@ export default function JobListScreen() {
                     </TouchableOpacity>
                 </View>
 
+                {/* 📞 Bouton Appel Urgent — prioritaire */}
+                <TouchableOpacity
+                    style={styles.callBtn}
+                    onPress={() => navigation.navigate('QuickAddJob', { userId })}
+                >
+                    <Text style={styles.callBtnText}>📞 Appel reçu — Ajouter à la route</Text>
+                </TouchableOpacity>
+
                 {/* AI / Actions Row */}
-                <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
                     <TouchableOpacity
                         style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}
                         onPress={handleOptimize}
                     >
-                        <Text style={[styles.inventoryBtnText, { color: '#16a34a' }]}>⚡ Optimize Route</Text>
+                        <Text style={[styles.inventoryBtnText, { color: '#16a34a' }]}>⚡ Optimiser route</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                         style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}
                         onPress={() => navigation.navigate('CreateQuote')}
                     >
-                        <Text style={[styles.inventoryBtnText, { color: '#1d4ed8' }]}>📝 New Quote</Text>
+                        <Text style={[styles.inventoryBtnText, { color: '#1d4ed8' }]}>📝 Soumission</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -221,7 +228,7 @@ export default function JobListScreen() {
                         style={[styles.inventoryBtn, { flex: 1, marginTop: 0 }]}
                         onPress={() => navigation.navigate('Inventory')}
                     >
-                        <Text style={styles.inventoryBtnText}>📦 Inventory</Text>
+                        <Text style={styles.inventoryBtnText}>📦 Inventaire</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -380,5 +387,22 @@ const styles = StyleSheet.create({
         color: '#4b5563',
         fontWeight: '600',
         fontSize: 14
+    },
+    callBtn: {
+        marginTop: 12,
+        backgroundColor: '#1e40af',
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        shadowColor: '#1e40af',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 6,
+        elevation: 5,
+    },
+    callBtnText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 15,
     }
 });

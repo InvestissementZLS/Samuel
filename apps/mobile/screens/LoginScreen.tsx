@@ -5,8 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { API_URL } from '../config';
+import api from '../services/api';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -24,13 +23,9 @@ export default function LoginScreen() {
 
         setLoading(true);
         try {
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
+            const response = await api.post('/api/auth/login', {
                 email,
                 password,
-            }, {
-                headers: {
-                    "Bypass-Tunnel-Reminder": "true"
-                }
             });
 
             const user = response.data;
