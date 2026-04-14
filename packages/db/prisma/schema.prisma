@@ -106,6 +106,7 @@ model Client {
   properties     Property[]
   quotes         Quote[]
   bookingLinks   BookingLink[]
+  bookingRequests BookingRequest[]
   isDeleted      Boolean      @default(false)
   deletedAt      DateTime?
 }
@@ -655,6 +656,34 @@ model BookingLink {
   client          Client   @relation(fields: [clientId], references: [id])
 }
 
+model BookingRequest {
+  id              String               @id @default(uuid())
+  clientId        String
+  client          Client               @relation(fields: [clientId], references: [id])
+  
+  // Service & Location
+  serviceId       String?              // Product/Service requested
+  propertyId      String?              // Address of service
+  division        Division             @default(EXTERMINATION)
+ 
+  // Client's preferred availability (submitted by client)
+  preferredDays   String[]             @default([]) // ISO dates ["2026-04-20", ...]
+  notes           String?              // Free notes from client (access, pets, etc.)
+  
+  // Admin response
+  status          BookingRequestStatus @default(PENDING)
+  confirmedDate   DateTime?            // The specific date admin chose
+  confirmedPeriod String?              // "AM" | "PM"
+  confirmedTechId String?              // Technician assigned
+  adminNotes      String?              // Internal admin note
+  
+  // Link to created Job once confirmed
+  jobId           String?              @unique
+  
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
 model WarrantyTemplate {
   id        String   @id @default(uuid())
   name      String
@@ -662,6 +691,13 @@ model WarrantyTemplate {
   durationMonths Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum BookingRequestStatus {
+  PENDING    // Submitted by client, waiting for admin
+  CONFIRMED  // Admin confirmed a slot, email sent to client
+  BOOKED     // Job created automatically
+  CANCELLED
 }
 
 enum InvoiceStatus {

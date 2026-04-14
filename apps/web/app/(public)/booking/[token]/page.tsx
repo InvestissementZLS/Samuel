@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { verifyBookingToken, confirmBooking, getClientServices, confirmGuestBooking, checkExistingClient, sendPortalLink } from "@/app/actions/booking-actions";
+import { createBookingRequest } from "@/app/actions/booking-request-actions";
 import { findSmartSlots, SmartSlot } from "@/app/actions/scheduling-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -43,6 +44,16 @@ export default function ClientBookingPage() {
     const [sendingLink, setSendingLink] = useState(false);
 
     // Selections
+
+    // ── Availability Request Flow (when link has no preset preferredDays) ──
+    // If the link has no preferredDays pre-set by admin, we switch to a
+    // "submit availability" mode where client picks preferred days → admin confirms
+    const [isRequestMode, setIsRequestMode] = useState(false);
+    const [requestDays, setRequestDays] = useState<string[]>([]);
+    const [requestNotes, setRequestNotes] = useState('');
+    const [requestSubmitting, setRequestSubmitting] = useState(false);
+    const [requestSubmitted, setRequestSubmitted] = useState(false);
+
     const [selectedService, setSelectedService] = useState<any>(null);
     const [selectedPropertyId, setSelectedPropertyId] = useState("");
     const [selectedSlot, setSelectedSlot] = useState<SmartSlot | null>(null);
@@ -84,12 +95,18 @@ export default function ClientBookingPage() {
                         setClientData(link.client);
                         const div = (link as any).division || 'EXTERMINATION';
                         setBookingDivision(div);
-                        // Load preferences
-                        if ((link as any).preferredDays?.length > 0) {
-                            setPreferredDays((link as any).preferredDays);
+                        // Load preferences set by admin
+                        const adminPreferredDays = (link as any).preferredDays || [];
+                        if (adminPreferredDays.length > 0) {
+                            setPreferredDays(adminPreferredDays);
                         }
                         if ((link as any).preferredPeriod) {
                             setPreferredPeriod((link as any).preferredPeriod);
+                        }
+                        // ★ KEY: generic link (no preset days) → "request" mode
+                        // Client picks preferred days, admin confirms before job is created
+                        if (adminPreferredDays.length === 0) {
+                            setIsRequestMode(true);
                         }
                         if (link.client.properties.length > 0) {
                             setSelectedPropertyId(link.client.properties[0].id);
@@ -429,8 +446,163 @@ export default function ClientBookingPage() {
                         </div>
                     )}
 
-                    {/* STEP 2: SCHEDULE */}
-                    {step === 2 && (
+                    {/* ──────────────────────────────────────────────────── */}
+                    {/* STEP 2 — REQUEST MODE: Client picks preferred days  */}
+                    {/* (generic link without admin-preset days)            */}
+                    {/* ──────────────────────────────────────────────────── */}
+                    {step === 2 && isRequestMode && !requestSubmitted && (
+                        <div className="space-y-6">
+                            {/* Service summary */}
+                            <div className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                                <div>
+                                    <span className="text-sm text-gray-500">{b.steps.service}</span>
+                                    <div className="font-bold">{selectedService?.name}</div>
+                                </div>
+                                <button onClick={() => setStep(1)} className="text-sm text-blue-600 hover:underline">{b.service.change}</button>
+                            </div>
+
+                            {/* Instructions */}
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-4 flex gap-3">
+                                <span className="text-2xl mt-0.5">📅</span>
+                                <div>
+                                    <p className="font-semibold text-blue-900 text-sm">
+                                        {language === 'fr'
+                                            ? 'Choisissez vos jours disponibles'
+                                            : 'Choose your available days'}
+                                    </p>
+                                    <p className="text-blue-700 text-sm mt-0.5">
+                                        {language === 'fr'
+                                            ? 'Sélectionnez 1 à 5 jours qui vous conviennent. Votre technicien confirmera le meilleur créneau dans les 24h.'
+                                            : 'Select 1 to 5 days that work for you. Your technician will confirm the best time within 24 hours.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Day picker — weekdays highlighted, weekends dimmed */}
+                            <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                                    {language === 'fr' ? 'Jours disponibles (14 prochains jours)' : 'Available Days (next 14 days)'}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                    {(() => {
+                                        const today = new Date();
+                                        const days = [];
+                                        for (let i = 1; i <= 14; i++) {
+                                            const d = new Date(today);
+                                            d.setDate(today.getDate() + i);
+                                            const iso = d.toISOString().split('T')[0];
+                                            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                                            const dayName = d.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { weekday: 'short' });
+                                            const label = d.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' });
+                                            const isSelected = requestDays.includes(iso);
+                                            return (
+                                                <button
+                                                    key={iso}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (isSelected) setRequestDays(requestDays.filter(d => d !== iso));
+                                                        else if (requestDays.length < 5) setRequestDays([...requestDays, iso]);
+                                                    }}
+                                                    className={`flex flex-col items-center px-3 py-2.5 rounded-xl border text-sm font-medium transition-all
+                                                        ${isSelected
+                                                            ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                                                            : isWeekend
+                                                                ? 'bg-gray-50 border-gray-200 text-gray-400'
+                                                                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                                                        }`}
+                                                >
+                                                    <span className={`text-[10px] uppercase font-bold ${isSelected ? 'text-blue-200' : isWeekend ? 'text-gray-300' : 'text-gray-400'}`}>
+                                                        {dayName}
+                                                    </span>
+                                                    <span>{label}</span>
+                                                    {isWeekend && !isSelected && <span className="text-[9px] text-gray-300">{language === 'fr' ? 'congé' : 'closed'}</span>}
+                                                </button>
+                                            );
+                                        }
+                                        return days;
+                                    })()}
+                                </div>
+                                {requestDays.length > 0 && (
+                                    <p className="mt-2 text-xs text-blue-600 font-semibold">
+                                        ✓ {requestDays.length} {language === 'fr' ? `jour${requestDays.length > 1 ? 's' : ''} sélectionné${requestDays.length > 1 ? 's' : ''}` : `day${requestDays.length > 1 ? 's' : ''} selected`}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Notes field */}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                                    {language === 'fr' ? 'Notes (accès, animaux, instructions)' : 'Notes (access, pets, instructions)'} <span className="font-normal normal-case text-gray-400">— {language === 'fr' ? 'optionnel' : 'optional'}</span>
+                                </label>
+                                <textarea
+                                    value={requestNotes}
+                                    onChange={e => setRequestNotes(e.target.value)}
+                                    placeholder={language === 'fr' ? 'Ex: Chien dans la cour, entrée par côté gauche...' : 'Ex: Dog in yard, enter from left side...'}
+                                    rows={3}
+                                    className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                />
+                            </div>
+
+                            <button
+                                disabled={requestDays.length === 0 || requestSubmitting}
+                                onClick={async () => {
+                                    setRequestSubmitting(true);
+                                    try {
+                                        const result = await createBookingRequest({
+                                            bookingToken: token,
+                                            serviceId: selectedService?.id,
+                                            propertyId: selectedPropertyId || undefined,
+                                            preferredDays: requestDays,
+                                            notes: requestNotes || undefined,
+                                            division: bookingDivision,
+                                        });
+                                        if (result.success) {
+                                            setRequestSubmitted(true);
+                                        } else {
+                                            toast.error(result.error || 'Erreur lors de la soumission');
+                                        }
+                                    } catch (e: any) {
+                                        toast.error(e.message || 'Erreur');
+                                    } finally {
+                                        setRequestSubmitting(false);
+                                    }
+                                }}
+                                className={`w-full py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all
+                                    ${requestDays.length === 0
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg'
+                                    }`}
+                            >
+                                {requestSubmitting
+                                    ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span> {language === 'fr' ? 'Envoi...' : 'Sending...'}</>
+                                    : language === 'fr' ? '📅 Envoyer ma disponibilité' : '📅 Send my availability'
+                                }
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Request submitted — success screen */}
+                    {step === 2 && isRequestMode && requestSubmitted && (
+                        <div className="text-center py-12 space-y-4">
+                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                <Check className="w-10 h-10 text-green-600" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                                {language === 'fr' ? 'Demande envoyée ✓' : 'Request sent ✓'}
+                            </h2>
+                            <p className="text-gray-600 max-w-sm mx-auto">
+                                {language === 'fr'
+                                    ? 'Votre technicien a reçu votre demande et vous contactera dans les 24 heures pour confirmer le meilleur créneau.'
+                                    : 'Your technician has received your request and will contact you within 24 hours to confirm the best time slot.'}
+                            </p>
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 inline-block text-sm text-blue-700 font-medium">
+                                📅 {requestDays.map(d => new Date(d + 'T00:00:00').toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { weekday: 'short', day: 'numeric', month: 'short' })).join(' · ')}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* STEP 2: SCHEDULE (classic AI slot mode — only shown when admin pre-selected days) */}
+                    {step === 2 && !isRequestMode && (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center bg-gray-50 p-3 rounded">
                                 <div>

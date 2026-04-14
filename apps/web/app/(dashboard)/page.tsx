@@ -6,6 +6,7 @@ import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminde
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
 import { RecentActivityWidget } from '@/components/dashboard/recent-activity-widget';
+import { PendingRequestsWidget } from '@/components/dashboard/pending-requests-widget';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
 import { getUserProfile } from '@/app/actions/user-actions';
@@ -101,6 +102,11 @@ export default async function DashboardPage() {
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
             </div>
+
+            {/* 🔔 Pending Booking Requests — ADMIN/OFFICE only */}
+            {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
+                <PendingRequestsWidget />
+            )}
 
             {/* 🚨 Priority Alerts Widget */}
             {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
