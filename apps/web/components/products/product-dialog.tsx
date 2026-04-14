@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
@@ -80,7 +80,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [loading, setLoading] = useState(false);
 
     // Warranty Templates
-    const [warrantyTemplates, setWarrantyTemplates] = useState<{ id: string, name: string, text: string, durationMonths?: number }[]>([]);
+    const [warrantyTemplates, setWarrantyTemplates] = useState<{ id: string, name: string, text: string, durationMonths?: number | null }[]>([]);
 
     useEffect(() => {
         if (type === 'SERVICE') {
@@ -144,7 +144,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 setContainerSize(product.containerSize || undefined);
 
                 // Match backend structure
-                getProductDetails(product.id).then(details => {
+                getProductDetails(product.id).then((details: any) => {
                     if (details) {
                         if (details.includedServices && details.includedServices.length > 0) {
                             // Correctly map backend includedServices to state
@@ -390,7 +390,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 {type === 'SERVICE' && (
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1 text-foreground">{t.productDialog.warrantyMonths || "Warranty (Months)"}</label>
+                            <label className="block text-sm font-medium mb-1 text-foreground">{(t.productDialog as any).warrantyMonths || "Warranty (Months)"}</label>
                             <input
                                 type="number"
                                 value={warrantyMonths || ""}
@@ -565,7 +565,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                                         placeholder="e.g. 3"
                                     />
                                     <p className="text-[10px] text-gray-500 mt-1">
-                                        {t.productDialog.warrantyHelperText || "Warranty starts when the invoice is sent (Start of Contract)."}
+                                        {(t.productDialog as any).warrantyHelperText || "Warranty starts when the invoice is sent (Start of Contract)."}
                                     </p>
                                 </div>
                                 <div>

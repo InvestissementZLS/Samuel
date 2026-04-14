@@ -44,6 +44,8 @@ model User {
   divisions                       Division[]   @default([EXTERMINATION])
   resetToken                      String?
   resetTokenExpiry                DateTime?
+  expoPushToken                   String?      // [NEW] Push Notification Token
+
   commissions                     Commission[]
   salesJobs                       Job[]        @relation("JobSalesRep")
   supervisedJobs                  Job[]        @relation("JobSupervisor")
@@ -91,6 +93,7 @@ model DivisionSettings {
 model Client {
   id             String       @id @default(uuid())
   name           String
+  companyName    String?      // Optional company name
   email          String?
   phone          String?
   billingAddress String?
@@ -637,15 +640,19 @@ model SeriesStep {
 }
 
 model BookingLink {
-  id        String   @id @default(uuid())
-  clientId  String
-  token     String   @unique @default(uuid())
-  status    String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  division  Division @default(EXTERMINATION)
+  id              String   @id @default(uuid())
+  clientId        String
+  token           String   @unique @default(uuid())
+  status          String   @default("ACTIVE") // ACTIVE, USED, EXPIRED
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  division        Division @default(EXTERMINATION)
   
-  client    Client   @relation(fields: [clientId], references: [id])
+  // Appointment preferences set by technician when sending the link
+  preferredDays   String[] @default([]) // ISO date strings e.g. ["2026-04-20", "2026-04-21"]
+  preferredPeriod String?              // "AM" | "PM" | null = any time
+  
+  client          Client   @relation(fields: [clientId], references: [id])
 }
 
 model WarrantyTemplate {

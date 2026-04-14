@@ -262,7 +262,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                             <div className="space-y-2 p-3 bg-gray-50 rounded-md border text-gray-900">
                                 <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.name} value={newClientName} onChange={e => setNewClientName(e.target.value)} />
                                 <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.email} value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
-                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.address} value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} />
+                                <input className="w-full rounded border p-2 text-sm" placeholder={(t.clientDialog as any).address || "Address"} value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} />
                                 <button type="button" onClick={handleCreateClient} disabled={loading} className="w-full bg-indigo-600 text-white rounded py-1.5 text-sm">{t.clientDialog.createClient}</button>
                             </div>
                         ) : (
@@ -298,7 +298,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs text-gray-500 mb-1">{t.common.date}</label>
+                            <label className="block text-xs text-gray-500 mb-1">{(t.common as any).date || "Date"}</label>
                             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full rounded border p-2 text-sm text-gray-900" required />
                         </div>
                         <div>

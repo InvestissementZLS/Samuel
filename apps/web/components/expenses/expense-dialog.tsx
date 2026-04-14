@@ -41,13 +41,13 @@ export function ExpenseDialog({ isOpen, onClose }: ExpenseDialogProps) {
         setLoading(true);
 
         try {
-            await createExpense({
-                description,
-                amount: parseFloat(amount),
-                category,
-                date,
-                division: null // Global by default
-            });
+            const formData = new FormData();
+            formData.append("description", description);
+            formData.append("amount", amount);
+            formData.append("category", category);
+            formData.append("date", date.toISOString());
+            
+            await createExpense(formData);
             toast.success("Dépense ajoutée");
             setDescription("");
             setAmount("");
@@ -65,7 +65,6 @@ export function ExpenseDialog({ isOpen, onClose }: ExpenseDialogProps) {
             isOpen={isOpen}
             onClose={onClose}
             title="Ajouter une Dépense"
-            description="Entrez les détails de la dépense (Facture, Reçu, etc.)"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

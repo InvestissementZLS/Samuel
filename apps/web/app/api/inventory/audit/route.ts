@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getInventory, submitAudit } from "@/app/actions/inventory-actions";
 import { prisma } from "@/lib/prisma";
+import { validateAuth } from "@/lib/auth";
 
-// GET: Fetch technician's current inventory (Expected Stock)
 export async function GET(request: NextRequest) {
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     try {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get("userId");
@@ -27,6 +29,8 @@ export async function GET(request: NextRequest) {
 
 // POST: Submit an Audit Report
 export async function POST(request: NextRequest) {
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     try {
         const body = await request.json();
         const { userId, items } = body; // items: { productId, actualQuantity, notes? }[]
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
         if (result.success) {
             return NextResponse.json({ success: true });
         } else {
-            return NextResponse.json({ error: result.message }, { status: 500 });
+            return NextResponse.json({ error: result.error || "Unknown error" }, { status: 500 });
         }
 
     } catch (error) {

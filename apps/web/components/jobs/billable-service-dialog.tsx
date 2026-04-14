@@ -37,7 +37,7 @@ export function BillableServiceDialog({ isOpen, onClose, jobId, availableService
         try {
             const res = await addBillableService(jobId, selectedProduct, quantity);
             if (res.success) {
-                toast.success(t.jobs.serviceAdded);
+                toast.success((t.jobs as any).serviceAdded || "Service added");
                 onClose();
                 setSelectedProduct('');
                 setQuantity(1);

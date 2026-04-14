@@ -95,8 +95,8 @@ export function TechnicianList({ technicians, canCreate = false }: TechnicianLis
                                             {(tech.divisions || ["EXTERMINATION"]).map(d => (
                                                 <span key={d} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
                                                     {d === "EXTERMINATION" ? "ZLS EXTERMINATION" :
-                                                     d === "MENAGE" ? "ZLS MÉNAGE" : 
-                                                     d === "GAZON" ? "ZLS GAZON / DÉNEIGEMENT" : d}
+                                                     d === "ENTREPRISES" ? "LES ENTREPRISES ZLS" : 
+                                                     d === "RENOVATION" ? "RÉNOVATION" : d}
                                                 </span>
                                             ))}
                                         </div>

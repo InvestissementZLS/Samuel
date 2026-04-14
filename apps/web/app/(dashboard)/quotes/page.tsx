@@ -6,7 +6,7 @@ import { dictionary } from "@/lib/i18n/dictionary";
 
 const PAGE_SIZE = 50;
 
-export default async function QuotesPage({ searchParams }: { searchParams?: { page?: string } }) {
+export default async function QuotesPage({ searchParams }: { searchParams?: { page?: string, clientId?: string } }) {
     const cookieStore = await cookies();
     const lang = cookieStore.get("NEXT_LOCALE")?.value || "en";
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
@@ -56,8 +56,8 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
             <h1 className="text-3xl font-bold mb-8 text-gray-900">{t.quotes.title}</h1>
             <QuoteList 
                 quotes={serialize(quotes)} 
-                products={serialize(products)} 
-                clients={serialize(clients)} 
+                products={serialize(products) as any} 
+                clients={serialize(clients) as any} 
                 currentPage={page}
                 totalPages={totalPages}
                 totalCount={totalCount}

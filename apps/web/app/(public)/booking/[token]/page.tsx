@@ -5,7 +5,7 @@ import { verifyBookingToken, confirmBooking, getClientServices, confirmGuestBook
 import { findSmartSlots, SmartSlot } from "@/app/actions/scheduling-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Check, Calendar, MapPin, Package, User, Leaf, ArrowLeft } from "lucide-react";
+import { Check, Calendar, Clock, MapPin, Package, User, Leaf, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -33,6 +33,10 @@ export default function ClientBookingPage() {
     const [services, setServices] = useState<any[]>([]);
     const [bookingDivision, setBookingDivision] = useState<string>('EXTERMINATION');
 
+    // Preferences from booking link (set by admin when sending the link)
+    const [preferredDays, setPreferredDays] = useState<string[]>([]);
+    const [preferredPeriod, setPreferredPeriod] = useState<string | null>(null); // "AM" | "PM" | null
+
     // Existing Client Detection State
     const [existingClient, setExistingClient] = useState<{ exists: boolean; name?: string; maskedEmail?: string; clientId?: string } | null>(null);
     const [showExistingClientModal, setShowExistingClientModal] = useState(false);
@@ -56,8 +60,11 @@ export default function ClientBookingPage() {
         return acc;
     }, {} as Record<string, SmartSlot[]>);
 
-    // Get unique dates sorted
-    const availableDates = Object.keys(slotsByDate).sort();
+    // Get unique dates sorted — filtered by preferredDays if set
+    const allAvailableDates = Object.keys(slotsByDate).sort();
+    const availableDates = preferredDays.length > 0
+        ? allAvailableDates.filter(d => preferredDays.includes(d))
+        : allAvailableDates;
 
 
     useEffect(() => {
@@ -77,6 +84,13 @@ export default function ClientBookingPage() {
                         setClientData(link.client);
                         const div = (link as any).division || 'EXTERMINATION';
                         setBookingDivision(div);
+                        // Load preferences
+                        if ((link as any).preferredDays?.length > 0) {
+                            setPreferredDays((link as any).preferredDays);
+                        }
+                        if ((link as any).preferredPeriod) {
+                            setPreferredPeriod((link as any).preferredPeriod);
+                        }
                         if (link.client.properties.length > 0) {
                             setSelectedPropertyId(link.client.properties[0].id);
                         }
@@ -431,6 +445,19 @@ export default function ClientBookingPage() {
                                     <Calendar className="text-blue-600" /> {b.schedule.title}
                                 </h2>
 
+                                {/* Preference notice */}
+                                {(preferredDays.length > 0 || preferredPeriod) && (
+                                    <div className="mb-4 flex items-start gap-2.5 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
+                                        <Clock className="w-4 h-4 mt-0.5 text-blue-500 flex-shrink-0" />
+                                        <span>
+                                            {language === 'fr'
+                                                ? <>Votre technicien a réservé ces créneaux pour vous{preferredPeriod ? ` (${preferredPeriod === 'AM' ? 'avant-midi' : 'après-midi'})` : ''}.</>
+                                                : <>Your technician has pre-selected these slots for you{preferredPeriod ? ` (${preferredPeriod === 'AM' ? 'morning' : 'afternoon'})` : ''}.</>
+                                            }
+                                        </span>
+                                    </div>
+                                )}
+
                                 {analyzingSlots ? (
                                     <div className="py-8 text-center text-gray-500">
                                         <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
@@ -441,7 +468,7 @@ export default function ClientBookingPage() {
                                         {/* Horizontal Date Picker */}
                                         <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300">
                                             {availableDates.map((dateStr) => {
-                                                const dateObj = new Date(dateStr + 'T00:00:00'); // Safe parsing for ISO date string yyyy-MM-dd
+                                                const dateObj = new Date(dateStr + 'T00:00:00');
                                                 return (
                                                     <button
                                                         key={dateStr}
@@ -465,7 +492,7 @@ export default function ClientBookingPage() {
                                         {/* Slots Grid for Selected Date */}
                                         {selectedDate && slotsByDate[selectedDate] ? (
                                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                                {/* Deduplicate slots by time, picking the best one (already sorted by score from backend) */}
+                                                {/* Deduplicate slots by time, filter by preferredPeriod */}
                                                 {Array.from(
                                                     new Map(
                                                         slotsByDate[selectedDate]
@@ -473,6 +500,13 @@ export default function ClientBookingPage() {
                                                     ).values()
                                                 )
                                                     .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                                                    .filter(slot => {
+                                                        if (!preferredPeriod) return true;
+                                                        const hour = parseInt(slot.startTime.split(':')[0], 10);
+                                                        if (preferredPeriod === 'AM') return hour < 12;
+                                                        if (preferredPeriod === 'PM') return hour >= 12;
+                                                        return true;
+                                                    })
                                                     .map((slot, i) => {
                                                         const isEco = slot.score >= 70 || slot.reason === "Optimized Route";
                                                         return (

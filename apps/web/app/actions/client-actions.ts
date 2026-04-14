@@ -2,41 +2,99 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { createBookingLink, sendPortalLink } from './booking-actions';
+import { sendPortalAccessEmail } from '@/lib/email';
 
 export async function createClient(data: {
     name: string;
+    companyName?: string;
     email?: string;
     phone?: string;
     billingAddress?: string;
+    serviceAddress?: string; // Optional separate service address
     divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
     language?: "EN" | "FR";
 }) {
+    const serviceAddr = data.serviceAddress || data.billingAddress;
     const client = await prisma.client.create({
         data: {
             name: data.name,
+            companyName: data.companyName || null,
             email: data.email || null,
             phone: data.phone || null,
             billingAddress: data.billingAddress || null,
             divisions: data.divisions || ["EXTERMINATION"],
             language: data.language || "FR",
-            // Auto-create property if address is provided
-            properties: data.billingAddress ? {
+            // Auto-create property if service address is provided
+            properties: serviceAddr ? {
                 create: {
-                    address: data.billingAddress,
+                    address: serviceAddr,
                     type: 'RESIDENTIAL' // Default
                 }
             } : undefined
         },
         include: {
-            properties: true // Return properties so frontend can use them
+            properties: true
         }
     });
     revalidatePath('/clients');
     return client;
 }
 
+// Combined action: create client + optionally send booking link
+export async function createClientAndSendLink(data: {
+    name: string;
+    companyName?: string;
+    email?: string;
+    phone?: string;
+    billingAddress?: string;
+    serviceAddress?: string;
+    divisions?: ("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[];
+    language?: "EN" | "FR";
+    sendLink: boolean;
+    preferredDays?: string[]; // ISO date strings
+    preferredPeriod?: 'AM' | 'PM';
+    division?: "EXTERMINATION" | "ENTREPRISES" | "RENOVATION";
+}) {
+    const client = await createClient({
+        name: data.name,
+        companyName: data.companyName,
+        email: data.email,
+        phone: data.phone,
+        billingAddress: data.billingAddress,
+        serviceAddress: data.serviceAddress,
+        divisions: data.divisions,
+        language: data.language,
+    });
+
+    let bookingToken: string | null = null;
+    let emailSent = false;
+
+    if (data.sendLink && data.email) {
+        const token = await createBookingLink(
+            client.id,
+            data.division || 'EXTERMINATION',
+            data.preferredDays || [],
+            data.preferredPeriod
+        );
+        bookingToken = token;
+
+        // Send email
+        try {
+            await sendPortalAccessEmail(client as any, token);
+            emailSent = true;
+        } catch (e) {
+            console.error('Failed to send booking link email:', e);
+        }
+    }
+
+    revalidatePath('/clients');
+    return { client, bookingToken, emailSent };
+}
+
 export async function updateClient(id: string, data: {
     name?: string;
+    companyName?: string;
     email?: string;
     phone?: string;
     billingAddress?: string;

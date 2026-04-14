@@ -389,9 +389,8 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                                             type="button"
                                             onClick={() => {
                                                 setAccesses([...accesses, {
-                                                    // @ts-ignore
-                                                    division: d,
-                                                    role: "TECHNICIAN",
+                                                    division: d as Division,
+                                                    role: "TECHNICIAN" as Role,
                                                     canViewReports: false,
                                                     canManageTimesheets: false,
                                                     canManageExpenses: false,

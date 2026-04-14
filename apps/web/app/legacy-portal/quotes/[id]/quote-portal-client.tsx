@@ -39,7 +39,7 @@ export function QuotePortalClient({ quote }: { quote: any }) {
                 // Optionally reload or update local state
                 window.location.reload();
             } else {
-                toast.error("Failed to accept quote: " + result.error);
+                toast.error("Failed to accept quote: " + (result as any).error);
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -117,7 +117,7 @@ export function QuotePortalClient({ quote }: { quote: any }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {quote.items.map((item) => (
+                            {quote.items.map((item: any) => (
                                 <tr key={item.id}>
                                     <td className="py-4 px-2">
                                         <p className="font-medium text-gray-900">{item.product.name}</p>

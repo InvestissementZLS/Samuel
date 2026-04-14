@@ -7,7 +7,7 @@ import { headers } from 'next/headers';
 // Initialize Stripe with a secret key from env
 // If not present, this will throw an error when called, which is expected until configured
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-    apiVersion: '2025-11-17.clover', // Use latest API version
+    apiVersion: '2026-02-25.clover' as any, // Use latest API version
 });
 
 export async function createCheckoutSession(invoiceId: string) {

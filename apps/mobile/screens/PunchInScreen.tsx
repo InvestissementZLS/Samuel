@@ -1,21 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOCATION_TASK_NAME } from '../services/LocationTask';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import api from '../services/api';
+import api, { STORAGE_KEYS } from '../services/api';
 import { API_URL } from '../config';
 
 export default function PunchInScreen({ navigation, route }: any) {
     const [km, setKm] = useState('');
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-    const [cameraRef, setCameraRef] = useState<any>(null); // Use any for ref
+    const [cameraRef, setCameraRef] = useState<any>(null);
     const [photo, setPhoto] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const userId = route.params?.userId || 'mock-user-id'; // Pass userId from auth context/params
+    // B-01 FIX: Read userId using the centralized STORAGE_KEYS constant
+    const userId = route.params?.userId;
 
     useEffect(() => {
         (async () => {
@@ -31,8 +32,9 @@ export default function PunchInScreen({ navigation, route }: any) {
 
     const takePicture = async () => {
         if (cameraRef) {
-            const photoData = await cameraRef.takePictureAsync({ quality: 0.5, base64: true });
-            setPhoto(photoData.uri); // Use URI for display, base64 for upload if needed
+            // M-08 FIX: Capture without base64 — we'll send as FormData (file), not JSON string
+            const photoData = await cameraRef.takePictureAsync({ quality: 0.6, base64: false });
+            setPhoto(photoData.uri);
         }
     };
 
@@ -41,12 +43,12 @@ export default function PunchInScreen({ navigation, route }: any) {
     };
 
     const handleSubmit = async () => {
-        if (!km) {
-            Alert.alert('Error', 'Please enter current Odometer KM.');
+        if (!km || isNaN(parseInt(km))) {
+            Alert.alert('Requis', 'Entrez le kilométrage actuel de l\'odomètre.');
             return;
         }
         if (!photo) {
-            Alert.alert('Error', 'Please take a photo of the Odometer.');
+            Alert.alert('Requis', 'Prenez une photo de l\'odomètre pour continuer.');
             return;
         }
 
@@ -58,15 +60,26 @@ export default function PunchInScreen({ navigation, route }: any) {
             }
             const { latitude, longitude } = location.coords;
 
-            // In a real app, upload photo to S3/Blob here and get URL. 
-            // We pass the local URI or base64 to backend for now.
+            // M-08 + B-06 FIX: Send photo as FormData (real file) instead of JSON URI string.
+            // The server will upload the actual file to Supabase Storage.
+            const formData = new FormData();
+            formData.append('userId', userId);
+            formData.append('km', km);
+            formData.append('lat', String(latitude));
+            formData.append('lng', String(longitude));
 
-            const response = await api.post(`/api/timesheets/punch-in`, {
-                userId,
-                km,
-                photo, // This sends the huge base64 string if configured, or just URI.
-                lat: latitude,
-                lng: longitude,
+            // Attach the actual photo file
+            const filename = `odometer-${userId}-${Date.now()}.jpg`;
+            // @ts-ignore — React Native FormData accepts this shape
+            formData.append('photo', {
+                uri: photo,
+                name: filename,
+                type: 'image/jpeg',
+            });
+
+            const response = await api.post(`/api/timesheets/punch-in`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 30000, // Extra time for photo upload on slow LTE
             });
 
             const { timesheetId } = response.data;
@@ -94,12 +107,12 @@ export default function PunchInScreen({ navigation, route }: any) {
                 // Do not block punch in if tracking fails
             }
 
-            Alert.alert('Success', 'Punch In Successful!', [
+            Alert.alert('✅ Journée démarrée!', 'Punch In réussi. Bonne journée!', [
                 { text: 'OK', onPress: () => navigation.replace('JobList', { userId }) }
             ]);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to submit. Please try again.');
+            Alert.alert('Erreur', 'Impossible de soumettre. Vérifie ta connexion et réessaie.');
         } finally {
             setLoading(false);
         }
@@ -114,13 +127,13 @@ export default function PunchInScreen({ navigation, route }: any) {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Start Day - Punch In</Text>
+            <Text style={styles.title}>🗓️ Début de journée</Text>
 
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>Odometer (KM)</Text>
+                <Text style={styles.label}>Kilométrage actuel (KM)</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="12345"
+                    placeholder="Ex: 12345"
                     keyboardType="numeric"
                     value={km}
                     onChangeText={setKm}
@@ -132,9 +145,7 @@ export default function PunchInScreen({ navigation, route }: any) {
                     <Image source={{ uri: photo }} style={styles.preview} />
                 ) : (
                     <CameraView style={styles.camera} ref={(ref) => setCameraRef(ref)} facing="back">
-                        <View style={styles.buttonContainer}>
-                            {/* Optional flip button if needed */}
-                        </View>
+                        <View style={styles.buttonContainer} />
                     </CameraView>
                 )}
             </View>
@@ -142,11 +153,11 @@ export default function PunchInScreen({ navigation, route }: any) {
             <View style={styles.actionContainer}>
                 {photo ? (
                     <TouchableOpacity style={styles.secondaryButton} onPress={retakePicture}>
-                        <Text style={styles.secondaryButtonText}>Retake Photo</Text>
+                        <Text style={styles.secondaryButtonText}>🔄 Reprendre la photo</Text>
                     </TouchableOpacity>
                 ) : (
                     <TouchableOpacity style={styles.primaryButton} onPress={takePicture}>
-                        <Text style={styles.primaryButtonText}>Take Photo</Text>
+                        <Text style={styles.primaryButtonText}>📸 Photographier l'odomètre</Text>
                     </TouchableOpacity>
                 )}
 
@@ -155,7 +166,10 @@ export default function PunchInScreen({ navigation, route }: any) {
                     onPress={handleSubmit}
                     disabled={!km || !photo || loading}
                 >
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitButtonText}>Start Day</Text>}
+                    {loading
+                        ? <ActivityIndicator color="#fff" />
+                        : <Text style={styles.submitButtonText}>⏱️ Démarrer ma journée</Text>
+                    }
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

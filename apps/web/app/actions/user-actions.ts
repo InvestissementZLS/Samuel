@@ -41,13 +41,14 @@ export async function getUserProfile() {
     }
 }
 
-export async function updateUserLanguage(language: "EN" | "FR") {
-    const user = await getUserProfile();
-    if (!user) return { success: false, error: "Not authenticated" };
+export async function updateUserLanguage(userId: string, language: "EN" | "FR") {
+    // Basic verification: user must be logged in to do this
+    const currentUser = await getUserProfile();
+    if (!currentUser) return { success: false, error: "Not authenticated" };
 
     try {
         await prisma.user.update({
-            where: { id: user.id },
+            where: { id: userId },
             data: { language }
         });
 

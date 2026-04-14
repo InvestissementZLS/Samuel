@@ -96,7 +96,7 @@ export function ClientList({
                     className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md hover:bg-emerald-100 mr-2"
                 >
                     <UploadCloud className="h-4 w-4" />
-                    {t.clients.importCSV || "Import CSV"}
+                    {(t.clients as any).importCSV || "Import CSV"}
                 </button>
                 <button
                     onClick={handleAdd}
@@ -172,14 +172,14 @@ export function ClientList({
                             disabled={currentPage === 1}
                             className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                         >
-                            {t.common.previous || "Previous"}
+                            {(t.common as any).previous || "Previous"}
                         </button>
                         <button
                             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
                             className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                         >
-                            {t.common.next || "Next"}
+                            {(t.common as any).next || "Next"}
                         </button>
                     </div>
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">

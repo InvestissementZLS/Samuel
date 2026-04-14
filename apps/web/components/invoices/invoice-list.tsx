@@ -451,8 +451,8 @@ const InvoiceRow = memo(({ invoice, t, clientId, onEdit, onPay, onRefund, onDele
                             try {
                                 const { sendInvoice } = await import("@/app/actions/email-actions");
                                 const r = await sendInvoice(invoice.id);
-                                r.success ? toast.success(t.invoices.emailSent, { id: tid }) : toast.error(r.error || 'Error', { id: tid });
-                            } catch { toast.error(t.invoices.emailError, { id: tid }); }
+                                r.success ? toast.success(String(t.invoices.emailSent), { id: tid }) : toast.error(String(r.error || 'Error'), { id: tid });
+                            } catch { toast.error(String(t.invoices.emailError), { id: tid }); }
                         }}
                         className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                         title={t.invoices.sendEmail}

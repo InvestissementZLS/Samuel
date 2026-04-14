@@ -209,16 +209,16 @@ export default function JobDetailsScreen() {
                 // If offline, we can't fetch details immediately to see the photo URL
                 // unless we fake it in the UI. For now, just re-fetch if online.
                 if (!('offline' in response) || !response.offline) {
-                    Alert.alert('Success', 'Photo uploaded!');
+                    Alert.alert('Succès', 'Photo téléversée !');
                     fetchJobDetails();
                 }
             } else {
-                Alert.alert('Error', 'Upload failed');
+                Alert.alert('Erreur', 'Échec du téléversement');
             }
 
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to upload photo');
+            Alert.alert('Erreur', 'Impossible de téléverser la photo');
         } finally {
             setUploadingPhoto(false);
         }
@@ -432,25 +432,33 @@ export default function JobDetailsScreen() {
                         style={[styles.actionButton, styles.deleteButton]}
                         onLongPress={() => {
                             Alert.alert(
-                                "Delete Job",
-                                "Are you sure you want to delete this job? This cannot be undone.",
+                                "Supprimer le job",
+                                "Es-tu certain de vouloir supprimer ce job? Cette action est irréversible.",
                                 [
-                                    { text: "Cancel", style: "cancel" },
+                                    { text: "Annuler", style: "cancel" },
                                     {
-                                        text: "Delete",
+                                        text: "Supprimer",
                                         style: "destructive",
                                         onPress: async () => {
                                             setLoading(true);
                                             try {
-                                                const token = await AsyncStorage.getItem('token');
+                                                // M-03 FIX: Use 'userId' not 'token' (correct AsyncStorage key)
+                                                const userId = await AsyncStorage.getItem('userId');
+                                                const userRole = await AsyncStorage.getItem('userRole');
+                                                // Role guard: only ADMIN or OFFICE can delete
+                                                if (userRole !== 'ADMIN' && userRole !== 'OFFICE') {
+                                                    Alert.alert("Non autorisé", "Seuls les administrateurs peuvent supprimer un job.");
+                                                    setLoading(false);
+                                                    return;
+                                                }
                                                 await fetch(`${API_URL}/api/jobs/${job.id}`, {
                                                     method: 'DELETE',
-                                                    headers: { 'Authorization': `Bearer ${token}` }
+                                                    headers: { 'Authorization': `Bearer ${userId}` }
                                                 });
                                                 navigation.goBack();
                                             } catch (error) {
                                                 console.error(error);
-                                                Alert.alert("Error", "Failed to delete job");
+                                                Alert.alert("Erreur", "Impossible de supprimer le job.");
                                                 setLoading(false);
                                             }
                                         }

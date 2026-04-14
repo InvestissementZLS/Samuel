@@ -18,7 +18,7 @@ export async function getReviewRequest(token: string) {
     // @ts-ignore
     return await prisma.reviewRequest.findUnique({
         where: { token },
-        include: { job: { include: { client: true } } }
+        include: { job: { include: { property: { include: { client: true } } } } }
     });
 }
 

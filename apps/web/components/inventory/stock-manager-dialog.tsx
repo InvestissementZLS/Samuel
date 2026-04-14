@@ -79,8 +79,7 @@ export function StockManagerDialog({ isOpen, onClose, product }: StockManagerDia
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Manage Distribution: ${product.name}`}
-            description="Assign equipment or materials to technicians."
+            title={`Manage Distribution: ${product?.name}`}
         >
             <div className="space-y-6">
                 {/* Global Stats */}

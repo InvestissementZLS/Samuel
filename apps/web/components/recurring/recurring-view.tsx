@@ -15,7 +15,7 @@ interface RecurringViewProps {
 
 export function RecurringView({ activeTreatments, renewalCandidates, backlogJobs, safetyAlerts }: RecurringViewProps) {
     const { t, language } = useLanguage();
-    const dateLocale = language === 'FR' ? fr : enUS;
+    const dateLocale = language === 'fr' ? fr : enUS;
 
     return (
         <div className="max-w-6xl mx-auto p-8 space-y-8">

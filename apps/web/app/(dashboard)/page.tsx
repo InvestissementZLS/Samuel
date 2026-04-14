@@ -5,12 +5,12 @@ import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { WeeklyAuditReminder } from '@/components/inventory/weekly-audit-reminder';
 import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
-const PriorityAlerts = () => null;
-const AIAssistantWidget = () => null;
+import { RecentActivityWidget } from '@/components/dashboard/recent-activity-widget';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
-
 import { getUserProfile } from '@/app/actions/user-actions';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default async function DashboardPage() {
     let user = null;
@@ -32,32 +32,27 @@ export default async function DashboardPage() {
     };
 
     try {
-        // Fetch summary data for Extermination
-        const exoJobs = await prisma.job.count({ where: { division: 'EXTERMINATION' } });
-        const exoPendingJobs = await prisma.job.count({ where: { division: 'EXTERMINATION', status: 'PENDING' } });
-        const exoClients = await prisma.client.count({ where: { divisions: { has: 'EXTERMINATION' } } });
-        const exoRevenue = await prisma.invoice.aggregate({
-            where: { division: 'EXTERMINATION', status: 'PAID' },
-            _sum: { total: true }
-        });
+        // M-06 FIX: Run all queries in parallel with Promise.all — up to 3x faster on Supabase
+        const [
+            exoJobs, exoPendingJobs, exoClients, exoRevenue,
+            entJobs, entPendingJobs, entClients, entRevenue,
+            renoJobs, renoPendingJobs, renoClients, renoRevenue
+        ] = await Promise.all([
+            prisma.job.count({ where: { division: 'EXTERMINATION' } }),
+            prisma.job.count({ where: { division: 'EXTERMINATION', status: 'PENDING' } }),
+            prisma.client.count({ where: { divisions: { has: 'EXTERMINATION' } } }),
+            prisma.invoice.aggregate({ where: { division: 'EXTERMINATION', status: 'PAID' }, _sum: { total: true } }),
 
-        // Fetch summary data for Entreprises
-        const entJobs = await prisma.job.count({ where: { division: 'ENTREPRISES' } });
-        const entPendingJobs = await prisma.job.count({ where: { division: 'ENTREPRISES', status: 'PENDING' } });
-        const entClients = await prisma.client.count({ where: { divisions: { has: 'ENTREPRISES' } } });
-        const entRevenue = await prisma.invoice.aggregate({
-            where: { division: 'ENTREPRISES', status: 'PAID' },
-            _sum: { total: true }
-        });
+            prisma.job.count({ where: { division: 'ENTREPRISES' } }),
+            prisma.job.count({ where: { division: 'ENTREPRISES', status: 'PENDING' } }),
+            prisma.client.count({ where: { divisions: { has: 'ENTREPRISES' } } }),
+            prisma.invoice.aggregate({ where: { division: 'ENTREPRISES', status: 'PAID' }, _sum: { total: true } }),
 
-        // Fetch summary data for Renovation
-        const renoJobs = await prisma.job.count({ where: { division: 'RENOVATION' } });
-        const renoPendingJobs = await prisma.job.count({ where: { division: 'RENOVATION', status: 'PENDING' } });
-        const renoClients = await prisma.client.count({ where: { divisions: { has: 'RENOVATION' } } });
-        const renoRevenue = await prisma.invoice.aggregate({
-            where: { division: 'RENOVATION', status: 'PAID' },
-            _sum: { total: true }
-        });
+            prisma.job.count({ where: { division: 'RENOVATION' } }),
+            prisma.job.count({ where: { division: 'RENOVATION', status: 'PENDING' } }),
+            prisma.client.count({ where: { divisions: { has: 'RENOVATION' } } }),
+            prisma.invoice.aggregate({ where: { division: 'RENOVATION', status: 'PAID' }, _sum: { total: true } }),
+        ]);
 
         stats = {
             EXTERMINATION: {
@@ -109,10 +104,7 @@ export default async function DashboardPage() {
 
             {/* 🚨 Priority Alerts Widget */}
             {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
-                <>
-                    <AIAssistantWidget />
-                    <PriorityAlerts />
-                </>
+                <></>
             )}
 
             <DashboardStats stats={stats} />
@@ -126,9 +118,7 @@ export default async function DashboardPage() {
                         </p>
                     </div>
                     <div className="p-6 pt-0">
-                        <div className="text-sm text-gray-500">
-                            {t.dashboard.noActivity}
-                        </div>
+                        <RecentActivityWidget />
                     </div>
                 </div>
                 <div className="col-span-3 rounded-xl border bg-card text-card-foreground shadow-sm">

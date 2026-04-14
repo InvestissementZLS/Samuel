@@ -28,7 +28,7 @@ async function mergeClients() {
    for (const [name, list] of nameMap.entries()) {
        if (list.length > 1) {
            // Sort by creation date (oldest first is the master)
-           list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+           list.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
            const master = list[0];
            
            // The "cleanest" name is usually the newly imported one (last in the list) or the normalized one
@@ -70,7 +70,7 @@ async function mergeClients() {
                // 5. Move Properties (Check if address is exactly same to avoid Unique constraint failure if Property requires unique)
                // However Property has (clientId, id) mostly.
                for (const prop of dupe.properties) {
-                   const masterHasProp = master.properties.find(p => p.address === prop.address);
+                   const masterHasProp = master.properties.find((p: any) => p.address === prop.address);
                    if (!masterHasProp) {
                        await prisma.property.update({
                            where: { id: prop.id },
@@ -98,7 +98,7 @@ async function mergeClients() {
                    email: master.email,
                    phone: master.phone,
                    billingAddress: master.billingAddress,
-                   divisions: Array.from(new Set([...master.divisions, ...dupes.flatMap(d => d.divisions)]))
+                   divisions: Array.from(new Set([...master.divisions, ...dupes.flatMap((d: any) => d.divisions)]))
                }
            });
        }

@@ -5,15 +5,19 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import api, { STORAGE_KEYS } from '../services/api';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 export default function LoginScreen() {
     const navigation = useNavigation<LoginScreenNavigationProp>();
+    const { requestToken } = usePushNotifications();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [forgotLoading, setForgotLoading] = useState(false); // Added state
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -29,21 +33,96 @@ export default function LoginScreen() {
             });
 
             const user = response.data;
-            
-            // Fix: Actually save the userId to AsyncStorage so Inventory and Punch screens can use it!
-            await AsyncStorage.setItem('userId', user.id);
-            if (user.role) {
-                await AsyncStorage.setItem('userRole', user.role);
+
+            // B-01 FIX: Store the signed JWT token (not the raw userId) for auth
+            // The JWT is what gets sent as `Authorization: Bearer <token>` header
+            await AsyncStorage.multiSet([
+                [STORAGE_KEYS.AUTH_TOKEN, user.token],  // JWT for API authentication
+                [STORAGE_KEYS.USER_ID, user.id],         // userId for quick local access
+                [STORAGE_KEYS.USER_ROLE, user.role ?? ''],
+                [STORAGE_KEYS.USER_NAME, user.name ?? ''],
+                [STORAGE_KEYS.USER_EMAIL, user.email ?? ''],
+                [STORAGE_KEYS.USER_DIVISIONS, JSON.stringify(user.divisions || ['EXTERMINATION'])],
+            ]);
+
+            try {
+                const pushToken = await requestToken();
+                if (pushToken) {
+                    await api.post('/api/technician/update-push-token', { pushToken }, {
+                        headers: { Authorization: `Bearer ${user.token}` }
+                    });
+                }
+            } catch (e) {
+                console.log("Failed to register Expo push token:", e);
             }
 
             navigation.replace('JobList', { userId: user.id });
 
         } catch (error: any) {
             console.error(error);
-            Alert.alert('Connexion échouée', error.response?.data?.error || 'Une erreur est survenue.');
+            if (error.response?.status === 429) {
+                // Rate limit hit — show the server's message (includes wait time)
+                Alert.alert(
+                    '⏳ Trop de tentatives',
+                    error.response?.data?.error || 'Trop de tentatives de connexion. Réessayez dans quelques minutes.'
+                );
+            } else {
+                Alert.alert('Connexion échouée', error.response?.data?.error || 'Une erreur est survenue.');
+            }
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleForgotPassword = () => {
+        Alert.prompt(
+            "Réinitialisation",
+            "Entrez l'adresse courriel associée à votre compte:",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Envoyer",
+                    onPress: async (enteredEmail) => {
+                        if (!enteredEmail || !enteredEmail.includes('@')) {
+                            Alert.alert('Erreur', 'Veuillez entrer une adresse courriel valide.');
+                            return;
+                        }
+                        
+                        setForgotLoading(true);
+                        try {
+                            const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://praxiszls.com/api';
+                            const response = await fetch(`${API_URL}/auth/forgot-password`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ email: enteredEmail.trim() }),
+                            });
+
+                            if (!response.ok) {
+                                // Don't expose whether the email exists or not exactly, but log if error
+                                console.log("Forgot password API returned non-200");
+                            }
+
+                            Alert.alert(
+                                'Courriel envoyé',
+                                "Si un compte est associé à ce courriel, vous recevrez un lien de réinitialisation sous peu."
+                            );
+                        } catch (error) {
+                            console.error("Erreur forgot password:", error);
+                            Alert.alert('Erreur', 'Impossible de contacter le serveur.');
+                        } finally {
+                            setForgotLoading(false);
+                        }
+                    }
+                }
+            ],
+            "plain-text",
+            email // pre-fill with whatever they typed so far
+        );
     };
 
     return (
@@ -101,6 +180,17 @@ export default function LoginScreen() {
                     ) : (
                         <Text style={styles.buttonText}>Se connecter</Text>
                     )}
+                </TouchableOpacity>
+
+                {/* Forgot Password Button */}
+                <TouchableOpacity 
+                    onPress={handleForgotPassword}
+                    disabled={loading || forgotLoading}
+                    style={{ marginTop: 20, alignItems: 'center' }}
+                >
+                    <Text style={{ color: '#6b7280', fontSize: 14, fontWeight: '500' }}>
+                        {forgotLoading ? "Envoi en cours..." : "Mot de passe oublié ?"}
+                    </Text>
                 </TouchableOpacity>
             </View>
 

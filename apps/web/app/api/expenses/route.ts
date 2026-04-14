@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { v4 as uuidv4 } from "uuid";
+import { validateAuth } from "@/lib/auth";
+import { uploadToSupabase, buildJobPhotoPath } from "@/lib/supabase-storage";
+
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req: NextRequest) {
+  const currentUser = await validateAuth(req);
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   try {
     const formData = await req.formData();
     
@@ -24,15 +30,20 @@ export async function POST(req: NextRequest) {
     if (receiptFile && receiptFile.size > 0) {
       const buffer = Buffer.from(await receiptFile.arrayBuffer());
       const ext = path.extname(receiptFile.name) || '.jpg';
-      const filename = `${uuidv4()}${ext}`;
-      const uploadDir = path.join(process.cwd(), "public", "uploads", "expenses");
+      const filename = `expense-${userId || 'unknown'}-${Date.now()}${ext}`;
+      const storagePath = `receipts/${filename}`;
       
-      try {
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, filename), buffer);
-        receiptUrl = `/uploads/expenses/${filename}`;
-      } catch (uploadError) {
-        console.error("Failed to upload receipt:", uploadError);
+      const uploadResult = await uploadToSupabase(
+        'expenses-receipts', // use or create a bucket named 'expenses-receipts' in Supabase
+        storagePath,
+        buffer,
+        receiptFile.type || 'image/jpeg'
+      );
+
+      if (uploadResult.success && uploadResult.url) {
+        receiptUrl = uploadResult.url;
+      } else {
+        console.error("Failed to upload receipt to Supabase.");
         return NextResponse.json({ success: false, error: "Failed to upload receipt image" }, { status: 500 });
       }
     }

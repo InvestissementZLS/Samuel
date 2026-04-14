@@ -41,12 +41,12 @@ function getDefaultEmailConfig(division: string) {
     };
 }
 
-export async function getEmailConfig(division: Division) {
+export async function getEmailConfig(division: Division | string) {
     // Attempt to fetch custom settings from the database
     let dbSettings = null;
     try {
         dbSettings = await prisma.divisionSettings.findUnique({
-            where: { division }
+            where: { division: division as Division }
         });
     } catch (e) {
         console.warn("Could not fetch division settings from DB, falling back to defaults.", e);
@@ -224,41 +224,7 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
 
 const systemResend = resendEntreprises || (process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null);
 
-export async function sendPasswordResetEmail(email: string, token: string) {
-    if (!systemResend) {
-        console.log(`[EMAIL MOCK] Password reset link for ${email}: ${getAppUrl()}/reset-password?token=${token}`);
-        return;
-    }
 
-    try {
-        await systemResend.emails.send({
-            from: 'Extermination ZLS <extermination@praxiszls.com>',
-            to: email,
-            subject: 'Réinitialisation de mot de passe / Password Reset',
-            html: `
-                <div style="font-family: sans-serif;">
-                    <h2>Réinitialisation de mot de passe</h2>
-                    <p>Vous avez demandé une réinitialisation de mot de passe.</p>
-                    <p>Cliquez sur le lien ci-dessous pour changer votre mot de passe:</p>
-                    <a href="${getAppUrl()}/reset-password?token=${token}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                        Réinitialiser le mot de passe
-                    </a>
-                    <p>Ce lien est valide pour 1 heure.</p>
-                    <hr/>
-                    <h2>Password Reset</h2>
-                    <p>You requested a password reset.</p>
-                    <p>Click the link below to reset your password:</p>
-                    <a href="${getAppUrl()}/reset-password?token=${token}">Reset Password</a>
-                    <p>This link will expire in 1 hour.</p>
-                </div>
-            `,
-        });
-    } catch (error) {
-        console.error('Failed to send email:', error);
-        // Fallback to logging for development if email fails
-        console.log(`[EMAIL FALLBACK] Password reset link for ${email}: ${getAppUrl()}/reset-password?token=${token}`);
-    }
-}
 
 export async function sendPreparationListEmail(client: Client, division: Division, items: any[]) {
     // items must be list of { listUrl: string, serviceName: string }
@@ -536,3 +502,52 @@ export async function sendGenericEmail(to: string, subject: string, html: string
     }
 }
 
+/**
+ * Sends a password reset email to the user.
+ */
+export async function sendPasswordResetEmail(email: string, token: string, division: string = "EXTERMINATION") {
+    try {
+        const config = await getEmailConfig(division);
+        if (!config.resend) {
+            return { success: false, error: "Resend configuration missing" };
+        }
+
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://praxiszls.com';
+        const resetLink = `${appUrl}/reset-password?token=${token}`;
+
+        const html = `
+            <div style="font-family: sans-serif; max-w-2xl mx-auto; p-4 text-gray-800">
+                <h1 style="color: #1e3a8a; font-size: 24px; margin-bottom: 20px;">Réinitialisation de votre mot de passe</h1>
+                <p>Vous avez demandé à réinitialiser votre mot de passe pour votre compte technicien ZLS.</p>
+                <p>Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe (valide pendant 1 heure) :</p>
+                
+                <div style="margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                        Réinitialiser mon mot de passe
+                    </a>
+                </div>
+                
+                <p style="font-size: 14px; color: #666;">Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :</p>
+                <p style="font-size: 12px; color: #666; word-break: break-all;">${resetLink}</p>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #eaeaea;" />
+                <p style="font-size: 12px; color: #999;">Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer ce courriel.</p>
+            </div>
+        `;
+
+        const data = await config.resend.emails.send({
+            from: config.from,
+            to: email,
+            subject: 'ZLS - Réinitialisation de votre mot de passe',
+            html: html,
+        });
+
+        if (data.error) {
+            return { success: false, error: data.error.message };
+        }
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error sending password reset email:", error);
+        return { success: false, error: error.message };
+    }
+}

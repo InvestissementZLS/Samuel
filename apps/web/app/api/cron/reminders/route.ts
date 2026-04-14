@@ -1,9 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { sendGenericEmail } from "@/lib/email";
 import { addDays, startOfDay, endOfDay, format } from "date-fns";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    // S-09 FIX: Cron endpoints must be protected by a secret header
+    // Set CRON_SECRET in .env and in Vercel's cron job config
+    const authHeader = request.headers.get('authorization');
+    const expectedSecret = process.env.CRON_SECRET;
+    if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const tomorrow = addDays(new Date(), 1);
         const start = startOfDay(tomorrow);

@@ -1,13 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { JobStatus } from "@prisma/client";
-import { sendGenericEmail } from "@/lib/email";
 import { validateAuth } from "@/lib/auth";
 
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    // 🔐 B-03 FIX: Job details include client name, phone, email, address — must be authenticated
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
     try {
         const job = await prisma.job.findUnique({
@@ -73,37 +76,9 @@ export async function PATCH(
             },
         });
 
-        // Automation: Send Invoice on Completion
-        if (status === 'COMPLETED') {
-            // Check if invoice already exists
-            const existingInvoice = await prisma.invoice.findFirst({
-                where: { jobId: job.id },
-            });
-
-            if (!existingInvoice) {
-                // Create new invoice
-                const newInvoice = await prisma.invoice.create({
-                    data: {
-                        clientId: job.property.clientId,
-                        jobId: job.id,
-                        status: 'SENT',
-                        description: `Invoice for Job at ${job.property.address}`,
-                        total: 0, // In a real app, we'd calculate this from job products/services
-                    },
-                });
-
-                // Send Email
-                const clientEmail = job.property.client.email;
-                if (clientEmail) {
-                    await sendGenericEmail(
-                        clientEmail,
-                        `Invoice for Job at ${job.property.address}`,
-                        `Dear ${job.property.client.name},\n\nYour job has been completed. An invoice (ID: ${newInvoice.id}) has been generated.\n\nPlease log in to the portal to view and pay.\n\nThanks,\nZLS Team`,
-                        job.division
-                    );
-                }
-            }
-        }
+        // M-05 FIX: Invoice creation is handled exclusively by /api/jobs/[id]/complete
+        // which uses a Prisma transaction + invoiceTriggered flag to prevent duplicates.
+        // Do NOT create invoices here to avoid double-billing.
 
         return NextResponse.json(job);
     } catch (error) {

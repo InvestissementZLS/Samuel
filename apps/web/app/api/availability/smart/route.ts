@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSmartSlots } from "@/lib/smart-scheduling";
+import { validateAuth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const searchParams = request.nextUrl.searchParams;
     const dateStr = searchParams.get("date");
     const lat = searchParams.get("lat");

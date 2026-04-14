@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { validateAuth } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
+    // 🔐 B-04 FIX: Technician punch status (location timing) must be authenticated
+    const currentUser = await validateAuth(req);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 

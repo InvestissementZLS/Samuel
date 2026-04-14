@@ -49,7 +49,7 @@ export function JobFilters({ jobs, onFilterChange, technicians = [], services = 
                 j.property.client.name.toLowerCase().includes(q) ||
                 j.property.address.toLowerCase().includes(q) ||
                 j.id.toLowerCase().includes(q) ||
-                (j.title || "").toLowerCase().includes(q)
+                ((j as any).title || "").toLowerCase().includes(q)
             );
         }
 
@@ -69,9 +69,9 @@ export function JobFilters({ jobs, onFilterChange, technicians = [], services = 
                 const jobDate = new Date(j.scheduledAt);
                 const matchesYear = jobDate.getFullYear().toString() === yearFilter;
 
-                if (monthFilter !== "ALL") {
+                if (periodFilter !== "ALL") {
                     // Month is 0-indexed in JS date, but filter value is likely 0-11 string
-                    return matchesYear && jobDate.getMonth().toString() === monthFilter;
+                    return matchesYear && jobDate.getMonth().toString() === periodFilter;
                 }
                 return matchesYear;
             });
@@ -100,7 +100,7 @@ export function JobFilters({ jobs, onFilterChange, technicians = [], services = 
                 j.property.client.name.toLowerCase().includes(q) ||
                 j.property.address.toLowerCase().includes(q) ||
                 j.id.toLowerCase().includes(q) ||
-                (j.title || "").toLowerCase().includes(q)
+                ((j as any).title || "").toLowerCase().includes(q)
             );
         }
 

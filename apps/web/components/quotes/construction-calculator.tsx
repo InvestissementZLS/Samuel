@@ -8,7 +8,7 @@ import { Calculator, Ruler, TrendingUp } from "lucide-react";
 interface ConstructionCalculatorProps {
     isOpen: boolean;
     onClose: () => void;
-    division: "EXTERMINATION" | "ENTREPRISES";
+    division: "EXTERMINATION" | "ENTREPRISES" | "RENOVATION";
     onConfirm: (item: { description: string; price: number; quantity: number; cost: number }) => void;
 }
 

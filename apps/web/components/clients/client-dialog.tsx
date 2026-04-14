@@ -194,7 +194,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                     <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.divisions}</label>
                     <div className="flex gap-4 flex-wrap">
                         {/* Extermination Option - Visible if user has access */}
-                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                        {(user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -213,7 +213,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                         )}
 
                         {/* Entreprises Option - Visible if user has access */}
-                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                        {(user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -232,7 +232,7 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
                         )}
 
                         {/* Renovation Option - Visible if user has access */}
-                        {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                        {(user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"

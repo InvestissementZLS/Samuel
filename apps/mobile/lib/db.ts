@@ -31,6 +31,7 @@ export const initDB = () => {
                 description TEXT,
                 clientName TEXT,
                 address TEXT,
+                division TEXT DEFAULT 'EXTERMINATION',
                 details_json TEXT, -- Full object for details view
                 syncStatus TEXT DEFAULT 'SYNCED' -- SYNCED, DIRTY
             );
@@ -40,7 +41,8 @@ export const initDB = () => {
                 url TEXT,
                 method TEXT,
                 body TEXT,
-                createdAt TEXT
+                createdAt TEXT,
+                retryCount INTEGER DEFAULT 0
             );
         `);
             console.log('Database initialized successfully');
@@ -70,7 +72,7 @@ export const saveJobsToLocal = (jobs: any[]) => {
 
                 try {
                     db.runSync(
-                        'INSERT OR REPLACE INTO jobs (id, scheduledAt, status, description, clientName, address, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        'INSERT OR REPLACE INTO jobs (id, scheduledAt, status, description, clientName, address, division, details_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                         [
                             job.id,
                             job.scheduledAt,
@@ -78,6 +80,7 @@ export const saveJobsToLocal = (jobs: any[]) => {
                             job.description || '',
                             job.property?.client?.name ?? 'Client Inconnu',
                             job.property?.address ?? 'Adresse Inconnue',
+                            job.division || 'EXTERMINATION',
                             JSON.stringify(job)
                         ]
                     );
@@ -125,4 +128,13 @@ export const getOutbox = () => {
 
 export const removeFromOutbox = (id: number) => {
     db.runSync('DELETE FROM outbox WHERE id = ?', [id]);
+};
+
+// M-07 FIX: Increment retry count so we can abandon permanently broken items
+export const incrementOutboxRetry = (id: number) => {
+    try {
+        db.runSync('UPDATE outbox SET retryCount = retryCount + 1 WHERE id = ?', [id]);
+    } catch (e) {
+        console.error("Failed to increment outbox retry count", e);
+    }
 };

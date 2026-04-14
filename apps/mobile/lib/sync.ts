@@ -1,7 +1,7 @@
 import * as Network from 'expo-network';
 import api from '../services/api';
 import axios from 'axios';
-import { getOutbox, removeFromOutbox, saveJobsToLocal, addToOutbox } from './db';
+import { getOutbox, removeFromOutbox, saveJobsToLocal, addToOutbox, getLocalJobs, incrementOutboxRetry } from './db';
 import { API_URL } from '../config';
 import { Alert } from 'react-native';
 import { DailyRunPayloadSchema } from './run-schema';
@@ -18,7 +18,10 @@ interface OutboxItem {
     method: 'POST' | 'PUT' | 'UPLOAD';
     body: string;
     createdAt: string;
+    retryCount?: number; // M-07 FIX: track retry attempts
 }
+
+const MAX_RETRIES = 3; // M-07 FIX: give up after 3 failed attempts
 
 // Process the Outbox: Send queued requests
 export const syncOutbox = async () => {
@@ -31,24 +34,23 @@ export const syncOutbox = async () => {
     console.log(`Syncing ${items.length} outbox items...`);
 
     for (const item of items) {
+        // M-07 FIX: Skip items that have exceeded max retries to prevent infinite server spam
+        if ((item.retryCount ?? 0) >= MAX_RETRIES) {
+            console.warn(`Outbox item ${item.id} exceeded ${MAX_RETRIES} retries — permanently removing.`);
+            removeFromOutbox(item.id);
+            continue;
+        }
+
         try {
             const body = JSON.parse(item.body);
-            // Construct full URL (stored url might be relative or full, let's assume relative usually but I stored what I passed)
-            // If I plan to use this generally, I should standardize.
-            // For now, I'll update the calling code to store full URLs or handle it here.
-
-            // Assuming stored URL is full for simplicity in this iteration
-            // We use the new 'api' instance which automatically handles BASE_URL + Token Auth
-            const url = item.url.startsWith('http') ? item.url : item.url; // 'api' appends API_URL if URL is relative!
+            const url = item.url;
 
             if (item.method === 'POST') {
                 await api.post(url, body);
             } else if (item.method === 'PUT') {
                 await api.put(url, body);
             } else if (item.method === 'UPLOAD') {
-                // Reconstruct FormData
                 const formData = new FormData();
-                // body should contain file meta { uri, name, type } and extra fields like { caption }
                 if (body.file) {
                     // @ts-ignore
                     formData.append('photo', {
@@ -60,23 +62,28 @@ export const syncOutbox = async () => {
                 if (body.caption) {
                     formData.append('caption', body.caption);
                 }
-
                 await api.post(url, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
-                    timeout: 20000 // give extra time for photo uploads
+                    timeout: 20000
                 });
             }
 
-            // If successful, remove from queue
+            // Success: remove from queue
             removeFromOutbox(item.id);
         } catch (error) {
-            console.error(`Failed to sync item ${item.id}`, error);
-            // Decide: Retry later? Delete if 4xx?
-            // For now, leave it. It will retry next sync.
-            // If 400 Bad Request, we should probably delete it to avoid blocking forever.
-            if (axios.isAxiosError(error) && error.response && error.response.status >= 400 && error.response.status < 500) {
-                console.warn("Removing bad request from outbox");
-                removeFromOutbox(item.id);
+            console.error(`Failed to sync outbox item ${item.id}`, error);
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status >= 400 && error.response.status < 500) {
+                    // 4xx: Bad request — will never succeed, remove immediately
+                    console.warn(`Removing 4xx bad request from outbox (status: ${error.response.status})`);
+                    removeFromOutbox(item.id);
+                } else {
+                    // 5xx: Server error — increment retry count (leave for next sync)
+                    incrementOutboxRetry(item.id);
+                }
+            } else {
+                // Network error — increment retry count
+                incrementOutboxRetry(item.id);
             }
         }
     }
@@ -127,10 +134,10 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
         }
     }
 
-    // 3. Return local data (whether we fetched new or not, now the DB is the source of truth)
-    // Actually, if we fetched, we saved to DB. So getLocalJobs() is always safe.
-    // However, if we are offline, we just return local.
-    return []; // The caller should call getLocalJobs() separately or we return it here.
+    // 3. M-02 FIX: Always return local cache (online or offline).
+    // If online: we just fetched + saved fresh data to SQLite, so getLocalJobs() has latest.
+    // If offline: we return the existing cache so technician is never left with an empty list.
+    return getLocalJobs();
 };
 
 // Helper to make an API call or queue it if offline

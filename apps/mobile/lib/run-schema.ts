@@ -17,6 +17,7 @@ export const DailyRunJobSchema = z.object({
   description: z.string().nullable().optional(),
   isDeleted: z.boolean().default(false),
   property: PropertySchema.optional().nullable(),
+  division: z.string().optional().default('EXTERMINATION'),
 });
 
 export const DailyRunPayloadSchema = z.array(DailyRunJobSchema);

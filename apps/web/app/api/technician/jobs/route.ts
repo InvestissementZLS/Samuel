@@ -49,6 +49,7 @@ export async function GET(request: Request) {
                 status: true,
                 description: true,
                 isDeleted: true,
+                division: true,
                 property: {
                     select: {
                         address: true,
@@ -73,6 +74,7 @@ export async function GET(request: Request) {
             status: job.status,
             description: job.description,
             isDeleted: job.isDeleted,
+            division: job.division,
             property: job.property ? {
                address: job.property.address,
                client: job.property.client ? {

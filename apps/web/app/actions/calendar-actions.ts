@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { JobStatus, Division } from '@prisma/client';
+import { sendPushNotification } from '@/lib/notifications';
+import { format } from 'date-fns';
 
 export async function createCalendarJob(data: {
     propertyId: string;
@@ -14,7 +16,7 @@ export async function createCalendarJob(data: {
     division?: Division;
     products?: { productId: string; quantity: number }[];
 }) {
-    await prisma.job.create({
+    const job = await prisma.job.create({
         data: {
             propertyId: data.propertyId,
             description: data.description,
@@ -32,7 +34,29 @@ export async function createCalendarJob(data: {
                 }))
             } : undefined
         },
+        include: {
+            property: { select: { client: { select: { name: true } } } }
+        }
     });
+
+    // Fire Push Notifications for assigned technicians
+    if (data.technicianIds && data.technicianIds.length > 0) {
+        const title = "Nouvelle tâche assignée !";
+        const dateStr = format(data.scheduledAt, 'dd/MM à HH:mm');
+        const clientName = job.property?.client?.name || "un client";
+        const body = `On vous a ajouté une tâche d'ici le ${dateStr} pour ${clientName}.`;
+
+        // Send notifications via parallel promises
+        await Promise.all(data.technicianIds.map(techId => 
+            sendPushNotification({
+                targetUserId: techId,
+                title,
+                body,
+                data: { jobId: job.id, type: 'NEW_JOB' }
+            })
+        ));
+    }
+
     revalidatePath('/calendar');
 }
 
@@ -69,10 +93,28 @@ export async function updateCalendarJob(id: string, data: {
         };
     }
 
-    await prisma.job.update({
+    const updatedJob = await prisma.job.update({
         where: { id },
         data: updateData,
+        include: { property: { select: { client: { select: { name: true } } } } }
     });
+
+    if (technicianIds && technicianIds.length > 0) {
+        const title = "Mise à jour d'une tâche !";
+        const dateStr = format(updatedJob.scheduledAt, 'dd/MM à HH:mm');
+        const clientName = updatedJob.property?.client?.name || "un client";
+        const body = `Votre tâche du ${dateStr} pour ${clientName} a été modifiée.`;
+
+        await Promise.all(technicianIds.map(techId => 
+            sendPushNotification({
+                targetUserId: techId,
+                title,
+                body,
+                data: { jobId: updatedJob.id, type: 'UPDATE_JOB' }
+            })
+        ));
+    }
+
     revalidatePath('/calendar');
 }
 

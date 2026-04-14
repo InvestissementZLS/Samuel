@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validateAuth } from "@/lib/auth";
 
 export async function POST(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    // 🔐 B-02 FIX: This endpoint creates invoices & commissions — must be authenticated
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     try {
         const body = await request.json();
         const { signature, isClientUnreachable, notes } = body;
@@ -135,6 +140,13 @@ export async function POST(
                         }
                     }
                 }
+
+                // D. Send Invoice Email (if client has an email address)
+                // We do this outside the transaction or as a non-blocking step, 
+                // but since we are inside `tx`, we'll just check if email exists.
+                // Note: The actual email sending logic might be managed elsewhere by an event, 
+                // but if we were to send it here, we MUST check for job.quote.client.email.
+                // Currently, invoice creation is all we do here. Email sending is manual or handled separately.
 
                 // Mark as triggered so we don't duplicate on re-completion
                 await tx.job.update({

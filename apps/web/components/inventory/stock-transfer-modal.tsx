@@ -49,7 +49,7 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
             const fromUserId = fromId === 'WAREHOUSE' ? null : fromId;
             const toUserId = toId === 'WAREHOUSE' ? null : toId;
 
-            const res = await transferStock(productId, fromUserId, toUserId, quantity);
+            const res = await transferStock(fromUserId, toUserId, [{ productId, quantity }]);
 
             if (res.success) {
                 toast.success("Stock transferred successfully");
@@ -59,7 +59,7 @@ export function StockTransferModal({ isOpen, onClose, onSuccess }: StockTransfer
                 setProductId('');
                 setQuantity(1);
             } else {
-                toast.error(res.message);
+                toast.error(res.error || "Failed");
             }
         } catch (error) {
             console.error(error);

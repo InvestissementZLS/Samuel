@@ -29,7 +29,6 @@ export async function createTechnician(data: {
             internalHourlyRate: data.internalHourlyRate,
             commissionPercentageSales: data.commissionPercentageSales,
             commissionPercentageSupervision: data.commissionPercentageSupervision,
-            commissionPercentageSupervision: data.commissionPercentageSupervision,
             canManageCommissions: data.canManageCommissions,
             canViewReports: data.canViewReports,
             canManageTimesheets: data.canManageTimesheets,

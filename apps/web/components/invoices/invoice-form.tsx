@@ -51,7 +51,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                 <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-0">{label || t?.common?.insert || "Insert"}</Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0 shadow-lg" side={side}>
-                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">{t?.settings?.warranties || "Templates"}</div>
+                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">{(t?.settings as any)?.warranties || "Templates"}</div>
                 <div className="max-h-60 overflow-y-auto">
                     {templates.length === 0 ? <div className="p-4 text-xs text-center text-gray-500">No templates found</div> : templates.map(temp => (
                         <button
@@ -72,7 +72,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
     // Use prefilledClient (from client page) if available, otherwise look in clients list
     const resolvedClient = prefilledClient ||
         clients.find(c => c.id === selectedClientId) ||
-        (invoice?.client?.id === selectedClientId ? (invoice as any).client : undefined);
+        ((invoice as any)?.client?.id === selectedClientId ? (invoice as any).client : undefined);
 
 
     // Form State
@@ -237,14 +237,14 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                     onClose={() => setIsPreviewOpen(false)}
                     // @ts-ignore
                     language={selectedClient?.language || language}
-                    invoice={{
+                    invoice={({
                         // @ts-ignore
                         id: invoice?.id || "PREVIEW",
                         number: invoice?.number || "PREVIEW",
                         clientId: selectedClientId,
                         poNumber: poNumber,
                         issuedDate: issuedDate,
-                        dueDate: dueDate,
+                        dueDate: dueDate || null,
                         division: division,
                         status: "DRAFT",
                         total: total,
@@ -261,7 +261,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                         })),
                         createdAt: new Date(),
                         updatedAt: new Date(),
-                    }}
+                    }) as any}
                 />
             )}
 
@@ -316,13 +316,13 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                             onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION")}
                             className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                         >
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
                                 <option value="EXTERMINATION">{t.divisions.extermination}</option>
                             )}
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
                                 <option value="ENTREPRISES">{t.divisions.entreprises}</option>
                             )}
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
                                 <option value="RENOVATION">Rénovation Esthéban</option>
                             )}
                         </select>

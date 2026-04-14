@@ -192,9 +192,8 @@ export async function generateFollowUpJobs(parentJobId: string) {
                         products: {
                             create: {
                                 productId: service.id,
-                                unitPrice: 0, // Included
-                                quantity: 1,
-                                total: 0
+                                price: 0, // Included
+                                quantity: 1
                             }
                         }
                     }

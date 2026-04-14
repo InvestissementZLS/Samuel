@@ -448,7 +448,7 @@ const QuoteRow = memo(({ quote, t, clientId, onEdit }: { quote: QuoteWithDetails
                                 const r = await sendQuote(quote.id);
                                 r.success
                                     ? toast.success(t.invoices.emailSent, { id: tid })
-                                    : toast.error((r.error || 'Error'), { id: tid });
+                                    : toast.error(String(r.error || 'Error'), { id: tid });
                             } catch {
                                 toast.error(t.invoices.emailError, { id: tid });
                             }

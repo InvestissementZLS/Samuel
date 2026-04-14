@@ -1,16 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; // P-03 FIX
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import api from '../services/api';
-import { getLocalJobs, getOutbox, saveJobsToLocal } from '../lib/db';
+import api, { STORAGE_KEYS } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getLocalJobs, getOutbox } from '../lib/db';
 import { syncData } from '../lib/sync';
 import { optimizeRoute } from '../lib/ai';
 import { format } from 'date-fns';
 import * as Location from 'expo-location';
 import { DailyRunJob } from '../lib/run-schema';
+
+// P-01 FIX: French status labels
+const STATUS_LABELS: Record<string, string> = {
+    SCHEDULED: 'Planifié',
+    EN_ROUTE: 'En Route',
+    IN_PROGRESS: 'En Cours',
+    COMPLETED: 'Terminé',
+    PENDING: 'En attente',
+    CANCELLED: 'Annulé',
+};
 
 type JobListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'JobList'>;
 type JobListScreenRouteProp = RouteProp<RootStackParamList, 'JobList'>;
@@ -23,12 +35,30 @@ export default function JobListScreen() {
     const { userId } = route.params;
     const [jobs, setJobs] = useState<DailyRunJob[]>([]);
     const [loading, setLoading] = useState(true);
+    const [optimizing, setOptimizing] = useState(false); // P-05 FIX: separate optimizing state
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING'>('LOADING');
+    const [punchStatus, setPunchStatus] = useState<'OPEN' | 'CLOSED' | 'LOADING' | 'ERROR'>('LOADING');
     const [activeTimesheetId, setActiveTimesheetId] = useState<string | null>(null);
     const [punchLoading, setPunchLoading] = useState(false);
 
     const [syncState, setSyncState] = useState('SYNCED');
+
+    // M-09 FIX: Division filtering
+    const [userDivisions, setUserDivisions] = useState<string[]>(['EXTERMINATION']);
+    const [activeDivision, setActiveDivision] = useState<string>('EXTERMINATION');
+
+    const loadSettings = async () => {
+        try {
+            const divisionsRaw = await AsyncStorage.getItem(STORAGE_KEYS.USER_DIVISIONS);
+            if (divisionsRaw) {
+                const parsed = JSON.parse(divisionsRaw);
+                setUserDivisions(parsed);
+                if (parsed.length > 0) setActiveDivision(parsed[0]);
+            }
+        } catch (error) {
+            console.error("Failed to load user settings", error);
+        }
+    }
 
     const loadJobs = async () => {
         // 1. Load Local Immediately
@@ -50,8 +80,10 @@ export default function JobListScreen() {
     };
 
     useEffect(() => {
-        loadJobs();
-        checkPunchStatus();
+        loadSettings().then(() => {
+            loadJobs();
+            checkPunchStatus();
+        });
 
         // Poll for outbox status occasionally? Or rely on focus?
         // simple interval to check queue size
@@ -74,8 +106,10 @@ export default function JobListScreen() {
                 setActiveTimesheetId(null);
             }
         } catch (error) {
+            // P-07 FIX: Don't silently reset to CLOSED on error — could create duplicate punch-ins
+            // Instead, show ERROR state so the technician knows something is wrong.
             console.error('Failed to check punch status:', error);
-            setPunchStatus('CLOSED');
+            setPunchStatus(prev => prev === 'LOADING' ? 'ERROR' : prev); // Keep existing state if known
             setActiveTimesheetId(null);
         }
     };
@@ -98,15 +132,17 @@ export default function JobListScreen() {
                 <View style={[styles.badge,
                 item.status === 'IN_PROGRESS' ? styles.badgeActive :
                     item.status === 'COMPLETED' ? styles.badgeCompleted :
+                    item.status === 'EN_ROUTE' ? styles.badgeEnRoute :
                         styles.badgePending
                 ]}>
-                    <Text style={styles.badgeText}>{item.status}</Text>
+                    {/* P-01 FIX: French status labels */}
+                    <Text style={styles.badgeText}>{STATUS_LABELS[item.status] ?? item.status}</Text>
                 </View>
             </View>
 
             <Text style={styles.clientName}>{item.property.client.name}</Text>
             <Text style={styles.address}>{item.property.address}</Text>
-            <Text style={styles.jobType}>{item.description || 'No description'}</Text>
+            <Text style={styles.jobType}>{item.description || 'Aucune description'}</Text>
         </TouchableOpacity>
     );
 
@@ -119,45 +155,48 @@ export default function JobListScreen() {
     }
 
     const handleOptimize = async () => {
-        setLoading(true);
+        // P-05 FIX: Use separate optimizing state — don't hide the full job list during optimization
+        setOptimizing(true);
         try {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Permission Denied', 'Need location to optimize route from where you are.');
-                setLoading(false);
+                Alert.alert('Permission refusée', 'La localisation est nécessaire pour optimiser la route.');
                 return;
             }
 
             const location = await Location.getCurrentPositionAsync({});
-
-            // AI Magic 🧠
             const optimized = optimizeRoute(
                 location.coords.latitude,
                 location.coords.longitude,
                 jobs
             );
-
             setJobs(optimized as DailyRunJob[]);
-            // Optional: Save this new order to DB? 
-            // For now, it's a visual sort. If we save, we need to handle "order" field.
-            // saveJobsToLocal(optimized); 
-
-            Alert.alert("Route Optimized ⚡", "Jobs reordered for shortest travel time!");
-
+            Alert.alert("Route Optimisée ⚡", "Jobs réordonnés pour le trajet le plus court!");
         } catch (error) {
             console.error("Optimization failed", error);
-            Alert.alert("Error", "Could not optimize route.");
+            Alert.alert("Erreur", "Impossible d'optimiser la route.");
         } finally {
-            setLoading(false);
+            setOptimizing(false);
         }
     };
 
+    // Filter jobs by division
+    const filteredJobs = jobs.filter(j => j.division === activeDivision);
+
     return (
-        <View style={styles.container}>
+        // P-03 FIX: SafeAreaView prevents content being cut by notch/Dynamic Island/status bar
+        <SafeAreaView style={styles.container} edges={['top']}>
+            {/* P-05 FIX: Overlay spinner — does not hide the job list */}
+            {optimizing && (
+                <View style={styles.optimizingOverlay}>
+                    <ActivityIndicator size="large" color="#2563eb" />
+                    <Text style={{ color: 'white', marginTop: 8, fontWeight: '600' }}>Optimisation...</Text>
+                </View>
+            )}
             <View style={styles.header}>
                 <View style={styles.headerTop}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.headerTitle}>My Schedule</Text>
+                        <Text style={styles.headerTitle}>Mon Horaire</Text>
                         {syncState === 'PENDING_UPLOAD' && (
                             <View style={{ marginLeft: 10, backgroundColor: '#f59e0b', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 2 }}>
                                 <Text style={{ fontSize: 10, color: 'white', fontWeight: 'bold' }}>WAITING FOR WIFI</Text>
@@ -165,15 +204,21 @@ export default function JobListScreen() {
                         )}
                     </View>
                     <TouchableOpacity
-                        style={[styles.punchBtn, punchStatus === 'OPEN' ? styles.punchOut : styles.punchIn]}
-                        onPress={handlePunch}
+                        style={[styles.punchBtn,
+                            punchStatus === 'OPEN' ? styles.punchOut :
+                            punchStatus === 'ERROR' ? styles.punchError :
+                            styles.punchIn
+                        ]}
+                        onPress={punchStatus === 'ERROR' ? checkPunchStatus : handlePunch}
                         disabled={punchLoading || punchStatus === 'LOADING'}
                     >
                         {punchLoading ? (
                             <ActivityIndicator color="white" size="small" />
                         ) : (
                             <Text style={styles.punchBtnText}>
-                                {punchStatus === 'OPEN' ? 'Punch OUT' : 'Punch IN'}
+                                {punchStatus === 'OPEN' ? '🔴 Fin de journée' :
+                                 punchStatus === 'ERROR' ? '⚠️ Réessayer' :
+                                 '🟢 Début journée'}
                             </Text>
                         )}
                     </TouchableOpacity>
@@ -238,22 +283,45 @@ export default function JobListScreen() {
                         <Text style={[styles.inventoryBtnText, { color: '#d97706' }]}>🧾 Dépense</Text>
                     </TouchableOpacity>
                 </View>
+                
+                {/* Division Tabs (Only show if user has > 1 division) */}
+                {userDivisions.length > 1 && (
+                    <View style={styles.divisionTabs}>
+                        {userDivisions.map(div => (
+                            <TouchableOpacity
+                                key={div}
+                                style={[
+                                    styles.divisionTab,
+                                    activeDivision === div && styles.divisionTabActive
+                                ]}
+                                onPress={() => setActiveDivision(div)}
+                            >
+                                <Text style={[
+                                    styles.divisionTabText,
+                                    activeDivision === div && styles.divisionTabTextActive
+                                ]}>
+                                    {div.charAt(0) + div.slice(1).toLowerCase()}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
             </View>
 
             <FlatList
-                data={jobs}
+                data={filteredJobs}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
                 refreshing={loading}
                 onRefresh={loadJobs}
                 ListEmptyComponent={
-                    <Text style={styles.emptyText}>No jobs scheduled for today.</Text>
+                    <Text style={styles.emptyText}>Aucun job planifié pour aujourd'hui.</Text>
                 }
             />
 
             <StatusBar style="auto" />
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -274,6 +342,35 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
+    },
+    divisionTabs: {
+        flexDirection: 'row',
+        marginTop: 15,
+        backgroundColor: '#f3f4f6',
+        borderRadius: 8,
+        padding: 4,
+    },
+    divisionTab: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 6,
+    },
+    divisionTabActive: {
+        backgroundColor: 'white',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    divisionTabText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#6b7280',
+    },
+    divisionTabTextActive: {
+        color: '#111827',
     },
     headerTitle: {
         fontSize: 28,
@@ -344,8 +441,19 @@ const styles = StyleSheet.create({
     badgeCompleted: {
         backgroundColor: '#d1fae5',
     },
+    badgeEnRoute: {
+        backgroundColor: '#ffedd5',
+    },
     badgePending: {
         backgroundColor: '#f3f4f6',
+    },
+    punchError: {
+        backgroundColor: '#f59e0b',
+    },
+    optimizingOverlay: {
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        zIndex: 999, justifyContent: 'center', alignItems: 'center',
     },
     badgeText: {
         fontSize: 12,

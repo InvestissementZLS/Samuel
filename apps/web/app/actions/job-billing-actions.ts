@@ -46,7 +46,7 @@ export async function addBillableService(jobId: string, productId: string, quant
         });
 
         if (!invoice) {
-            const number = await generateInvoiceNumber(job.division);
+            const number = await generateInvoiceNumber(job.division as any);
             invoice = await prisma.invoice.create({
                 data: {
                     jobId,
@@ -155,7 +155,7 @@ export async function ensureJobInvoiceFinalized(jobId: string) {
     let invoice = job.invoices[0];
 
     if (!invoice) {
-        const number = await generateInvoiceNumber(job.division);
+        const number = await generateInvoiceNumber(job.division as any);
         invoice = await prisma.invoice.create({
             data: {
                 jobId,

@@ -1,13 +1,31 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { signJWT } from "@/lib/jwt";
+import { loginRateLimiter } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { email, password } = body;
+
+        // Rate limiting: 5 attempts per 15 minutes per IP + email
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+        const rateLimitKey = `${ip}:${(email || '').toLowerCase()}`;
+        const rateResult = loginRateLimiter.check(rateLimitKey);
+
+        if (!rateResult.allowed) {
+            const retryAfterSec = Math.ceil(rateResult.resetIn / 1000);
+            return NextResponse.json(
+                { error: `Trop de tentatives. Réessayez dans ${Math.ceil(retryAfterSec / 60)} minute(s).` },
+                {
+                    status: 429,
+                    headers: { 'Retry-After': String(retryAfterSec) }
+                }
+            );
+        }
 
         if (!email || !password) {
             return NextResponse.json(
@@ -77,13 +95,27 @@ export async function POST(request: Request) {
             );
         }
 
-        // Return user info (excluding password)
+        // B-01 FIX: Sign a proper JWT token for mobile authentication.
+        // The JWT contains userId (sub), email, role — signed with HS256 / 7 days expiry.
+        const token = await signJWT({
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.name ?? undefined,
+            divisions: user.divisions ?? [],
+        });
+
+        // Return user info (excluding password) + signed JWT token for mobile
         const { password: _, ...userWithoutPassword } = user;
         const safeUser = JSON.parse(JSON.stringify(userWithoutPassword));
 
-        const response = NextResponse.json(safeUser);
+        // Include token in JSON body — mobile app stores this in AsyncStorage
+        const response = NextResponse.json({
+            ...safeUser,
+            token,
+        });
 
-        // Cookie options
+        // Cookie options for web dashboard (httpOnly, secure in prod)
         const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -92,9 +124,13 @@ export async function POST(request: Request) {
             path: '/',
         };
 
-        response.cookies.set('auth_token', user.id, cookieOptions);
-        // Non-httpOnly version for client-side legacy access
+        // Store the signed JWT in the auth_token cookie (replaces raw userId)
+        response.cookies.set('auth_token', token, cookieOptions);
+        // Non-httpOnly userId cookie for legacy client-side access
         response.cookies.set('userId', user.id, { ...cookieOptions, httpOnly: false });
+
+        // Reset rate limiter on successful login
+        loginRateLimiter.reset(rateLimitKey);
 
         return response;
     } catch (error) {

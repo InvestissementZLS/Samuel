@@ -36,8 +36,6 @@ export async function convertQuoteToJob(quoteId: string) {
             division: quote.division,
             status: 'PENDING',
             scheduledAt: new Date(),
-            status: 'PENDING',
-            scheduledAt: new Date(),
             description: quote.description || '',
             products: {
                 create: quote.items.map(item => ({

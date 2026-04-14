@@ -245,7 +245,7 @@ export async function transferStock(fromUserId: string | null, toUserId: string 
                     // Warehouse decrement (optional based on logic, but good for consistency)
                     // If we track warehouse stock in InventoryItem(userId=null)
                     await tx.inventoryItem.update({
-                        where: { productId_userId: { productId: item.productId, userId: null } }, // This might fail if no warehouse record exists
+                        where: { productId_userId: { productId: item.productId, userId: null as any } }, // This might fail if no warehouse record exists
                         data: { quantity: { decrement: item.quantity } }
                     }).catch(() => {
                         // If warehouse record missing, maybe ignore or error?

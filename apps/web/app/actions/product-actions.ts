@@ -54,7 +54,6 @@ interface CreateProductData {
     materials?: { id: string; quantity: number }[];
     // New
     isPackage?: boolean;
-    isPackage?: boolean;
     includedServices?: {
         id: string;
         delayDays?: number;

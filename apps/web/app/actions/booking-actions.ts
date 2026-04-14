@@ -6,8 +6,13 @@ import { createCalendarJob } from './calendar-actions';
 import { JobStatus } from '@prisma/client';
 import { sendBookingConfirmation, sendPortalAccessEmail } from '@/lib/email';
 
-export async function createBookingLink(clientId: string, division: string = 'EXTERMINATION') {
-    const expiresAt = addDays(new Date(), 7);
+export async function createBookingLink(
+    clientId: string,
+    division: string = 'EXTERMINATION',
+    preferredDays: string[] = [],
+    preferredPeriod?: 'AM' | 'PM'
+) {
+    const expiresAt = addDays(new Date(), 14); // Extended to 14 days
 
     // @ts-ignore
     const link = await prisma.bookingLink.create({
@@ -15,6 +20,8 @@ export async function createBookingLink(clientId: string, division: string = 'EX
             clientId,
             expiresAt,
             division: division as any,
+            preferredDays,
+            preferredPeriod: preferredPeriod || null,
         }
     });
 
@@ -32,7 +39,7 @@ export async function verifyBookingToken(token: string) {
     if (new Date() > link.expiresAt) return null;
     if (link.status !== 'ACTIVE') return null;
 
-    return link;
+    return link; // includes preferredDays & preferredPeriod
 }
 
 export async function confirmBooking(
@@ -195,12 +202,16 @@ export async function checkExistingClient(phone: string, email: string) {
     return { exists: false };
 }
 
-export async function sendPortalLink(clientId: string) {
+export async function sendPortalLink(
+    clientId: string,
+    preferredDays: string[] = [],
+    preferredPeriod?: 'AM' | 'PM'
+) {
     // @ts-ignore
     const client = await prisma.client.findUnique({ where: { id: clientId } });
     if (!client || !client.email) return { success: false, error: "Client not found or no email" };
 
-    const token = await createBookingLink(clientId);
+    const token = await createBookingLink(clientId, 'EXTERMINATION', preferredDays, preferredPeriod);
 
     console.log(`[EMAIL SEND] Portal Link for ${client.email}: /portal/${token}`);
     

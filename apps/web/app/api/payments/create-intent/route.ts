@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { validateAuth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
+    // Payment intent creation must be authenticated — prevents unauthorized Stripe charges
+    const currentUser = await validateAuth(req);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     try {
         const { invoiceId } = await req.json();
 

@@ -45,6 +45,7 @@ export function AuditForm({ technicianId }: AuditFormProps) {
             // Let's submit 0 for anything not entered to be safe, assuming full audit.
             const allItems = products.map(p => ({
                 productId: p.id,
+                expectedQuantity: p.stock || 0,
                 actualQuantity: counts[p.id] || 0
             }));
 

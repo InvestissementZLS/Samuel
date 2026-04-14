@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 const PAGE_SIZE = 50;
 
-export default async function InvoicesPage({ searchParams }: { searchParams?: { page?: string } }) {
+export default async function InvoicesPage({ searchParams }: { searchParams?: { page?: string, clientId?: string } }) {
     const cookieStore = await cookies();
     const cookieLang = cookieStore.get("NEXT_LOCALE")?.value;
     const initialLanguage = (cookieLang === "fr" || cookieLang === "en") ? cookieLang : "en";

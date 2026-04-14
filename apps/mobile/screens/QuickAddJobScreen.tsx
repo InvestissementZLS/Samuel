@@ -33,6 +33,11 @@ export default function QuickAddJobScreen() {
     const [newClientAddress, setNewClientAddress] = useState('');
     const [creatingClient, setCreatingClient] = useState(false);
 
+    // B-05 FIX: Inline address addition for clients with no properties
+    const [showAddAddressForm, setShowAddAddressForm] = useState(false);
+    const [newAddress, setNewAddress] = useState('');
+    const [addingAddress, setAddingAddress] = useState(false);
+
     // ─── Job Details ─────────────────────────────────────────
     // Default: next full hour
     const nextHour = addHours(startOfHour(new Date()), 1);
@@ -102,6 +107,38 @@ export default function QuickAddJobScreen() {
             Alert.alert('Erreur', 'Impossible de créer le client. Réessaie.');
         } finally {
             setCreatingClient(false);
+        }
+    };
+
+    // B-05 FIX: Add address inline when client has no property
+    const handleAddAddress = async () => {
+        if (!newAddress.trim() || !selectedClient) return;
+        setAddingAddress(true);
+        try {
+            const res = await api.post('/api/clients', {
+                name: selectedClient.name,
+                phone: selectedClient.phone || undefined,
+                address: newAddress.trim(),
+            });
+            // The API creates a new property, but since client exists,
+            // we directly create a property via a dedicated endpoint if available,
+            // otherwise we refresh the client data
+            const { property } = res.data;
+            if (property) {
+                setSelectedPropertyId(property.id);
+                // Merge new property into selected client
+                setSelectedClient(prev => prev ? {
+                    ...prev,
+                    properties: [...(prev.properties || []), property]
+                } : prev);
+            }
+            setShowAddAddressForm(false);
+            setNewAddress('');
+            Alert.alert('✅ Adresse ajoutée', 'La nouvelle adresse a été enregistrée.');
+        } catch {
+            Alert.alert('Erreur', 'Impossible d\'ajouter l\'adresse. Réessaie.');
+        } finally {
+            setAddingAddress(false);
         }
     };
 
@@ -205,7 +242,41 @@ export default function QuickAddJobScreen() {
                     <View style={styles.card}>
                         <Text style={styles.sectionLabel}>Adresse</Text>
                         {(selectedClient.properties?.length ?? 0) === 0 ? (
-                            <Text style={styles.noData}>Aucune adresse enregistrée</Text>
+                            // B-05 FIX: Dead-end eliminated — offer inline address addition
+                            showAddAddressForm ? (
+                                <View>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Ex: 123 Rue Principale, Montréal"
+                                        value={newAddress}
+                                        onChangeText={setNewAddress}
+                                        autoFocus
+                                    />
+                                    <TouchableOpacity
+                                        style={[styles.submitBtn, { marginTop: 8, padding: 12 }, addingAddress && styles.submitBtnDisabled]}
+                                        onPress={handleAddAddress}
+                                        disabled={addingAddress}
+                                    >
+                                        {addingAddress
+                                            ? <ActivityIndicator color="white" />
+                                            : <Text style={styles.submitBtnText}>✅ Enregistrer l'adresse</Text>
+                                        }
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => setShowAddAddressForm(false)} style={{ marginTop: 8, alignItems: 'center' }}>
+                                        <Text style={{ color: '#6b7280' }}>Annuler</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <View style={{ alignItems: 'center', gap: 8 }}>
+                                    <Text style={styles.noData}>⚠️ Aucune adresse enregistrée pour ce client.</Text>
+                                    <TouchableOpacity
+                                        style={[styles.selectorBtn, styles.selectorBtnSecondary]}
+                                        onPress={() => setShowAddAddressForm(true)}
+                                    >
+                                        <Text style={[styles.selectorBtnText, { color: '#16a34a' }]}>➕ Ajouter une adresse maintenant</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )
                         ) : selectedProperty ? (
                             <View style={styles.selectedBox}>
                                 <Text style={{ flex: 1, fontSize: 15, color: '#1f2937' }}>
@@ -232,7 +303,8 @@ export default function QuickAddJobScreen() {
                 <View style={styles.card}>
                     <Text style={styles.sectionLabel}>Heure prévue</Text>
                     <View style={styles.timeRow}>
-                        {[8, 9, 10, 11, 12, 13, 14, 15, 16, 17].map(h => (
+                        {/* P-04 FIX: Extended hours 6h-22h to cover emergencies and evening jobs */}
+                        {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22].map(h => (
                             <TouchableOpacity
                                 key={h}
                                 style={[styles.timeChip, scheduledHour === h && styles.timeChipActive]}

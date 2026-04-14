@@ -14,9 +14,9 @@ interface DivisionSettingsProps {
 
 export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps) {
     const { language } = useLanguage();
-    const isEn = language === 'EN';
+    const isEn = language === 'en';
 
-    const [settings, setSettings] = useState<Record<string, { name: string, email: string }>>(() => {
+    const [settings, setSettings] = useState<Record<string, { name: string, email: string, resendApiKey?: string }>>(() => {
         // Initialize with existing data or defaults
         const defaults = {
             'EXTERMINATION': { name: 'Extermination ZLS', email: 'extermination@praxiszls.com', resendApiKey: '' },
@@ -26,10 +26,11 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
 
         const current = { ...defaults };
         for (const s of initialSettings) {
-            if (current[s.division]) {
-                current[s.division] = {
-                    name: s.emailSenderName || current[s.division].name,
-                    email: s.emailSenderAddress || current[s.division].email,
+            const divKey = s.division as keyof typeof current;
+            if (current[divKey]) {
+                current[divKey] = {
+                    name: s.emailSenderName || current[divKey].name,
+                    email: s.emailSenderAddress || current[divKey].email,
                     resendApiKey: s.resendApiKey || ''
                 };
             }
@@ -88,7 +89,7 @@ export function DivisionEmailSettings({ initialSettings }: DivisionSettingsProps
         }
     };
 
-    const handleChange = (division: string, field: 'name' | 'email', value: string) => {
+    const handleChange = (division: string, field: 'name' | 'email' | 'resendApiKey', value: string) => {
         setSettings(prev => ({
             ...prev,
             [division]: {

@@ -57,7 +57,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                 <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-0">{label || t?.common?.insert || "Insert"}</Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-0 shadow-lg" side={side}>
-                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">{t?.settings?.warranties || "Templates"}</div>
+                <div className="bg-gray-50 border-b border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700">{(t?.settings as any)?.warrantiesTitle || "Templates"}</div>
                 <div className="max-h-60 overflow-y-auto">
                     {templates.length === 0 ? <div className="p-4 text-xs text-center text-gray-500">No templates found</div> : templates.map(temp => (
                         <button
@@ -264,13 +264,13 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                             onChange={(e) => setDivision(e.target.value as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION")}
                             className="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                         >
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("EXTERMINATION")) && (
                                 <option value="EXTERMINATION">Extermination ZLS</option>
                             )}
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("ENTREPRISES")) && (
                                 <option value="ENTREPRISES">Les Entreprises ZLS</option>
                             )}
-                            {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
+                            {(user?.role === "ADMIN" || user?.divisions.includes("RENOVATION")) && (
                                 <option value="RENOVATION">Rénovation Esthéban</option>
                             )}
                         </select>

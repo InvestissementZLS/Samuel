@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { transferStock } from "@/app/actions/inventory-actions";
+import { validateAuth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
+    const currentUser = await validateAuth(request);
+    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     try {
         const body = await request.json();
         const { userId, items } = body;
@@ -19,10 +22,9 @@ export async function POST(request: NextRequest) {
         for (const item of items) {
             // Return to Warehouse (toUserId = null)
             const result = await transferStock(
-                item.productId,
                 userId, // From Technician
-                null,   // To Warehouse
-                Number(item.quantity)
+                null as any,   // To Warehouse
+                [{ productId: item.productId, quantity: Number(item.quantity) }]
             );
             results.push(result);
         }

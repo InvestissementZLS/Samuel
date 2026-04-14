@@ -78,7 +78,7 @@ export function InvoicePortalClient({ invoice }: { invoice: any }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {invoice.items.map((item) => (
+                            {invoice.items.map((item: any) => (
                                 <tr key={item.id}>
                                     <td className="py-4 px-2">
                                         <p className="font-medium text-gray-900">{item.product.name}</p>
