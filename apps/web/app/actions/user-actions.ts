@@ -2,16 +2,25 @@
 
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { verifyJWT } from "@/lib/jwt";
 
 export async function getUserProfile() {
     const cookieStore = await cookies();
-    const userId = cookieStore.get("auth_token")?.value;
+    const tokenString = cookieStore.get("auth_token")?.value;
 
-    if (!userId) {
-        return null;
-    }
+    if (!tokenString) return null;
 
     try {
+        // B-01: token is now a signed JWT — decode it to get userId
+        const jwtPayload = await verifyJWT(tokenString);
+
+        // Legacy fallback: if token is a plain UUID (pre-JWT migration), use directly
+        const userId = jwtPayload?.sub ?? (
+            tokenString.includes('.') ? null : tokenString
+        );
+
+        if (!userId) return null;
+
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: {
@@ -33,7 +42,6 @@ export async function getUserProfile() {
 
         if (!user) return null;
 
-        // Serialize Date objects to strings for Client Component compatibility
         return JSON.parse(JSON.stringify(user));
     } catch (error) {
         console.error("Error fetching user profile:", error);
