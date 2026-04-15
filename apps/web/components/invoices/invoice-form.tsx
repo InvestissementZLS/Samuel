@@ -29,7 +29,7 @@ interface InvoiceFormProps {
     clients?: Client[];
     clientId: string;
     prefilledClient?: any;
-    onSave: (data: any) => Promise<void>;
+    onSave: (data: any) => Promise<{ id: string } | void>;
     onDelete?: () => Promise<void>;
 }
 
@@ -194,7 +194,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
 
         setLoading(true);
         try {
-            await onSave({
+            const result = await onSave({
                 id: invoice?.id,
                 clientId: selectedClientId,
                 poNumber,
@@ -217,6 +217,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
                 terms,
                 total
             });
+            return result;
         } catch (error) {
             console.error(error);
         } finally {
@@ -238,15 +239,16 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
         .map(c => ({ value: c.id, label: c.name }));
     const selectedClient = resolvedClient;
 
-    const handleSendEmail = async () => {
-        if (!invoice?.id) {
+    const handleSendEmail = async (invoiceId?: string) => {
+        const id = invoiceId || invoice?.id;
+        if (!id) {
             toast.error("Enregistrez d'abord la facture avant de l'envoyer.");
             return;
         }
         try {
             setLoading(true);
             const { sendInvoice } = await import("@/app/actions/email-actions");
-            const result = await sendInvoice(invoice.id);
+            const result = await sendInvoice(id);
             if (result.success) {
                 toast.success("Courriel envoyé avec succès !");
             } else {
@@ -254,6 +256,24 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
             }
         } catch (e) {
             toast.error("Erreur lors de l'envoi du courriel");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSaveAndSend = async () => {
+        try {
+            setLoading(true);
+            const result = await handleSave();
+            // After save, result contains the invoice id for new invoices
+            const newId = (result as any)?.id || invoice?.id;
+            if (newId) {
+                await handleSendEmail(newId);
+            } else {
+                toast.info("Facture enregistrée. Veuillez l'envoyer depuis la liste.");
+            }
+        } catch (e) {
+            toast.error("Erreur lors de l'enregistrement");
         } finally {
             setLoading(false);
         }
@@ -316,6 +336,10 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
                     </button>
                     <Button onClick={handleSave} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
                         {loading ? "Enregistrement..." : (invoice ? "Mettre à jour" : "Enregistrer")}
+                    </Button>
+                    <Button onClick={handleSaveAndSend} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5">
+                        <Send className="w-4 h-4" />
+                        {loading ? "Envoi..." : "Enregistrer & Envoyer"}
                     </Button>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Invoice, Product } from "@prisma/client";
-import { createInvoice, updateInvoiceStatus, updateInvoice } from "@/app/actions/client-portal-actions";
+import { createInvoice, updateInvoiceStatus, updateInvoice, deleteInvoice } from "@/app/actions/client-portal-actions";
 import { createCheckoutSession } from "@/app/actions/payment-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -53,14 +53,16 @@ export function ClientInvoices({ clientId, client, invoices, products }: ClientI
         try {
             if (data.id) {
                 await updateInvoice(data);
-                toast.success("Invoice updated");
+                toast.success("Facture mise à jour");
             } else {
-                await createInvoice(data);
-                toast.success("Invoice created");
+                const result = await createInvoice(data);
+                toast.success("Facture créée");
+                setIsEditing(false);
+                return result; // Returns { id } for the Save & Send flow
             }
             setIsEditing(false);
         } catch (error) {
-            toast.error("Failed to save invoice");
+            toast.error("Erreur lors de la sauvegarde");
             console.error(error);
         }
     };
@@ -92,6 +94,11 @@ export function ClientInvoices({ clientId, client, invoices, products }: ClientI
                     clientId={clientId}
                     prefilledClient={client}
                     onSave={handleSave}
+                    onDelete={selectedInvoice?.id ? async () => {
+                        await deleteInvoice(selectedInvoice.id);
+                        toast.success("Facture supprimée");
+                        setIsEditing(false);
+                    } : undefined}
                 />
             </div>
         );

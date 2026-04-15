@@ -241,6 +241,8 @@ export async function createInvoice(data: {
         });
         console.log("Invoice created successfully:", invoice.id);
         revalidatePath(`/clients/${data.clientId}`);
+        revalidatePath('/invoices');
+        return { id: invoice.id };
     } catch (error) {
         console.error("Error creating invoice:", error);
         throw error;
