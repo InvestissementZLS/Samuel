@@ -122,8 +122,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
     const [notes, setNotes] = useState(quote?.notes || "");
     const [terms, setTerms] = useState(quote?.terms || "");
 
-    // Calculations
-    const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.price), 0);
+    // Calculations — force Number() to prevent Decimal/string concatenation bugs
+    const subtotal = items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.price)), 0);
     const discountAmount = discountType === 'percent' ? subtotal * (discount / 100) : discount;
     const taxableAmount = subtotal - discountAmount;
     const taxAmount = taxableAmount * (taxRate / 100);

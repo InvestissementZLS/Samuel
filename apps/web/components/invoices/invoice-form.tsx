@@ -131,8 +131,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
     const [notes, setNotes] = useState(invoice?.notes || "");
     const [terms, setTerms] = useState(invoice?.terms || "");
 
-    // Calculations
-    const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.price), 0);
+    // Calculations — force Number() to prevent Decimal/string concatenation bugs
+    const subtotal = items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.price)), 0);
     const discountAmount = discountType === 'percent' ? subtotal * (discount / 100) : discount;
     const taxableAmount = subtotal - discountAmount;
     const taxAmount = taxableAmount * (taxRate / 100);
@@ -539,7 +539,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                         />
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-900 font-medium align-top pt-5">
-                                        ${(item.quantity * item.price).toFixed(2)}
+                                        ${(Number(item.quantity) * Number(item.price)).toFixed(2)}
                                     </td>
                                     <td className="px-4 py-3 text-center align-top pt-4">
                                         <button
