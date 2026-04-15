@@ -8,7 +8,7 @@ import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
 import { createQuickService } from "@/app/actions/product-actions";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Mail, Send } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Mail, Send, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, clients = [], prefilledClient }: InvoiceFormProps) {
     const [loading, setLoading] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -304,43 +305,67 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
                         {invoice ? t.invoices.editInvoice : t.invoices.createInvoice}
                     </h1>
                 </div>
-                <div className="flex items-center gap-2">
-                    {invoice?.id && (
-                        <button
-                            type="button"
-                            onClick={handleSendEmail}
-                            disabled={loading}
-                            title="Envoyer par courriel"
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg font-medium transition-colors disabled:opacity-50"
-                        >
-                            <Mail className="w-4 h-4" /> Envoyer
-                        </button>
-                    )}
-                    {invoice?.id && onDelete && (
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            disabled={loading}
-                            title="Supprimer la facture"
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-colors disabled:opacity-50"
-                        >
-                            <Trash2 className="w-4 h-4" /> Supprimer
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        onClick={() => setIsPreviewOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                <div className="relative flex items-center">
+                    {/* Main save button */}
+                    <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm rounded-r-none border-r border-indigo-500 pr-3"
                     >
-                        <FileText className="w-4 h-4" /> Aperçu
-                    </button>
-                    <Button onClick={handleSave} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
                         {loading ? "Enregistrement..." : (invoice ? "Mettre à jour" : "Enregistrer")}
                     </Button>
-                    <Button onClick={handleSaveAndSend} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5">
-                        <Send className="w-4 h-4" />
-                        {loading ? "Envoi..." : "Enregistrer & Envoyer"}
-                    </Button>
+                    {/* Dropdown trigger */}
+                    <button
+                        type="button"
+                        onClick={() => setShowDropdown(v => !v)}
+                        disabled={loading}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm rounded-l-none px-2 py-2 h-9 border-l border-indigo-500 disabled:opacity-50"
+                    >
+                        <ChevronDown className="w-4 h-4" />
+                    </button>
+                    {/* Dropdown menu */}
+                    {showDropdown && (
+                        <div
+                            className="absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 text-sm"
+                            onMouseLeave={() => setShowDropdown(false)}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => { setShowDropdown(false); setIsPreviewOpen(true); }}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                            >
+                                <FileText className="w-4 h-4 text-gray-400" /> Aperçu
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setShowDropdown(false); handleSaveAndSend(); }}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-emerald-700 hover:bg-emerald-50"
+                            >
+                                <Send className="w-4 h-4" /> Enregistrer & Envoyer
+                            </button>
+                            {invoice?.id && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowDropdown(false); handleSendEmail(); }}
+                                    className="w-full flex items-center gap-2 px-4 py-2 text-blue-700 hover:bg-blue-50"
+                                >
+                                    <Mail className="w-4 h-4" /> Envoyer par courriel
+                                </button>
+                            )}
+                            {invoice?.id && onDelete && (
+                                <>
+                                    <div className="border-t border-gray-100 my-1" />
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowDropdown(false); handleDelete(); }}
+                                        className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Supprimer
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
