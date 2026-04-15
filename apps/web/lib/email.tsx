@@ -102,6 +102,7 @@ function buildEmailHtml({
     ctaUrl,
     ctaLabel,
     portalUrl,
+    isQuote = false,
 }: {
     division: string;
     companyName: string;
@@ -115,10 +116,14 @@ function buildEmailHtml({
     ctaUrl: string;
     ctaLabel: string;
     portalUrl: string | null;
+    isQuote?: boolean;
 }) {
     const appUrl = getAppUrl();
     const logoFilename = division === 'RENOVATION' ? 'renovation-logo.png' : 'zls-logo.png';
     const logoUrl = `${appUrl}/${logoFilename}`;
+
+    // Use first name only
+    const firstName = clientName.split(' ')[0];
 
     // Header gradient by division
     const headerGradient = division === 'EXTERMINATION'
@@ -131,18 +136,58 @@ function buildEmailHtml({
         : division === 'RENOVATION' ? '#d97706'
         : '#1d4ed8';
 
-    const greeting = isEn ? `Hello ${clientName},` : `Bonjour ${clientName},`;
+    // Division-specific contacts
+    const companyEmail = division === 'RENOVATION'
+        ? 'renovationestheban@gmail.com'
+        : 'exterminationzls@gmail.com';
+
+    // Body paragraphs
+    const bodyText = isEn ? `
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            Please find attached your ${isQuote ? 'quote' : 'invoice'} for services rendered by ${companyName}.
+        </p>
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            Thank you for your trust. It is always a pleasure to provide you with professional and personalized service to ensure your peace of mind.
+        </p>
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            Please do not hesitate to contact us for any questions regarding this ${isQuote ? 'quote' : 'invoice'} or for any additional service requests.
+        </p>
+        <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+            We look forward to continuing to serve you!
+        </p>
+    ` : `
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            Veuillez trouver ci-joint votre ${isQuote ? 'soumission' : 'facture'} pour les services rendus par ${companyName}.
+        </p>
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            Nous vous remercions pour votre confiance. C'est toujours un plaisir de vous offrir un service professionnel et personnalisé pour assurer votre tranquillité d'esprit.
+        </p>
+        <p style="margin:0 0 14px;font-size:15px;color:#374151;line-height:1.7;">
+            N'hésitez pas à nous contacter pour toute question concernant cette ${isQuote ? 'soumission' : 'facture'} ou pour toute demande de service supplémentaire.
+        </p>
+        <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7;">
+            Au plaisir de continuer à vous servir !
+        </p>
+    `;
+
     const totalLabel = isEn ? 'Total Amount' : 'Montant total';
     const portalTitle = isEn ? '🗂️ Your Client Portal' : '🗂️ Votre portail client';
     const portalDesc = isEn
         ? 'View your invoices, quotes and book services anytime.'
         : 'Consultez vos factures, soumissions et réservez des services en tout temps.';
     const portalCta = isEn ? 'Access My Portal →' : 'Accéder à mon portail →';
-    const footer = isEn ? `Thank you for your trust,<br/><strong>The ${companyName} Team</strong>`
-        : `Merci de votre confiance,<br/><strong>L'équipe ${companyName}</strong>`;
-    const footerNote = isEn
-        ? 'If you have any questions, reply to this email or call us at (514) 963-4010.'
-        : 'Pour toute question, répondez à ce courriel ou appelez-nous au (514) 963-4010.';
+
+    // Signature block
+    const closingWord = isEn ? 'Sincerely,' : 'Cordialement,';
+    const teamLabel = isEn ? `The ${companyName} Team` : `L'équipe ${companyName}`;
+    const signatureBlock = `
+        <p style="margin:0 0 4px;font-size:15px;color:#374151;">${closingWord}</p>
+        <br/>
+        <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#111827;">${teamLabel}</p>
+        <p style="margin:0 0 2px;font-size:14px;color:#6b7280;">${companyEmail}</p>
+        <p style="margin:0 0 2px;font-size:14px;color:#6b7280;">Samuel : 514-963-4010</p>
+        <p style="margin:0;font-size:14px;color:#6b7280;">Zachary : 450-602-1224</p>
+    `;
 
     const portalBlock = portalUrl ? `
         <div style="margin-top:24px;padding:20px;background:#f5f3ff;border-radius:10px;border:1px solid #ddd6fe;">
@@ -177,7 +222,9 @@ function buildEmailHtml({
         <!-- BODY -->
         <tr>
           <td style="padding:36px 40px;">
-            <p style="margin:0 0 20px;font-size:16px;color:#374151;">${greeting}</p>
+            <p style="margin:0 0 20px;font-size:17px;font-weight:600;color:#111827;">${isEn ? `Hello ${firstName},` : `Bonjour ${firstName},`}</p>
+
+            ${bodyText}
 
             <!-- Amount card -->
             <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin:24px 0;text-align:center;">
@@ -193,14 +240,14 @@ function buildEmailHtml({
             ${portalBlock}
 
             <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;" />
-            <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;">${footer}</p>
+            ${signatureBlock}
           </td>
         </tr>
 
         <!-- FOOTER -->
         <tr>
           <td style="background:#f9fafb;padding:16px 40px;border-top:1px solid #f3f4f6;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#9ca3af;">${footerNote}</p>
+            <p style="margin:0;font-size:11px;color:#9ca3af;">1267 Rue des Chênes, Prévost, QC J0R 1T0</p>
           </td>
         </tr>
 
@@ -210,6 +257,7 @@ function buildEmailHtml({
 </body>
 </html>`;
 }
+
 
 export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     const config = await getEmailConfig(invoice.division);
@@ -277,6 +325,7 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
             ctaUrl: quoteUrl,
             ctaLabel: isEn ? 'View & Sign Quote' : 'Voir & Signer la Soumission',
             portalUrl,
+            isQuote: true,
         });
 
         const data = await config.resend.emails.send({ from: config.from, to: [quote.client.email || ''], subject, html });
