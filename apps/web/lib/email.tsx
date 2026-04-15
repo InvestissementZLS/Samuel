@@ -120,7 +120,8 @@ function buildEmailHtml({
 }) {
     const appUrl = getAppUrl();
     const logoFilename = division === 'RENOVATION' ? 'renovation-logo.png' : 'zls-logo.png';
-    const logoUrl = `${appUrl}/${logoFilename}`;
+    // Always use production URL for logos so they work in emails even when testing locally
+    const logoUrl = `https://praxiszls.com/${logoFilename}`;
 
     // Use first name only
     const firstName = clientName.split(' ')[0];
