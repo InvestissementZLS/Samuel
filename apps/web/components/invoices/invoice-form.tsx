@@ -43,14 +43,20 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
     const [templates, setTemplates] = useState<{id: string, name: string, text: string}[]>([]);
 
     const [localProducts, setLocalProducts] = useState(products);
+    const [quickServiceIndex, setQuickServiceIndex] = useState<number | null>(null);
+    const [quickServiceName, setQuickServiceName] = useState("");
 
     useEffect(() => {
         getWarrantyTemplates().then(setTemplates).catch(console.error);
     }, []);
 
-    const handleCreateQuickService = async (index: number) => {
-        const name = prompt(t.invoices?.enterServiceName || "Entrez le nom du nouveau service :");
-        if (!name?.trim()) return;
+    const handleCreateQuickService = async () => {
+        if (quickServiceIndex === null) return;
+        const name = quickServiceName;
+        if (!name?.trim()) {
+            toast.error("Veuillez entrer un nom valide");
+            return;
+        }
         
         try {
             setLoading(true);
@@ -58,8 +64,10 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
             const updatedProducts = [...localProducts, newProduct];
             // @ts-ignore
             setLocalProducts(updatedProducts);
-            handleItemChange(index, 'productId', newProduct.id);
+            handleItemChange(quickServiceIndex, 'productId', newProduct.id);
             toast.success(t.common?.success || "Service créé");
+            setQuickServiceIndex(null);
+            setQuickServiceName("");
         } catch (e) {
             toast.error("Erreur lors de la création");
         } finally {
@@ -469,15 +477,41 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                     className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
                                                 />
                                                 <div className="flex justify-between items-center">
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => handleCreateQuickService(index)}
-                                                        className="text-[10px] flex items-center gap-1 text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-medium transition-colors"
-                                                    >
-                                                        <Plus className="w-3 h-3" /> {t.products?.add || "Créer Service"}
-                                                    </button>
+                                                    {quickServiceIndex === index ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <input 
+                                                                type="text"
+                                                                autoFocus
+                                                                value={quickServiceName}
+                                                                onChange={e => setQuickServiceName(e.target.value)}
+                                                                placeholder="Nom du service..."
+                                                                className="text-xs border px-1.5 py-0.5 rounded w-32 outline-none focus:border-emerald-500"
+                                                                onKeyDown={e => e.key === 'Enter' && handleCreateQuickService()}
+                                                            />
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={handleCreateQuickService}
+                                                                className="text-white bg-emerald-600 hover:bg-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-medium"
+                                                            >
+                                                                Créer
+                                                            </button>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => { setQuickServiceIndex(null); setQuickServiceName(""); }}
+                                                                className="text-gray-500 hover:text-gray-700 font-bold px-1"
+                                                            >×</button>
+                                                        </div>
+                                                    ) : (
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => setQuickServiceIndex(index)}
+                                                            className="text-[10px] flex items-center gap-1 text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-medium transition-colors"
+                                                        >
+                                                            <Plus className="w-3 h-3" /> {t.products?.add || "Nouveau Service"}
+                                                        </button>
+                                                    )}
                                                     <TemplateSelector 
-                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded transition-colors"><FileText className="w-3 h-3" /> Templates</span>}
+                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded transition-colors"><FileText className="w-3 h-3" /> Modèles</span>}
                                                         side="right"
                                                         onSelect={(text) => handleItemChange(index, 'description', item.description ? `${item.description}\n\n${text}` : text)}
                                                     />
