@@ -221,7 +221,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
         }
     };
 
-    const productOptions = localProducts
+    const productOptions = [...localProducts]
+        .sort((a, b) => a.name.localeCompare(b.name))
         .map(p => ({ value: p.id, label: p.name }));
 
     // Filter clients based on division

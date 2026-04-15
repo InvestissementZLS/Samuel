@@ -68,7 +68,8 @@ export function Combobox({
                             {items.map((item) => (
                                 <CommandItem
                                     key={item.value}
-                                    value={item.label}
+                                    value={item.value}
+                                    keywords={[item.label]}
                                     onSelect={() => {
                                         onSelect(item.value === value ? "" : item.value)
                                         setOpen(false)
