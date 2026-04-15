@@ -183,18 +183,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
             return;
         }
 
-        const validItems = items.filter(item => item.productId);
-        if (validItems.length === 0 && items.length > 0) {
-            toast.error(t.invoices.selectProductsError);
-            return;
-        }
-
-        // Check if there are any items with empty product IDs that weren't filtered out (e.g. if we want to enforce all rows to be valid)
-        // For now, let's just filter out invalid rows or error if any row is invalid?
-        // Better UX: Error if any row has missing product but has other data, or just check existence.
-
-        const hasInvalidItems = items.some(item => !item.productId);
-        if (hasInvalidItems) {
+        const filledItems = items.filter(item => item.productId || item.description?.trim());
+        if (filledItems.length === 0) {
             toast.error(t.invoices.selectProductsError);
             return;
         }
@@ -208,7 +198,9 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                 issuedDate,
                 dueDate,
                 division,
-                items: items.map(item => ({
+                items: items
+                    .filter(item => item.productId || item.description?.trim())
+                    .map(item => ({
                     productId: item.productId,
                     quantity: item.quantity,
                     price: item.price,
@@ -459,15 +451,16 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="space-y-1">
-                                            <Combobox
-                                                items={productOptions}
-                                                value={item.productId}
-                                                onSelect={(val) => handleItemChange(index, 'productId', val)}
-                                                placeholder={t.common.select}
-                                                className="bg-white border-gray-200 text-gray-900 hover:bg-gray-50 aria-expanded:text-gray-900 justify-between w-full h-8"
-                                                popoverClassName="bg-white border-gray-200 text-gray-900 shadow-xl z-[9999]"
-                                                itemClassName="text-gray-700 aria-selected:bg-indigo-50 aria-selected:text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
-                                            />
+                                            <select
+                                                value={item.productId || ""}
+                                                onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                                                className="w-full h-8 text-sm border border-gray-200 rounded px-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+                                            >
+                                                <option value="">{t.common.select}</option>
+                                                {productOptions.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
                                             <div className="flex flex-col gap-1 mt-1">
                                                 <textarea
                                                     value={item.description}
