@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 import { Quote, Product, QuoteItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Calculator } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
