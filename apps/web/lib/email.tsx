@@ -265,9 +265,12 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
 
     try {
         const isEn = (invoice.client as any).language === 'EN';
-        const clientData = await prisma.client.findUnique({ where: { id: invoice.client.id }, select: { portalToken: true } });
-        const portalToken = clientData?.portalToken;
-        const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
+        // Fetch portal access token via BookingLink
+        const bookingLink = await prisma.bookingLink.findFirst({
+            where: { clientId: invoice.client.id, status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' }
+        }).catch(() => null);
+        const portalUrl = bookingLink?.token ? `${getAppUrl()}/portal/${bookingLink.token}` : null;
         const invoiceUrl = `${getAppUrl()}/legacy-portal/invoices/${invoice.id}`;
 
         const subject = isEn
@@ -303,9 +306,12 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
 
     try {
         const isEn = (quote.client as any).language === 'EN';
-        const clientData = await prisma.client.findUnique({ where: { id: quote.client.id }, select: { portalToken: true } });
-        const portalToken = clientData?.portalToken;
-        const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
+        // Fetch portal access token via BookingLink
+        const bookingLink = await prisma.bookingLink.findFirst({
+            where: { clientId: quote.client.id, status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' }
+        }).catch(() => null);
+        const portalUrl = bookingLink?.token ? `${getAppUrl()}/portal/${bookingLink.token}` : null;
         const quoteUrl = `${getAppUrl()}/legacy-portal/quotes/${quote.id}`;
 
         const subject = isEn
