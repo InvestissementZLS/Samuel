@@ -518,6 +518,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                         <input
                                             type="number"
                                             value={item.cost}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'cost', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />
@@ -526,6 +527,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                         <input
                                             type="number"
                                             value={item.quantity}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />
@@ -534,6 +536,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                         <input
                                             type="number"
                                             value={item.price}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />

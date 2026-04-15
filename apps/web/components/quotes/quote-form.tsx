@@ -477,6 +477,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                         <input
                                             type="number"
                                             value={item.cost}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'cost', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />
@@ -485,6 +486,7 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                         <input
                                             type="number"
                                             value={item.quantity}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />
@@ -493,12 +495,13 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                         <input
                                             type="number"
                                             value={item.price}
+                                            onFocus={(e) => e.target.select()}
                                             onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))}
                                             className="w-full bg-white border border-gray-200 rounded px-2 py-1 text-right text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-8"
                                         />
                                     </td>
                                     <td className="px-4 py-3 text-right text-gray-900 font-medium align-top pt-5">
-                                        ${(item.quantity * item.price).toFixed(2)}
+                                        ${(Number(item.quantity) * Number(item.price)).toFixed(2)}
                                     </td>
                                     <td className="px-4 py-3 text-center align-top pt-4">
                                         <button
