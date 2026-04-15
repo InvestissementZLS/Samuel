@@ -11,14 +11,12 @@ export function InvoiceTemplate({ invoice, client }: InvoiceTemplateProps) {
     const division = invoice.division || "EXTERMINATION";
     const isExtermination = division === "EXTERMINATION";
 
-    const companyName = isExtermination ? "Extermination ZLS" : "Les Entreprises ZLS";
-    const companyAddress = isExtermination
-        ? "123 Extermination St, City, QC"
-        : "456 Entreprises Blvd, City, QC";
-    const companyPhone = isExtermination ? "(555) 123-4567" : "(555) 987-6543";
-    const companyEmail = isExtermination ? "info@exterminationzls.com" : "info@entrepriseszls.com";
-    const primaryColor = isExtermination ? "text-red-600" : "text-blue-600";
-    const borderColor = isExtermination ? "border-red-600" : "border-blue-600";
+    const companyName = isExtermination ? "Extermination ZLS" : division === "RENOVATION" ? "Rénovation Esthéban" : "Les Entreprises ZLS";
+    const companyAddress = "1267 Rue des Chênes, Prévost, QC J0R 1T0";
+    const companyPhone = "(514) 963-4010";
+    const companyEmail = isExtermination ? "exterminationzls@gmail.com" : "info@lesentrepriseszls.com";
+    const primaryColor = isExtermination ? "text-red-600" : division === "RENOVATION" ? "text-amber-600" : "text-blue-600";
+    const borderColor = isExtermination ? "border-red-600" : division === "RENOVATION" ? "border-amber-600" : "border-blue-600";
 
     return (
         <div className="bg-white text-black p-8 max-w-4xl mx-auto shadow-lg print:shadow-none">

@@ -200,23 +200,25 @@ export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFPro
                         </Text>
                         {invoice.division === "EXTERMINATION" ? (
                             <>
-                                <Text>1267 rue Des Chênes</Text>
-                                <Text>Prévost, Québec, Canada J0R 1T0</Text>
+                                <Text>1267 Rue des Chênes</Text>
+                                <Text>Prévost, Québec J0R 1T0</Text>
                                 <Text>{labels.phone}: (514) 963-4010</Text>
                                 <Text>{labels.email}: exterminationzls@gmail.com</Text>
                             </>
                         ) : invoice.division === "RENOVATION" ? (
                             <>
+                                <Text>1267 Rue des Chênes</Text>
+                                <Text>Prévost, Québec J0R 1T0</Text>
                                 <Text>No de licence: 56084320-01</Text>
                                 <Text>TPS: 826459653RT0001</Text>
                                 <Text>TVQ: 1216098842TQ0001</Text>
                             </>
                         ) : (
                             <>
-                                <Text>123 Business St.</Text>
-                                <Text>City, State, Zip</Text>
-                                <Text>{labels.phone}: (555) 123-4567</Text>
-                                <Text>{labels.email}: info@zls.com</Text>
+                                <Text>1267 Rue des Chênes</Text>
+                                <Text>Prévost, Québec J0R 1T0</Text>
+                                <Text>{labels.phone}: (514) 963-4010</Text>
+                                <Text>{labels.email}: info@lesentrepriseszls.com</Text>
                             </>
                         )}
                     </View>
