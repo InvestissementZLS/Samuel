@@ -88,80 +88,160 @@ const getAppUrl = () => {
     return 'http://localhost:3000';
 };
 
+// ─── Email HTML builder ────────────────────────────────────────────────────
+function buildEmailHtml({
+    division,
+    companyName,
+    clientName,
+    isEn,
+    subject,
+    badgeLabel,
+    badgeColor,
+    number,
+    total,
+    ctaUrl,
+    ctaLabel,
+    portalUrl,
+}: {
+    division: string;
+    companyName: string;
+    clientName: string;
+    isEn: boolean;
+    subject: string;
+    badgeLabel: string;
+    badgeColor: string;
+    number: string;
+    total: string;
+    ctaUrl: string;
+    ctaLabel: string;
+    portalUrl: string | null;
+}) {
+    const appUrl = getAppUrl();
+    const logoFilename = division === 'RENOVATION' ? 'renovation-logo.png' : 'zls-logo.png';
+    const logoUrl = `${appUrl}/${logoFilename}`;
+
+    // Header gradient by division
+    const headerGradient = division === 'EXTERMINATION'
+        ? 'linear-gradient(135deg,#7f1d1d,#b91c1c)'
+        : division === 'RENOVATION'
+            ? 'linear-gradient(135deg,#78350f,#d97706)'
+            : 'linear-gradient(135deg,#1e3a8a,#1d4ed8)';
+
+    const accentColor = division === 'EXTERMINATION' ? '#b91c1c'
+        : division === 'RENOVATION' ? '#d97706'
+        : '#1d4ed8';
+
+    const greeting = isEn ? `Hello ${clientName},` : `Bonjour ${clientName},`;
+    const totalLabel = isEn ? 'Total Amount' : 'Montant total';
+    const portalTitle = isEn ? '🗂️ Your Client Portal' : '🗂️ Votre portail client';
+    const portalDesc = isEn
+        ? 'View your invoices, quotes and book services anytime.'
+        : 'Consultez vos factures, soumissions et réservez des services en tout temps.';
+    const portalCta = isEn ? 'Access My Portal →' : 'Accéder à mon portail →';
+    const footer = isEn ? `Thank you for your trust,<br/><strong>The ${companyName} Team</strong>`
+        : `Merci de votre confiance,<br/><strong>L'équipe ${companyName}</strong>`;
+    const footerNote = isEn
+        ? 'If you have any questions, reply to this email or call us at (514) 963-4010.'
+        : 'Pour toute question, répondez à ce courriel ou appelez-nous au (514) 963-4010.';
+
+    const portalBlock = portalUrl ? `
+        <div style="margin-top:24px;padding:20px;background:#f5f3ff;border-radius:10px;border:1px solid #ddd6fe;">
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#4c1d95;">${portalTitle}</p>
+            <p style="margin:0 0 14px;font-size:13px;color:#6b7280;">${portalDesc}</p>
+            <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 22px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700;display:inline-block;">${portalCta}</a>
+        </div>` : '';
+
+    return `<!DOCTYPE html>
+<html lang="${isEn ? 'en' : 'fr'}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+
+        <!-- HEADER -->
+        <tr>
+          <td style="background:${headerGradient};padding:36px 40px;text-align:center;">
+            <img src="${logoUrl}" alt="${companyName}" style="height:64px;max-width:180px;object-fit:contain;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;" />
+            <p style="margin:0;color:rgba(255,255,255,0.8);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">${companyName}</p>
+          </td>
+        </tr>
+
+        <!-- BADGE -->
+        <tr>
+          <td style="background:${badgeColor};padding:10px 40px;text-align:center;">
+            <span style="color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${badgeLabel} — #${number}</span>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td style="padding:36px 40px;">
+            <p style="margin:0 0 20px;font-size:16px;color:#374151;">${greeting}</p>
+
+            <!-- Amount card -->
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin:24px 0;text-align:center;">
+              <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;font-weight:600;">${totalLabel}</p>
+              <p style="margin:0;font-size:32px;font-weight:800;color:${accentColor};">$${total}</p>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin:28px 0;">
+              <a href="${ctaUrl}" style="background:${accentColor};color:#fff;padding:14px 36px;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;display:inline-block;">${ctaLabel}</a>
+            </div>
+
+            ${portalBlock}
+
+            <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;" />
+            <p style="margin:0;font-size:14px;color:#374151;line-height:1.7;">${footer}</p>
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td style="background:#f9fafb;padding:16px 40px;border-top:1px solid #f3f4f6;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;">${footerNote}</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
     const config = await getEmailConfig(invoice.division);
-
-    if (!config.resend) {
-        console.log("Resend API Key missing for division: " + invoice.division);
-        return { success: false, error: "Missing API Key" };
-    }
+    if (!config.resend) return { success: false, error: "Missing API Key" };
 
     try {
-        const companyName = config.companyName;
         const isEn = (invoice.client as any).language === 'EN';
-
-        // Fetch portal token for the client
-        const clientData = await prisma.client.findUnique({
-            where: { id: invoice.client.id },
-            select: { portalToken: true }
-        });
+        const clientData = await prisma.client.findUnique({ where: { id: invoice.client.id }, select: { portalToken: true } });
         const portalToken = clientData?.portalToken;
         const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
         const invoiceUrl = `${getAppUrl()}/legacy-portal/invoices/${invoice.id}`;
 
         const subject = isEn
-            ? `Invoice #${invoice.number} from ${companyName}`
-            : `Facture #${invoice.number} de ${companyName}`;
+            ? `Invoice #${invoice.number} from ${config.companyName}`
+            : `Facture #${invoice.number} de ${config.companyName}`;
 
-        const portalSection = portalUrl ? (
-            isEn
-                ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
-                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Your Client Portal</p>
-                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">View all your invoices, quotes and book services anytime.</p>
-                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Access My Portal →</a>
-                   </div>`
-                : `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
-                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Votre portail client</p>
-                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">Consultez toutes vos factures, soumissions et réservez des services en tout temps.</p>
-                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Accéder à mon portail →</a>
-                   </div>`
-        ) : '';
-
-        const html = isEn
-            ? `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-                    <h2>Hello ${invoice.client.name},</h2>
-                    <p>You have received a new invoice from ${companyName}.</p>
-                    <p><strong>Invoice #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${Number(invoice.total).toFixed(2)}</p>
-                    <br/>
-                    <a href="${invoiceUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View Invoice</a>
-                    <br/><br/>
-                    ${portalSection}
-                    <br/>
-                    <p>Thank you!</p>
-                </div>`
-            : `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-                    <h2>Bonjour ${invoice.client.name},</h2>
-                    <p>Vous avez re\u00e7u une nouvelle facture de ${companyName}.</p>
-                    <p><strong>Facture #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
-                    <p>Total : $${Number(invoice.total).toFixed(2)}</p>
-                    <br/>
-                    <a href="${invoiceUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Voir la Facture</a>
-                    <br/><br/>
-                    ${portalSection}
-                    <br/>
-                    <p>Merci !</p>
-                </div>`;
-
-        console.log(`Sending invoice email to: ${invoice.client.email} from: ${config.from}`);
-        const data = await config.resend.emails.send({
-            from: config.from,
-            to: [invoice.client.email || ''],
-            subject: subject,
-            html: html,
+        const html = buildEmailHtml({
+            division: invoice.division,
+            companyName: config.companyName,
+            clientName: invoice.client.name || '',
+            isEn,
+            subject,
+            badgeLabel: isEn ? 'Invoice' : 'Facture',
+            badgeColor: '#111827',
+            number: invoice.number || invoice.id.slice(0, 8),
+            total: Number(invoice.total).toFixed(2),
+            ctaUrl: invoiceUrl,
+            ctaLabel: isEn ? 'View Invoice' : 'Voir la Facture',
+            portalUrl,
         });
-        console.log("Invoice email sent result:", JSON.stringify(data));
 
+        const data = await config.resend.emails.send({ from: config.from, to: [invoice.client.email || ''], subject, html });
         return { success: true, data };
     } catch (error) {
         console.error("Failed to send invoice email:", error);
@@ -171,78 +251,35 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
 
 export async function sendQuoteEmail(quote: QuoteWithDetails) {
     const config = await getEmailConfig(quote.division);
-
-    if (!config.resend) {
-        console.log("Resend API Key missing for division: " + quote.division);
-        return { success: false, error: "Missing API Key" };
-    }
+    if (!config.resend) return { success: false, error: "Missing API Key" };
 
     try {
-        const companyName = config.companyName;
         const isEn = (quote.client as any).language === 'EN';
-
-        // Fetch portal token for the client
-        const clientData = await prisma.client.findUnique({
-            where: { id: quote.client.id },
-            select: { portalToken: true }
-        });
+        const clientData = await prisma.client.findUnique({ where: { id: quote.client.id }, select: { portalToken: true } });
         const portalToken = clientData?.portalToken;
         const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
         const quoteUrl = `${getAppUrl()}/legacy-portal/quotes/${quote.id}`;
 
         const subject = isEn
-            ? `Quote #${quote.number} from ${companyName}`
-            : `Soumission #${quote.number} de ${companyName}`;
+            ? `Quote #${quote.number} from ${config.companyName}`
+            : `Soumission #${quote.number} de ${config.companyName}`;
 
-        const portalSection = portalUrl ? (
-            isEn
-                ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
-                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Your Client Portal</p>
-                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">View all your invoices, quotes and book services anytime.</p>
-                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Access My Portal →</a>
-                   </div>`
-                : `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
-                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Votre portail client</p>
-                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">Consultez toutes vos factures, soumissions et réservez des services en tout temps.</p>
-                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Accéder à mon portail →</a>
-                   </div>`
-        ) : '';
-
-        const html = isEn
-            ? `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-                    <h2>Hello ${quote.client.name},</h2>
-                    <p>You have received a new quote from ${companyName}.</p>
-                    <p><strong>Quote #${quote.number || quote.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${Number(quote.total).toFixed(2)}</p>
-                    <br/>
-                    <a href="${quoteUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View &amp; Sign Quote</a>
-                    <br/><br/>
-                    ${portalSection}
-                    <br/>
-                    <p>Thank you!</p>
-                </div>`
-            : `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
-                    <h2>Bonjour ${quote.client.name},</h2>
-                    <p>Vous avez re\u00e7u une nouvelle soumission de ${companyName}.</p>
-                    <p><strong>Soumission #${quote.number || quote.id.slice(0, 8)}</strong></p>
-                    <p>Total : $${Number(quote.total).toFixed(2)}</p>
-                    <br/>
-                    <a href="${quoteUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Voir &amp; Signer la Soumission</a>
-                    <br/><br/>
-                    ${portalSection}
-                    <br/>
-                    <p>Merci !</p>
-                </div>`;
-
-        console.log(`Sending email to: ${quote.client.email} from: ${config.from}`);
-        const data = await config.resend.emails.send({
-            from: config.from,
-            to: [quote.client.email || ''],
-            subject: subject,
-            html: html,
+        const html = buildEmailHtml({
+            division: quote.division,
+            companyName: config.companyName,
+            clientName: quote.client.name || '',
+            isEn,
+            subject,
+            badgeLabel: isEn ? 'Quote' : 'Soumission',
+            badgeColor: '#065f46',
+            number: quote.number || quote.id.slice(0, 8),
+            total: Number(quote.total).toFixed(2),
+            ctaUrl: quoteUrl,
+            ctaLabel: isEn ? 'View & Sign Quote' : 'Voir & Signer la Soumission',
+            portalUrl,
         });
-        console.log("Email sent result:", JSON.stringify(data));
 
+        const data = await config.resend.emails.send({ from: config.from, to: [quote.client.email || ''], subject, html });
         return { success: true, data };
     } catch (error) {
         console.error("Failed to send quote email:", error);
