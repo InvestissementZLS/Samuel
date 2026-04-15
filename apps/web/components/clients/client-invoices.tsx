@@ -6,7 +6,7 @@ import { createInvoice, updateInvoiceStatus, updateInvoice, deleteInvoice } from
 import { createCheckoutSession } from "@/app/actions/payment-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Trash2, Plus, FileText, Filter, DollarSign, RefreshCcw } from "lucide-react";
+import { Trash2, Plus, FileText, Filter, DollarSign, RefreshCcw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PaymentDialog } from "@/components/invoices/payment-dialog";
 import { useDivision } from "@/components/providers/division-provider";
@@ -163,6 +163,15 @@ export function ClientInvoices({ clientId, client, invoices, products }: ClientI
                                                         <span className="text-xs uppercase tracking-wider font-semibold">
                                                             {/* @ts-ignore */}
                                                             {invoice.division === "EXTERMINATION" ? "EXO" : "ENT"}
+                                                        </span>
+                                                    </>
+                                                )}
+                                                {/* @ts-ignore */}
+                                                {invoice.viewedAt && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="flex items-center gap-1 text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded" title={format(new Date((invoice as any).viewedAt), "PPp")}>
+                                                            <Eye className="w-3.5 h-3.5" /> Vu
                                                         </span>
                                                     </>
                                                 )}

@@ -289,6 +289,7 @@ model Quote {
   jobs        Job[]
   isDeleted   Boolean     @default(false)
   deletedAt   DateTime?
+  viewedAt    DateTime?
 }
 
 model QuoteItem {
@@ -331,6 +332,7 @@ model Invoice {
   amountPaid  Float         @default(0)
   isDeleted   Boolean       @default(false)
   deletedAt   DateTime?
+  viewedAt    DateTime?
 }
 
 model Transaction {

@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import {
     Trash2, DollarSign, RefreshCcw, Mail, Download,
-    Search, ArrowUpDown, ChevronUp, ChevronDown, X, FileText
+    Search, ArrowUpDown, ChevronUp, ChevronDown, X, FileText, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
@@ -428,7 +428,14 @@ const InvoiceRow = memo(({ invoice, t, clientId, onEdit, onPay, onRefund, onDele
                 </span>
             </td>
             <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                {format(new Date(invoice.createdAt), 'dd MMM yyyy')}
+                <div className="flex items-center gap-2">
+                    {format(new Date(invoice.createdAt), 'dd MMM yyyy')}
+                    {invoice.viewedAt && (
+                        <span className="flex items-center gap-1 text-xs text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded" title={format(new Date(invoice.viewedAt), "PPp")}>
+                            <Eye className="w-3.5 h-3.5" /> Vu
+                        </span>
+                    )}
+                </div>
             </td>
             <td className="px-4 py-3 text-sm font-bold whitespace-nowrap text-right">
                 {!isPaid && balance > 0 ? (

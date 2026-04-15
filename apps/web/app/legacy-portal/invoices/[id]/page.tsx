@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { InvoicePortalClient } from "./invoice-portal-client";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
     params: {
         id: string;
@@ -25,6 +27,14 @@ export default async function InvoicePortalPage({ params }: PageProps) {
 
     if (!invoice) {
         notFound();
+    }
+
+    // Mark as viewed if it hasn't been viewed yet
+    if (!invoice.viewedAt) {
+        await prisma.invoice.update({
+            where: { id },
+            data: { viewedAt: new Date() }
+        });
     }
 
     // Manual serialization of properties that EXIST in the DB Schema.

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { QuotePortalClient } from "./quote-portal-client";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
     params: {
         id: string;
@@ -24,6 +26,14 @@ export default async function QuotePortalPage({ params }: PageProps) {
 
     if (!quote) {
         notFound();
+    }
+
+    // Mark as viewed if it hasn't been viewed yet
+    if (!quote.viewedAt) {
+        await prisma.quote.update({
+            where: { id },
+            data: { viewedAt: new Date() }
+        });
     }
 
     // Aggressive manual serialization to prevent ANY proprietary objects (Decimal, Date) from leaking
