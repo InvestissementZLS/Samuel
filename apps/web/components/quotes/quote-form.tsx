@@ -154,12 +154,12 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
         newItems[index] = { ...newItems[index], [field]: value };
 
         if (field === 'productId') {
-            const product = products.find(p => p.id === value);
+            const product = localProducts.find(p => p.id === value);
             if (product) {
                 newItems[index].product = product;
-                newItems[index].description = product.name;
-                newItems[index].price = product.price;
-                newItems[index].cost = 0;
+                newItems[index].description = (product as any).description || product.name;
+                newItems[index].price = Number(product.price) || 0;
+                newItems[index].cost = Number(product.cost) || 0;
             }
         }
 

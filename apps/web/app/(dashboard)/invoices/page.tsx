@@ -76,6 +76,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams?: { 
         select: {
             id: true,
             name: true,
+            description: true,
             price: true,
             cost: true,
             unit: true,

@@ -40,7 +40,7 @@ export default async function QuotesPage({ searchParams }: { searchParams?: { pa
     }
 
     const products = await prisma.product.findMany({
-        select: { id: true, name: true, price: true, unit: true }
+        select: { id: true, name: true, description: true, price: true, cost: true, unit: true, division: true, type: true }
     });
     const clients = await prisma.client.findMany({ 
         where: { divisions: { has: division }, isDeleted: false },

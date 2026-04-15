@@ -168,9 +168,11 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
             const product = localProducts.find(p => p.id === value);
             if (product) {
                 newItems[index].product = product;
-                newItems[index].description = product.name;
-                newItems[index].price = product.price;
-                newItems[index].cost = 0;
+                // Use product description if available, otherwise use name
+                newItems[index].description = (product as any).description || product.name;
+                // Force Number() conversion - Prisma Decimals come as strings after serialization
+                newItems[index].price = Number(product.price) || 0;
+                newItems[index].cost = Number(product.cost) || 0;
             }
         }
 
