@@ -98,46 +98,60 @@ export async function sendInvoiceEmail(invoice: InvoiceWithDetails) {
 
     try {
         const companyName = config.companyName;
+        const isEn = (invoice.client as any).language === 'EN';
 
-        const subject = (invoice.client as any).language === 'EN'
+        // Fetch portal token for the client
+        const clientData = await prisma.client.findUnique({
+            where: { id: invoice.client.id },
+            select: { portalToken: true }
+        });
+        const portalToken = clientData?.portalToken;
+        const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
+        const invoiceUrl = `${getAppUrl()}/legacy-portal/invoices/${invoice.id}`;
+
+        const subject = isEn
             ? `Invoice #${invoice.number} from ${companyName}`
             : `Facture #${invoice.number} de ${companyName}`;
 
-        const portalUrl = `${getAppUrl()}/legacy-portal/invoices/${invoice.id}`;
+        const portalSection = portalUrl ? (
+            isEn
+                ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
+                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Your Client Portal</p>
+                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">View all your invoices, quotes and book services anytime.</p>
+                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Access My Portal →</a>
+                   </div>`
+                : `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
+                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Votre portail client</p>
+                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">Consultez toutes vos factures, soumissions et réservez des services en tout temps.</p>
+                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Accéder à mon portail →</a>
+                   </div>`
+        ) : '';
 
-        const html = (invoice.client as any).language === 'EN'
-            ? `
-                <div style="font-family: sans-serif;">
+        const html = isEn
+            ? `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
                     <h2>Hello ${invoice.client.name},</h2>
                     <p>You have received a new invoice from ${companyName}.</p>
                     <p><strong>Invoice #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${invoice.total.toFixed(2)}</p>
+                    <p>Total: $${Number(invoice.total).toFixed(2)}</p>
                     <br/>
-                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                        View Invoice
-                    </a>
+                    <a href="${invoiceUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View Invoice</a>
                     <br/><br/>
-                    <p>Or copy this link: <a href="${portalUrl}">${portalUrl}</a></p>
+                    ${portalSection}
                     <br/>
                     <p>Thank you!</p>
-                </div>
-            `
-            : `
-                <div style="font-family: sans-serif;">
+                </div>`
+            : `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
                     <h2>Bonjour ${invoice.client.name},</h2>
-                    <p>Vous avez reçu une nouvelle facture de ${companyName}.</p>
+                    <p>Vous avez re\u00e7u une nouvelle facture de ${companyName}.</p>
                     <p><strong>Facture #${invoice.number || invoice.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${invoice.total.toFixed(2)}</p>
+                    <p>Total : $${Number(invoice.total).toFixed(2)}</p>
                     <br/>
-                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                        Voir la Facture
-                    </a>
+                    <a href="${invoiceUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Voir la Facture</a>
                     <br/><br/>
-                    <p>Ou copiez ce lien: <a href="${portalUrl}">${portalUrl}</a></p>
+                    ${portalSection}
                     <br/>
                     <p>Merci !</p>
-                </div>
-            `;
+                </div>`;
 
         console.log(`Sending invoice email to: ${invoice.client.email} from: ${config.from}`);
         const data = await config.resend.emails.send({
@@ -165,46 +179,60 @@ export async function sendQuoteEmail(quote: QuoteWithDetails) {
 
     try {
         const companyName = config.companyName;
+        const isEn = (quote.client as any).language === 'EN';
 
-        const subject = (quote.client as any).language === 'EN'
+        // Fetch portal token for the client
+        const clientData = await prisma.client.findUnique({
+            where: { id: quote.client.id },
+            select: { portalToken: true }
+        });
+        const portalToken = clientData?.portalToken;
+        const portalUrl = portalToken ? `${getAppUrl()}/portal/${portalToken}` : null;
+        const quoteUrl = `${getAppUrl()}/legacy-portal/quotes/${quote.id}`;
+
+        const subject = isEn
             ? `Quote #${quote.number} from ${companyName}`
             : `Soumission #${quote.number} de ${companyName}`;
 
-        const portalUrl = `${getAppUrl()}/legacy-portal/quotes/${quote.id}`;
+        const portalSection = portalUrl ? (
+            isEn
+                ? `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
+                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Your Client Portal</p>
+                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">View all your invoices, quotes and book services anytime.</p>
+                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Access My Portal →</a>
+                   </div>`
+                : `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:8px;border:1px solid #c7d2fe;">
+                    <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#3730a3;">🗂️ Votre portail client</p>
+                    <p style="margin:0 0 10px;font-size:13px;color:#4b5563;">Consultez toutes vos factures, soumissions et réservez des services en tout temps.</p>
+                    <a href="${portalUrl}" style="background:#4F46E5;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-size:13px;font-weight:bold;display:inline-block;">Accéder à mon portail →</a>
+                   </div>`
+        ) : '';
 
-        const html = (quote.client as any).language === 'EN'
-            ? `
-                <div style="font-family: sans-serif;">
+        const html = isEn
+            ? `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
                     <h2>Hello ${quote.client.name},</h2>
                     <p>You have received a new quote from ${companyName}.</p>
                     <p><strong>Quote #${quote.number || quote.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${quote.total.toFixed(2)}</p>
+                    <p>Total: $${Number(quote.total).toFixed(2)}</p>
                     <br/>
-                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                        View & Sign Quote
-                    </a>
+                    <a href="${quoteUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View &amp; Sign Quote</a>
                     <br/><br/>
-                    <p>Or copy this link: <a href="${portalUrl}">${portalUrl}</a></p>
+                    ${portalSection}
                     <br/>
                     <p>Thank you!</p>
-                </div>
-            `
-            : `
-                <div style="font-family: sans-serif;">
+                </div>`
+            : `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
                     <h2>Bonjour ${quote.client.name},</h2>
-                    <p>Vous avez reçu une nouvelle soumission de ${companyName}.</p>
+                    <p>Vous avez re\u00e7u une nouvelle soumission de ${companyName}.</p>
                     <p><strong>Soumission #${quote.number || quote.id.slice(0, 8)}</strong></p>
-                    <p>Total: $${quote.total.toFixed(2)}</p>
+                    <p>Total : $${Number(quote.total).toFixed(2)}</p>
                     <br/>
-                    <a href="${portalUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-                        Voir & Signer la Soumission
-                    </a>
+                    <a href="${quoteUrl}" style="background-color:#000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Voir &amp; Signer la Soumission</a>
                     <br/><br/>
-                    <p>Ou copiez ce lien: <a href="${portalUrl}">${portalUrl}</a></p>
+                    ${portalSection}
                     <br/>
                     <p>Merci !</p>
-                </div>
-            `;
+                </div>`;
 
         console.log(`Sending email to: ${quote.client.email} from: ${config.from}`);
         const data = await config.resend.emails.send({
