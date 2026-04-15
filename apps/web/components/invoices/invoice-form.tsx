@@ -468,8 +468,8 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                     value={item.description}
                                                     onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                                                     placeholder="Add a description"
-                                                    rows={Math.max(1, (item.description || "").split("\n").length)}
-                                                    className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
+                                                    rows={Math.max(3, (item.description || "").split("\n").length + 1)}
+                                                    className="w-full bg-transparent border border-gray-100 rounded p-1 px-1 text-sm text-gray-700 focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 placeholder:text-gray-400 resize-y min-h-[60px]"
                                                 />
                                                 <div className="flex justify-between items-center">
                                                     {quickServiceIndex === index ? (
