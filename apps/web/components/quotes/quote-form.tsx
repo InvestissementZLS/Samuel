@@ -5,11 +5,12 @@ import { useUser } from "@/components/providers/user-provider";
 
 import { useState, useEffect } from "react";
 import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
+import { createQuickService } from "@/app/actions/product-actions";
+import { toast } from "sonner";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Quote, Product, QuoteItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Calculator } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -46,10 +47,34 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
     const [division, setDivision] = useState<"EXTERMINATION" | "ENTREPRISES" | "RENOVATION">((quote?.division as "EXTERMINATION" | "ENTREPRISES" | "RENOVATION") || globalDivision);
 
     const [templates, setTemplates] = useState<{id: string, name: string, text: string}[]>([]);
+    const [localProducts, setLocalProducts] = useState(products);
+    const [quickServiceIndex, setQuickServiceIndex] = useState<number | null>(null);
+    const [quickServiceName, setQuickServiceName] = useState("");
 
     useEffect(() => {
         getWarrantyTemplates().then(setTemplates).catch(console.error);
     }, []);
+
+    const handleCreateQuickService = async () => {
+        if (quickServiceIndex === null) return;
+        const name = quickServiceName;
+        if (!name?.trim()) {
+            toast.error("Veuillez entrer un nom valide");
+            return;
+        }
+        try {
+            const newProduct = await createQuickService(name.trim());
+            const updatedProducts = [...localProducts, newProduct];
+            // @ts-ignore
+            setLocalProducts(updatedProducts);
+            handleItemChange(quickServiceIndex, 'productId', newProduct.id);
+            toast.success("Service créé !");
+            setQuickServiceIndex(null);
+            setQuickServiceName("");
+        } catch (e) {
+            toast.error("Erreur lors de la création");
+        }
+    };
 
     const TemplateSelector = ({ onSelect, label, side = "bottom" }: { onSelect: (text: string) => void, label?: React.ReactNode, side?: "bottom" | "top" | "right" | "left" }) => (
         <Popover>
@@ -150,7 +175,9 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                 issuedDate,
                 dueDate,
                 division,
-                items: items.map(item => ({
+                items: items
+                    .filter(item => item.productId || item.description?.trim())
+                    .map(item => ({
                     productId: item.productId,
                     quantity: item.quantity,
                     price: item.price,
@@ -172,7 +199,8 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
         }
     };
 
-    const productOptions = products
+    const productOptions = [...localProducts]
+        .sort((a, b) => a.name.localeCompare(b.name))
         .map(p => ({ value: p.id, label: p.name }));
 
     const clientOptions = clients
@@ -377,23 +405,24 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                     </td>
                                     <td className="px-4 py-3">
                                         <div className="space-y-1">
-                                            <Combobox
-                                                items={productOptions}
-                                                value={item.productId}
-                                                onSelect={(val) => handleItemChange(index, 'productId', val)}
-                                                placeholder="Select service..."
-                                                className="bg-white border-gray-200 text-gray-900 hover:bg-gray-50 aria-expanded:text-gray-900 justify-between w-full h-8"
-                                                popoverClassName="bg-white border-gray-200 text-gray-900 shadow-md"
-                                                itemClassName="text-gray-700 aria-selected:bg-indigo-50 aria-selected:text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
-                                            />
-                                            <div className="flex items-center gap-2">
+                                            <select
+                                                value={item.productId || ""}
+                                                onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                                                className="w-full h-8 text-sm border border-gray-200 rounded px-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 cursor-pointer"
+                                            >
+                                                <option value="">Sélectionner un service...</option>
+                                                {productOptions.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                            <div className="flex items-center gap-2 mt-1">
                                                 {/* @ts-ignore */}
                                                 {item.product?.isCommissionEligible && (
                                                     <span className="text-yellow-500" title="Eligible for Commission">
                                                         $
                                                     </span>
                                                 )}
-                                            <div className="flex flex-col gap-1 mt-1">
+                                            <div className="flex flex-col gap-1">
                                                 <textarea
                                                     value={item.description}
                                                     onChange={(e) => handleItemChange(index, 'description', e.target.value)}
@@ -401,9 +430,28 @@ export function QuoteForm({ quote, products, clientId, onSave, clients = [], pre
                                                     rows={Math.max(1, (item.description || "").split("\n").length)}
                                                     className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
                                                 />
-                                                <div className="flex justify-end">
-                                                    <TemplateSelector 
-                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded"><FileText className="w-3 h-3" /> Templates</span>}
+                                                <div className="flex justify-between items-center">
+                                                    {quickServiceIndex === index ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                autoFocus
+                                                                value={quickServiceName}
+                                                                onChange={e => setQuickServiceName(e.target.value)}
+                                                                placeholder="Nom du service..."
+                                                                className="text-xs border px-1.5 py-0.5 rounded w-32 outline-none focus:border-emerald-500"
+                                                                onKeyDown={e => e.key === 'Enter' && handleCreateQuickService()}
+                                                            />
+                                                            <button type="button" onClick={handleCreateQuickService} className="text-white bg-emerald-600 hover:bg-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-medium">Créer</button>
+                                                            <button type="button" onClick={() => { setQuickServiceIndex(null); setQuickServiceName(""); }} className="text-gray-500 hover:text-gray-700 font-bold px-1">×</button>
+                                                        </div>
+                                                    ) : (
+                                                        <button type="button" onClick={() => setQuickServiceIndex(index)} className="text-[10px] flex items-center gap-1 text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-medium">
+                                                            <Plus className="w-3 h-3" /> Nouveau Service
+                                                        </button>
+                                                    )}
+                                                    <TemplateSelector
+                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded"><FileText className="w-3 h-3" /> Modèles</span>}
                                                         side="right"
                                                         onSelect={(text) => handleItemChange(index, 'description', item.description ? `${item.description}\n\n${text}` : text)}
                                                     />
