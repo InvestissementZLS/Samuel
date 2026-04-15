@@ -1,32 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { verifyBookingToken, confirmBooking, getClientServices, confirmGuestBooking, checkExistingClient, sendPortalLink } from "@/app/actions/booking-actions";
 import { createBookingRequest } from "@/app/actions/booking-request-actions";
 import { findSmartSlots, SmartSlot } from "@/app/actions/scheduling-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Check, Calendar, Clock, MapPin, Package, User, Leaf, ArrowLeft } from "lucide-react";
+import { Check, Calendar, Clock, Package, User, Leaf, ArrowLeft, X, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { useParams } from "next/navigation";
 import { dictionary, Locale } from "@/lib/i18n/dictionary";
 
 export default function ClientBookingPage() {
     const params = useParams();
     const router = useRouter();
-    // casting to string to avoid array issues, though usually string in this case
+    const searchParams = useSearchParams();
     const token = typeof params?.token === 'string' ? params.token : Array.isArray(params?.token) ? params.token[0] : '';
-
-    // Determine initial state based on token immediately
     const isNew = token === 'new';
 
-    const [language, setLanguage] = useState<Locale>('fr'); // Default to French
+    // Deep-link params from portal
+    const deepCat = searchParams.get('cat') || null;          // e.g. 'souris'
+    const deepService = searchParams.get('service') || null;  // e.g. 'Traitement Souris – Régulier'
+
+    const [language, setLanguage] = useState<Locale>('fr');
     const t = dictionary[language];
     const b = t.booking;
 
-    const [step, setStep] = useState(1); // Default to 1, adjust in effect
+    const [step, setStep] = useState(1);
     const [isGuest, setIsGuest] = useState(false);
     const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "", street: "", city: "", postalCode: "" });
     const [loading, setLoading] = useState(true);
@@ -34,20 +35,22 @@ export default function ClientBookingPage() {
     const [services, setServices] = useState<any[]>([]);
     const [bookingDivision, setBookingDivision] = useState<string>('EXTERMINATION');
 
-    // Preferences from booking link (set by admin when sending the link)
+    // Preferences
     const [preferredDays, setPreferredDays] = useState<string[]>([]);
-    const [preferredPeriod, setPreferredPeriod] = useState<string | null>(null); // "AM" | "PM" | null
+    const [preferredPeriod, setPreferredPeriod] = useState<string | null>(null);
 
-    // Existing Client Detection State
+    // Existing Client Detection
     const [existingClient, setExistingClient] = useState<{ exists: boolean; name?: string; maskedEmail?: string; clientId?: string } | null>(null);
     const [showExistingClientModal, setShowExistingClientModal] = useState(false);
     const [sendingLink, setSendingLink] = useState(false);
 
-    // Selections
+    // ── Service detail modal ──────────────────────────────────────────────────
+    const [detailService, setDetailService] = useState<any>(null); // service being previewed
 
-    // ── Availability Request Flow (when link has no preset preferredDays) ──
-    // If the link has no preferredDays pre-set by admin, we switch to a
-    // "submit availability" mode where client picks preferred days → admin confirms
+    // ── Active category filter (from deep link) ───────────────────────────────
+    const [activeCategory, setActiveCategory] = useState<string | null>(deepCat);
+
+    // ── Availability Request Flow ─────────────────────────────────────────────
     const [isRequestMode, setIsRequestMode] = useState(false);
     const [requestDays, setRequestDays] = useState<string[]>([]);
     const [requestNotes, setRequestNotes] = useState('');
@@ -424,27 +427,170 @@ export default function ClientBookingPage() {
                         </form>
                     )}
 
-                    {/* STEP 1: SERVICES */}
-                    {step === 1 && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                <Package className="text-blue-600" /> {b.service.title}
-                            </h2>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {services.map(service => (
-                                    <button
-                                        key={service.id}
-                                        onClick={() => handleServiceSelect(service)}
-                                        className="text-left border p-4 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all shadow-sm"
-                                    >
-                                        <div className="font-bold text-lg">{service.name}</div>
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{service.description || "Professional definition treatment."}</p>
-                                        <div className="mt-3 font-semibold text-blue-600">{b.service.requestQuote}</div>
+                    {/* ── Service Detail Modal ──────────────────────────────────── */}
+                    {detailService && (
+                        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setDetailService(null)}>
+                            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b">
+                                    <h3 className="font-bold text-gray-900 text-lg leading-tight pr-4">{detailService.name}</h3>
+                                    <button onClick={() => setDetailService(null)} className="flex-shrink-0 p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <X className="w-5 h-5 text-gray-500" />
                                     </button>
-                                ))}
+                                </div>
+
+                                <div className="px-6 py-5 space-y-4">
+                                    {/* Price */}
+                                    {detailService.price > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-2xl font-bold text-gray-900">{detailService.price}$</span>
+                                            <span className="text-sm text-gray-400">{language === 'fr' ? 'à partir de' : 'starting at'}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Warranty */}
+                                    {detailService.warrantyInfo && (
+                                        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+                                            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                                            <span className="text-sm font-semibold text-emerald-800">{detailService.warrantyInfo}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Description */}
+                                    {detailService.description && (
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                                                {language === 'fr' ? 'Description du service' : 'Service description'}
+                                            </p>
+                                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                                                {detailService.description}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Duration */}
+                                    {detailService.durationMinutes && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                            <Clock className="w-4 h-4" />
+                                            {language === 'fr' ? `Durée estimée : ${detailService.durationMinutes} min` : `Estimated duration: ${detailService.durationMinutes} min`}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="px-6 pb-6 flex gap-3">
+                                    <button
+                                        onClick={() => setDetailService(null)}
+                                        className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                                    >
+                                        {language === 'fr' ? 'Retour' : 'Back'}
+                                    </button>
+                                    <button
+                                        onClick={() => { handleServiceSelect(detailService); setDetailService(null); }}
+                                        className="flex-[2] py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {language === 'fr' ? 'Choisir ce service' : 'Select this service'}
+                                        <Check className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
+
+                    {/* STEP 1: SERVICES — grouped by category, collapsible */}
+                    {step === 1 && (() => {
+                        const categories = [
+                            { id: 'souris',      icon: '🐭', label: language === 'fr' ? 'Souris & Rongeurs' : 'Mice & Rodents',              color: { bg: 'bg-blue-50',   border: 'border-blue-200',   title: 'text-blue-700',   badge: 'bg-blue-100 text-blue-700',     ring: 'ring-blue-400'   }, match: (n: string) => /souris|rongeur|calfeutrage.*bloc|mensuel.*rongeur|trimestriel.*rongeur|annuel.*souris/i.test(n) },
+                            { id: 'guepes',      icon: '🐝', label: language === 'fr' ? 'Guêpes & Insectes Extérieurs' : 'Wasps & Outdoors', color: { bg: 'bg-yellow-50', border: 'border-yellow-200', title: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', ring: 'ring-yellow-400' }, match: (n: string) => /guêpe|arrosage|plan annuel/i.test(n) },
+                            { id: 'fourmis',     icon: '🐜', label: language === 'fr' ? 'Fourmis Charpentières' : 'Carpenter Ants',          color: { bg: 'bg-orange-50', border: 'border-orange-200', title: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', ring: 'ring-orange-400' }, match: (n: string) => /fourmi/i.test(n) },
+                            { id: 'coquerelles', icon: '🪳', label: language === 'fr' ? 'Coquerelles' : 'Cockroaches',                       color: { bg: 'bg-red-50',    border: 'border-red-200',    title: 'text-red-700',    badge: 'bg-red-100 text-red-700',       ring: 'ring-red-400'   }, match: (n: string) => /coquerelle/i.test(n) },
+                            { id: 'punaises',    icon: '🐞', label: language === 'fr' ? 'Punaises de Lit' : 'Bed Bugs',                      color: { bg: 'bg-pink-50',   border: 'border-pink-200',   title: 'text-pink-700',   badge: 'bg-pink-100 text-pink-700',     ring: 'ring-pink-400'  }, match: (n: string) => /punaise/i.test(n) },
+                            { id: 'animaux',     icon: '🦝', label: language === 'fr' ? 'Animaux Sauvages' : 'Wildlife',                     color: { bg: 'bg-green-50',  border: 'border-green-200',  title: 'text-green-700',  badge: 'bg-green-100 text-green-700',   ring: 'ring-green-400' }, match: (n: string) => /capture|marmotte|moufette|cage|cam/i.test(n) },
+                            { id: 'inspection',  icon: '🔍', label: language === 'fr' ? 'Inspection & Administration' : 'Inspection & Admin', color: { bg: 'bg-gray-50',   border: 'border-gray-200',   title: 'text-gray-700',   badge: 'bg-gray-100 text-gray-700',     ring: 'ring-gray-400'  }, match: (n: string) => /inspection|ouverture de dossier/i.test(n) },
+                        ];
+
+                        return (
+                            <div className="space-y-3">
+                                <div className="mb-1">
+                                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                        <Package className="text-blue-600" /> {b.service.title}
+                                    </h2>
+                                    {activeCategory && (
+                                        <button onClick={() => setActiveCategory(null)} className="mt-1 text-xs text-blue-500 hover:underline flex items-center gap-1">
+                                            ← {language === 'fr' ? 'Voir toutes les catégories' : 'See all categories'}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {categories.map(cat => {
+                                    const catServices = services.filter(s => cat.match(s.name));
+                                    if (catServices.length === 0) return null;
+                                    const isOpen = !activeCategory || activeCategory === cat.id;
+                                    const isActive = activeCategory === cat.id;
+
+                                    return (
+                                        <div key={cat.id} className={`rounded-2xl border-2 overflow-hidden transition-all ${isActive ? cat.color.border + ' ' + cat.color.bg : 'border-gray-100 bg-white'}`}>
+                                            {/* Category header — clickable to expand */}
+                                            <button
+                                                className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-gray-50/50 transition-colors"
+                                                onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-2xl">{cat.icon}</span>
+                                                    <div>
+                                                        <span className={`font-bold text-sm ${isActive ? cat.color.title : 'text-gray-800'}`}>{cat.label}</span>
+                                                        <span className="ml-2 text-xs text-gray-400">({catServices.length})</span>
+                                                    </div>
+                                                </div>
+                                                {isActive ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                            </button>
+
+                                            {/* Service cards — visible when open */}
+                                            {isOpen && (
+                                                <div className="px-3 pb-3 grid gap-2 sm:grid-cols-2 border-t border-gray-100">
+                                                    {catServices.map(service => {
+                                                        const isHighlighted = deepService && service.name.toLowerCase().includes(deepService.toLowerCase().slice(0, 15));
+                                                        return (
+                                                            <button
+                                                                key={service.id}
+                                                                onClick={() => setDetailService(service)}
+                                                                className={`text-left bg-white rounded-xl border shadow-sm px-4 py-3.5 mt-2 hover:shadow-md hover:-translate-y-0.5 transition-all group ${isHighlighted ? `border-2 ${cat.color.ring} ring-2 ${cat.color.ring}` : 'border-gray-100 hover:border-blue-200'}`}
+                                                            >
+                                                                <div className="flex justify-between items-start gap-2 mb-1.5">
+                                                                    <span className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors leading-snug">
+                                                                        {service.name}
+                                                                        {isHighlighted && <span className="ml-1.5 text-[9px] font-bold bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full uppercase">Sélectionné</span>}
+                                                                    </span>
+                                                                    {service.price > 0 && (
+                                                                        <span className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${cat.color.badge}`}>
+                                                                            {service.price}$
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {service.description && (
+                                                                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-2">
+                                                                        {service.description}
+                                                                    </p>
+                                                                )}
+                                                                <div className="flex items-center justify-between">
+                                                                    {service.warrantyInfo ? (
+                                                                        <div className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                                                                            🛡️ {service.warrantyInfo.split('|')[0].trim()}
+                                                                        </div>
+                                                                    ) : <div />}
+                                                                    <div className="text-[11px] font-semibold text-blue-500 group-hover:text-blue-700">
+                                                                        {language === 'fr' ? 'Voir détails →' : 'View details →'}
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
 
                     {/* ──────────────────────────────────────────────────── */}
                     {/* STEP 2 — REQUEST MODE: Client picks preferred days  */}
@@ -478,24 +624,29 @@ export default function ClientBookingPage() {
                                 </div>
                             </div>
 
-                            {/* Day picker — weekdays highlighted, weekends dimmed */}
+                            {/* Day picker — weekdays prominent, weekends → contact callout */}
                             <div>
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                                    {language === 'fr' ? 'Jours disponibles (14 prochains jours)' : 'Available Days (next 14 days)'}
+                                    {language === 'fr' ? 'Choisissez vos jours (14 prochains jours)' : 'Choose your days (next 14 days)'}
                                 </p>
-                                <div className="flex flex-wrap gap-2">
+
+                                {/* ── Weekdays ── */}
+                                <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-2">
+                                    {language === 'fr' ? '📅 Lundi – Vendredi' : '📅 Monday – Friday'}
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-5">
                                     {(() => {
                                         const today = new Date();
                                         const days = [];
                                         for (let i = 1; i <= 14; i++) {
                                             const d = new Date(today);
                                             d.setDate(today.getDate() + i);
+                                            if (d.getDay() === 0 || d.getDay() === 6) continue;
                                             const iso = d.toISOString().split('T')[0];
-                                            const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                                             const dayName = d.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { weekday: 'short' });
                                             const label = d.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' });
                                             const isSelected = requestDays.includes(iso);
-                                            return (
+                                            days.push(
                                                 <button
                                                     key={iso}
                                                     type="button"
@@ -503,27 +654,66 @@ export default function ClientBookingPage() {
                                                         if (isSelected) setRequestDays(requestDays.filter(d => d !== iso));
                                                         else if (requestDays.length < 5) setRequestDays([...requestDays, iso]);
                                                     }}
-                                                    className={`flex flex-col items-center px-3 py-2.5 rounded-xl border text-sm font-medium transition-all
+                                                    className={`flex flex-col items-center px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
                                                         ${isSelected
-                                                            ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                                                            : isWeekend
-                                                                ? 'bg-gray-50 border-gray-200 text-gray-400'
-                                                                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                                                            ? 'bg-blue-600 border-blue-600 text-white shadow-md scale-[1.05]'
+                                                            : 'bg-white border-gray-200 text-gray-800 hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm'
                                                         }`}
                                                 >
-                                                    <span className={`text-[10px] uppercase font-bold ${isSelected ? 'text-blue-200' : isWeekend ? 'text-gray-300' : 'text-gray-400'}`}>
+                                                    <span className={`text-[10px] uppercase font-bold mb-0.5 ${isSelected ? 'text-blue-200' : 'text-blue-500'}`}>
                                                         {dayName}
                                                     </span>
-                                                    <span>{label}</span>
-                                                    {isWeekend && !isSelected && <span className="text-[9px] text-gray-300">{language === 'fr' ? 'congé' : 'closed'}</span>}
+                                                    <span className="text-sm">{label}</span>
+                                                    {isSelected && <span className="text-[9px] text-blue-200 mt-0.5">✓</span>}
                                                 </button>
                                             );
                                         }
                                         return days;
                                     })()}
                                 </div>
+
+                                {/* ── Weekend callout ── */}
+                                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mt-1">
+                                    <span className="text-xl mt-0.5">📞</span>
+                                    <div>
+                                        <p className="text-sm font-semibold text-amber-900">
+                                            {language === 'fr'
+                                                ? 'Disponible seulement la fin de semaine ?'
+                                                : 'Only available on weekends?'}
+                                        </p>
+                                        <p className="text-xs text-amber-700 mt-0.5">
+                                            {language === 'fr'
+                                                ? 'Nos créneaux en ligne sont réservés à la semaine. Contactez-nous directement et nous trouverons une solution :'
+                                                : 'Online booking is weekdays only. Contact us directly and we\'ll find a solution:'}
+                                        </p>
+                                        <div className="flex flex-wrap gap-3 mt-2">
+                                            {/* Phone — same number for all divisions for now */}
+                                            <a href="tel:+15149634010" className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors">
+                                                📱 514-963-4010
+                                            </a>
+                                            {/* Email per division */}
+                                            <a
+                                                href={`mailto:${
+                                                    bookingDivision === 'EXTERMINATION'
+                                                        ? 'exterminationzls@gmail.com'
+                                                        : bookingDivision === 'ENTREPRISES'
+                                                            ? 'info@lesentrepriseszls.com'
+                                                            : 'info@praxiszls.com'
+                                                }`}
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+                                            >
+                                                ✉️ {bookingDivision === 'EXTERMINATION'
+                                                    ? 'exterminationzls@gmail.com'
+                                                    : bookingDivision === 'ENTREPRISES'
+                                                        ? 'info@lesentrepriseszls.com'
+                                                        : 'info@praxiszls.com'}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {requestDays.length > 0 && (
-                                    <p className="mt-2 text-xs text-blue-600 font-semibold">
+                                    <p className="mt-3 text-xs text-blue-600 font-semibold">
                                         ✓ {requestDays.length} {language === 'fr' ? `jour${requestDays.length > 1 ? 's' : ''} sélectionné${requestDays.length > 1 ? 's' : ''}` : `day${requestDays.length > 1 ? 's' : ''} selected`}
                                     </p>
                                 )}

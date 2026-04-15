@@ -18,10 +18,10 @@ const resendExtermination = process.env.RESEND_API_KEY_EXTERMINATION
 
 // Fallback logic to get default config if DB settings are missing
 function getDefaultEmailConfig(division: string) {
-    if (division === "EXTERMINATION" && resendExtermination) {
+    if (division === "EXTERMINATION") {
         return {
-            resend: resendExtermination,
-            from: "Extermination ZLS <extermination@praxiszls.com>",
+            resend: resendExtermination || resendEntreprises,
+            from: "Extermination ZLS <extermination@lesentrepriseszls.com>",
             companyName: "Extermination ZLS"
         };
     }
@@ -549,5 +549,101 @@ export async function sendPasswordResetEmail(email: string, token: string, divis
     } catch (error: any) {
         console.error("Error sending password reset email:", error);
         return { success: false, error: error.message };
+    }
+}
+
+// ─── WARRANTY REMINDER EMAIL ────────────────────────────────────────────────
+export async function sendWarrantyReminderEmail({
+    clientName, clientEmail, clientLanguage, portalToken,
+    warrantyExpiresAt, daysLeft, division, companyPhone,
+}: {
+    clientName: string; clientEmail: string; clientLanguage: string;
+    portalToken: string; warrantyExpiresAt: Date; daysLeft: number;
+    division: string; companyPhone?: string;
+}) {
+    const config = await getEmailConfig(division);
+    if (!config.resend) return { success: false, error: 'Missing Resend API Key' };
+
+    const appUrl = getAppUrl();
+    const portalUrl = `${appUrl}/portal/${portalToken}`;
+    const bookingUrl = `${appUrl}/booking/${portalToken}`;
+    const isEn = clientLanguage === 'EN';
+    const companyName = config.companyName;
+    const phone = companyPhone || '514-963-4010';
+
+    const formattedExpiry = new Intl.DateTimeFormat(isEn ? 'en-CA' : 'fr-CA', {
+        day: 'numeric', month: 'long', year: 'numeric'
+    }).format(warrantyExpiresAt);
+
+    const urgencyColor = daysLeft <= 7 ? '#dc2626' : daysLeft <= 14 ? '#d97706' : '#059669';
+    const urgencyLabel = isEn
+        ? (daysLeft <= 7 ? 'URGENT' : daysLeft <= 14 ? 'Action Required' : 'Heads Up')
+        : (daysLeft <= 7 ? 'URGENT' : daysLeft <= 14 ? 'Action requise' : 'Rappel important');
+    const barWidth = Math.min(100, Math.max(5, Math.round(daysLeft / 0.3)));
+
+    const subject = isEn
+        ? `⚠️ Your warranty expires in ${daysLeft} days — ${companyName}`
+        : `⚠️ Votre garantie expire dans ${daysLeft} jours — ${companyName}`;
+
+    const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="background:linear-gradient(135deg,#1e3a8a,#3730a3);padding:32px 40px;">
+        <p style="margin:0;color:#93c5fd;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${companyName}</p>
+        <h1 style="margin:8px 0 0;color:#fff;font-size:22px;font-weight:700;">${isEn ? 'Warranty Expiry Notice' : 'Avis d\'expiration de garantie'}</h1>
+      </div>
+      <div style="background:${urgencyColor}18;border-left:4px solid ${urgencyColor};padding:10px 24px;">
+        <span style="color:${urgencyColor};font-weight:700;font-size:12px;text-transform:uppercase;">${urgencyLabel} — ${daysLeft} ${isEn ? 'days left' : 'jours restants'}</span>
+      </div>
+      <div style="padding:32px 40px;">
+        <p style="color:#374151;font-size:15px;margin-top:0;">${isEn ? 'Hello' : 'Bonjour'} <strong>${clientName}</strong>,</p>
+        <p style="color:#4b5563;line-height:1.7;">
+          ${isEn
+            ? `Your pest control warranty with <strong>${companyName}</strong> expires in <strong style="color:${urgencyColor};">${daysLeft} days</strong> on <strong>${formattedExpiry}</strong>.`
+            : `Votre garantie de protection antiparasitaire avec <strong>${companyName}</strong> expire dans <strong style="color:${urgencyColor};">${daysLeft} jours</strong>, le <strong>${formattedExpiry}</strong>.`}
+        </p>
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin:24px 0;">
+          <p style="margin:0 0 6px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">📋 ${isEn ? 'Your coverage' : 'Votre couverture'}</p>
+          <p style="margin:0;font-size:14px;color:#111827;font-weight:600;">${isEn ? 'Pest control protection' : 'Protection antiparasitaire'} — ${isEn ? 'expires' : 'expire le'} ${formattedExpiry}</p>
+          <div style="margin-top:10px;height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden;">
+            <div style="height:100%;width:${barWidth}%;background:${urgencyColor};border-radius:999px;"></div>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:#9ca3af;">${daysLeft} ${isEn ? 'days remaining' : 'jours restants'}</p>
+        </div>
+        <p style="color:#4b5563;line-height:1.7;font-size:14px;">
+          ${isEn
+            ? 'To keep your home protected, we recommend renewing before the expiry date:'
+            : 'Pour maintenir la protection de votre domicile, nous vous recommandons de renouveler avant la date d\'expiration :'}
+        </p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${bookingUrl}" style="background:#1e3a8a;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:700;font-size:15px;display:inline-block;">
+            🔒 ${isEn ? 'Renew My Protection' : 'Renouveler ma protection'}
+          </a>
+        </div>
+        <p style="color:#6b7280;font-size:13px;text-align:center;">
+          ${isEn ? 'Or visit your portal:' : 'Ou visitez votre portail :'} <a href="${portalUrl}" style="color:#1e3a8a;font-weight:600;">${isEn ? 'My Portal' : 'Mon portail'}</a>
+        </p>
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:28px 0;"/>
+        <p style="color:#6b7280;font-size:13px;">
+          ${isEn ? 'Questions? Call us at' : 'Questions ? Appelez-nous au'} <strong>${phone}</strong>
+        </p>
+        <p style="color:#374151;font-size:14px;margin-bottom:0;">
+          ${isEn ? 'Thank you,' : 'Merci,'}<br/><strong>${isEn ? `The ${companyName} Team` : `L'équipe ${companyName}`}</strong>
+        </p>
+      </div>
+      <div style="background:#f9fafb;padding:16px 40px;border-top:1px solid #f3f4f6;">
+        <p style="margin:0;font-size:11px;color:#9ca3af;text-align:center;">
+          ${isEn
+            ? `You're receiving this because you have an active warranty with ${companyName}. Do not reply to this email.`
+            : `Vous recevez ce courriel car vous bénéficiez d'une garantie active avec ${companyName}. Ne pas répondre à ce courriel.`}
+        </p>
+      </div>
+    </div>`;
+
+    try {
+        const data = await config.resend.emails.send({ from: config.from, to: [clientEmail], subject, html });
+        return { success: true, data };
+    } catch (error) {
+        console.error('Failed to send warranty reminder email:', error);
+        return { success: false, error };
     }
 }

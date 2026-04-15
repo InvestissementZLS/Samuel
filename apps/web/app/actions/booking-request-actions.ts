@@ -256,12 +256,23 @@ export async function getPendingBookingRequests(division?: string) {
         },
         include: {
             client: { select: { id: true, name: true, companyName: true, email: true, phone: true, language: true } },
-            // @ts-ignore
-            property: { select: { id: true, address: true, latitude: true, longitude: true, city: true } },
         },
         orderBy: { createdAt: 'asc' }
     });
-    return JSON.parse(JSON.stringify(requests));
+
+    // BookingRequest has no Prisma relation to Property — fetch separately
+    const withProperty = await Promise.all(
+        requests.map(async (req: any) => {
+            if (!req.propertyId) return { ...req, property: null };
+            const property = await prisma.property.findUnique({
+                where: { id: req.propertyId },
+                select: { id: true, address: true, latitude: true, longitude: true, city: true }
+            });
+            return { ...req, property };
+        })
+    );
+
+    return JSON.parse(JSON.stringify(withProperty));
 }
 
 // ─── Confirm a booking request + auto-create Job + send email ────────────────
@@ -278,16 +289,18 @@ export async function confirmBookingRequest(requestId: string, data: {
         where: { id: requestId },
         include: {
             client: true,
-            // @ts-ignore
-            property: true,
         }
     });
+
+    // Fetch property separately (no Prisma relation defined on BookingRequest)
+    const property = (request as any)?.propertyId
+        ? await prisma.property.findUnique({ where: { id: (request as any).propertyId } })
+        : null;
 
     if (!request) return { success: false, error: 'Request not found' };
     if (request.status !== 'PENDING') return { success: false, error: 'Already processed' };
 
     const client = request.client as any;
-    const property = (request as any).property;
 
     // 2. Determine scheduledAt from date + period
     const baseDate = new Date(data.confirmedDate);

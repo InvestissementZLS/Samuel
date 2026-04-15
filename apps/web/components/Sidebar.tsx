@@ -4,7 +4,7 @@ import { useState, useMemo, memo } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut } from 'lucide-react';
+import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut, Route } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -33,6 +33,8 @@ export function Sidebar() {
         { name: t.sidebar.products, href: '/products', icon: Package },
         { name: t.sidebar.inventory, href: '/inventory', icon: Box },
         { name: t.sidebar.recurring, href: '/recurring', icon: ShieldCheck },
+        // Routes Prévention — EXTERMINATION seulement
+        { name: 'Routes Prévention', href: '/prevention-routes', icon: Route, divisionOnly: 'EXTERMINATION' as const },
         { name: t.sidebar.commissions, href: '/commissions', icon: DollarSign },
         { name: t.sidebar.reports, href: '/reports', icon: BarChart },
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
@@ -47,9 +49,11 @@ export function Sidebar() {
             if (item.href === '/expenses' && !perms.canManageExpenses) return false;
             if (item.href === '/technicians' && !perms.canManageUsers) return false;
             if (item.href === '/commissions' && !perms.canManageCommissions) return false;
+            // Routes Prévention uniquement pour la division EXTERMINATION
+            if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;
             return true;
         });
-    }, [navigation, perms]);
+    }, [navigation, perms, division]);
 
     const handleLogout = async () => {
         try {

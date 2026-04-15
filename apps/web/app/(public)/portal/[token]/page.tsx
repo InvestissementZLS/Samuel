@@ -195,78 +195,227 @@ export default function ClientPortalPage() {
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
 
-                {/* ── Boutique & Services Saisonniers ── */}
+                {/* ── Nos Services — Hero CTA ── */}
                 <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-2">
                             <Sparkles className="w-5 h-5 text-yellow-300" />
                             <span className="text-sm font-semibold uppercase tracking-wider text-indigo-100">
-                                {language === 'fr' ? 'Suggestions de Saison' : 'Seasonal Suggestions'}
+                                {language === 'fr' ? 'Exterminateurs certifiés' : 'Certified Exterminators'}
                             </span>
                         </div>
-                        <h2 className="text-3xl font-bold mb-4">
-                            {language === 'fr' 
-                                ? (now.getMonth() >= 3 && now.getMonth() <= 7 
-                                    ? "Protégez votre maison ce printemps" 
-                                    : "Préparez votre hiver en toute sérénité")
-                                : "Protect your home this season"}
+                        <h2 className="text-3xl font-bold mb-3">
+                            {language === 'fr' ? 'Nos services d\'extermination' : 'Our extermination services'}
                         </h2>
-                        <p className="text-indigo-100 max-w-xl mb-6 text-lg">
+                        <p className="text-indigo-100 max-w-xl mb-6 text-base">
                             {language === 'fr'
-                                ? "Découvrez nos services spécialisés pour prévenir les infestations courantes ce mois-ci."
-                                : "Discover our specialized services to prevent common infestations this month."}
+                                ? "Des solutions professionnelles pour chaque nuisible. Garanties incluses sur tous nos traitements."
+                                : "Professional solutions for every pest. Warranties included on all our treatments."}
                         </p>
-                        <div className="flex gap-4">
-                            <button 
-                                onClick={() => router.push(`/booking/${token}`)}
-                                className="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold hover:bg-indigo-50 transition-all flex items-center gap-2 shadow-lg"
-                            >
-                                {language === 'fr' ? 'Réserver maintenant' : 'Book Now'}
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => router.push(`/booking/${token}`)}
+                            className="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold hover:bg-indigo-50 transition-all flex items-center gap-2 shadow-lg"
+                        >
+                            {language === 'fr' ? 'Prendre rendez-vous' : 'Book an appointment'}
+                            <ArrowRight className="w-4 h-4" />
+                        </button>
                     </div>
-                    {/* Abstract shapes for design */}
-                    <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+                    <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
                 </section>
 
+                {/* ── Catalogue services par catégorie ── */}
                 <section>
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                            <ShoppingBag className="h-6 w-6 text-indigo-600" />
-                            {language === 'fr' ? 'Boutique & Services' : 'Our Services'}
-                        </h2>
-                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                        {language === 'fr' ? 'Nos Services' : 'Our Services'}
+                    </h2>
+                    <p className="text-gray-500 text-sm mb-8">
+                        {language === 'fr'
+                            ? 'Cliquez sur une catégorie pour voir les options et réserver.'
+                            : 'Click a category to see options and book.'}
+                    </p>
 
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {services.filter(s => s.price > 0).slice(0, 6).map((service) => (
-                            <div key={service.id} className="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                        <ShieldCheck className="w-5 h-5" />
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-xl font-bold text-gray-900">{service.price}$</div>
-                                        <div className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">
-                                            {service.warrantyInfo || "Service Pro"}
+                    <div className="space-y-4">
+                        {([
+                            {
+                                id: 'souris',
+                                icon: '🐭',
+                                color: 'blue',
+                                title: language === 'fr' ? 'Souris & Rongeurs' : 'Mice & Rodents',
+                                subtitle: language === 'fr' ? 'Traitement, calfeutrage, plans de suivi' : 'Treatment, sealing, follow-up plans',
+                                options: language === 'fr' ? [
+                                    { name: 'Traitement Régulier', detail: 'Installation d\'appâts • Suivi 1 mois • Garantie 6 mois' },
+                                    { name: 'Traitement Premium', detail: 'Piégeage + périmètre extérieur + grenier • Garantie 6 mois' },
+                                    { name: 'Calfeutrage & Blocage Complet', detail: 'Silicone + grillage + élimination • Garantie 2 ans souris / 5 ans matériaux' },
+                                    { name: 'Service Mensuel', detail: 'Entretien régulier, stations d\'appât et trappes' },
+                                    { name: 'Service Trimestriel', detail: 'Contrôle préventif 4x/an' },
+                                    { name: 'Traitement Annuel', detail: '3 visites incluses + vérification complète • Garantie 1 an' },
+                                ] : [
+                                    { name: 'Regular Treatment', detail: 'Bait installation • 1 month follow-up • 6 month warranty' },
+                                    { name: 'Premium Treatment', detail: 'Trapping + exterior perimeter + attic • 6 month warranty' },
+                                    { name: 'Complete Sealing & Blocking', detail: 'Silicone + mesh + elimination • 2 yr mice / 5 yr materials warranty' },
+                                    { name: 'Monthly Service', detail: 'Regular maintenance, bait stations and traps' },
+                                    { name: 'Quarterly Service', detail: 'Preventive control 4x/year' },
+                                    { name: 'Annual Treatment', detail: '3 visits included + full inspection • 1 year warranty' },
+                                ],
+                            },
+                            {
+                                id: 'guepes',
+                                icon: '🐝',
+                                color: 'yellow',
+                                title: language === 'fr' ? 'Guêpes & Insectes Extérieurs' : 'Wasps & Outdoor Insects',
+                                subtitle: language === 'fr' ? 'Nids, arrosage préventif, plan saisonnier' : 'Nests, preventive spraying, seasonal plan',
+                                options: language === 'fr' ? [
+                                    { name: 'Traitement Nid de Guêpes', detail: 'Traitement + extraction si possible • Garantie 3 mois' },
+                                    { name: 'Nid de Terre', detail: 'Élimination ciblée nids au sol • Garantie 3 mois' },
+                                    { name: 'Service Complet Guêpes', detail: 'Intérieur + 2 traitements ext. + calfeutrage • Garantie 1 an' },
+                                    { name: 'Arrosage Extérieur', detail: 'Soffites, portes, fenêtres, périmètre — Dragnet (perméthrine)' },
+                                    { name: 'Plan Annuel Arrosage', detail: '3 traitements mai–août (guêpes, fourmis, araignées) • Garantie saison' },
+                                ] : [
+                                    { name: 'Wasp Nest Treatment', detail: 'Treatment + extraction if possible • 3 month warranty' },
+                                    { name: 'Ground Nest', detail: 'Targeted ground nest elimination • 3 month warranty' },
+                                    { name: 'Complete Wasp Service', detail: 'Interior + 2 exterior treatments + sealing • 1 year warranty' },
+                                    { name: 'Exterior Spraying', detail: 'Soffits, doors, windows, perimeter — Dragnet (permethrin)' },
+                                    { name: 'Annual Spraying Plan', detail: '3 treatments May–Aug (wasps, ants, spiders) • Season warranty' },
+                                ],
+                            },
+                            {
+                                id: 'fourmis',
+                                icon: '🐜',
+                                color: 'orange',
+                                title: language === 'fr' ? 'Fourmis Charpentières' : 'Carpenter Ants',
+                                subtitle: language === 'fr' ? 'Appâtage spécialisé, traitement extérieur renforcé' : 'Specialized baiting, reinforced exterior treatment',
+                                options: language === 'fr' ? [
+                                    { name: 'Forfait Standard (640$)', detail: '2 appâtages intérieur/extérieur + 1 traitement ext. • Garantie 3 mois' },
+                                    { name: 'Forfait Premium (975$)', detail: '2 appâtages + 3 traitements extérieurs • Garantie 1 an' },
+                                ] : [
+                                    { name: 'Standard Package ($640)', detail: '2 interior/exterior baiting + 1 exterior treatment • 3 month warranty' },
+                                    { name: 'Premium Package ($975)', detail: '2 baiting sessions + 3 exterior treatments • 1 year warranty' },
+                                ],
+                            },
+                            {
+                                id: 'coquerelles',
+                                icon: '🪳',
+                                color: 'red',
+                                title: language === 'fr' ? 'Coquerelles' : 'Cockroaches',
+                                subtitle: language === 'fr' ? 'Traitement appât ou choc selon le niveau d\'infestation' : 'Bait or intensive treatment based on infestation level',
+                                options: language === 'fr' ? [
+                                    { name: 'Traitement Appât', detail: 'Cuisine, salle de bain, électroménagers • Élimination progressive de la colonie' },
+                                    { name: 'Traitement Choc', detail: 'Aérosol + liquide + poudre dans murs et fissures • Suivi hebdomadaire • Garantie 1 an' },
+                                ] : [
+                                    { name: 'Bait Treatment', detail: 'Kitchen, bathroom, appliances • Progressive colony elimination' },
+                                    { name: 'Intensive Treatment', detail: 'Aerosol + liquid + powder in walls & cracks • Weekly follow-up • 1 year warranty' },
+                                ],
+                            },
+                            {
+                                id: 'punaises',
+                                icon: '🐞',
+                                color: 'pink',
+                                title: language === 'fr' ? 'Punaises de Lit' : 'Bed Bugs',
+                                subtitle: language === 'fr' ? 'Traitement chimique ou biologique, inspection canine disponible' : 'Chemical or biological treatment, canine inspection available',
+                                options: language === 'fr' ? [
+                                    { name: 'Traitement Dragnet + Konk', detail: 'Moulures, fissures + Konk 407 effet immédiat • Élimination larves et punaises' },
+                                    { name: 'Traitement Aprehend (biologique)', detail: 'Actif jusqu\'à 3 mois • Transmission entre punaises • Mortalité en 4–7 jours' },
+                                    { name: 'Inspection Canine', detail: 'Chien détecteur spécialisé punaises de lit' },
+                                ] : [
+                                    { name: 'Dragnet + Konk Treatment', detail: 'Moldings, cracks + Konk 407 immediate effect • Eliminates larvae & bugs' },
+                                    { name: 'Aprehend (biological)', detail: 'Active up to 3 months • Spreads between bugs • Mortality in 4–7 days' },
+                                    { name: 'Canine Inspection', detail: 'Specialized bed bug detection dog' },
+                                ],
+                            },
+                            {
+                                id: 'animaux',
+                                icon: '🦝',
+                                color: 'green',
+                                title: language === 'fr' ? 'Animaux Sauvages' : 'Wildlife',
+                                subtitle: language === 'fr' ? 'Capture, blocage, surveillance avec caméra' : 'Trapping, blocking, camera surveillance',
+                                options: language === 'fr' ? [
+                                    { name: 'Capture & Relocalisation', detail: 'Écureuil, marmotte, moufette, rat • Relocalisation +20 km • Suivi jusqu\'à capture' },
+                                    { name: 'Blocage Marmotte / Moufette', detail: 'Tranchée 2pi × 2pi + grillage galvanisé • Garantie 5 ans' },
+                                    { name: 'Installation Cage + Caméra', detail: 'Cage + caméra de surveillance • Suivi jusqu\'à résolution' },
+                                ] : [
+                                    { name: 'Capture & Relocation', detail: 'Squirrel, groundhog, skunk, rat • Relocation +20 km • Follow-up until caught' },
+                                    { name: 'Groundhog / Skunk Blocking', detail: '2ft × 2ft trench + galvanized mesh • 5 year warranty' },
+                                    { name: 'Cage + Camera Install', detail: 'Cage + surveillance camera • Follow-up until resolved' },
+                                ],
+                            },
+                            {
+                                id: 'inspection',
+                                icon: '🔍',
+                                color: 'gray',
+                                title: language === 'fr' ? 'Inspection & Prévention' : 'Inspection & Prevention',
+                                subtitle: language === 'fr' ? 'Diagnostic complet, ouverture de dossier' : 'Full diagnosis, file opening',
+                                options: language === 'fr' ? [
+                                    { name: 'Inspection Complète', detail: 'Identification du type et niveau d\'infestation' },
+                                    { name: 'Ouverture de Dossier', detail: 'Analyse initiale + suivi administratif • Dossier valide 6 mois' },
+                                ] : [
+                                    { name: 'Full Inspection', detail: 'Identifies pest type and infestation level' },
+                                    { name: 'File Opening', detail: 'Initial analysis + administrative follow-up • File valid 6 months' },
+                                ],
+                            },
+                        ] as const).map((cat) => {
+                            const colorMap: Record<string, { bg: string; border: string; icon: string; badge: string; btn: string }> = {
+                                blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   icon: 'bg-blue-100',   badge: 'bg-blue-100 text-blue-700',   btn: 'bg-blue-600 hover:bg-blue-700' },
+                                yellow: { bg: 'bg-yellow-50', border: 'border-yellow-200', icon: 'bg-yellow-100', badge: 'bg-yellow-100 text-yellow-700', btn: 'bg-yellow-500 hover:bg-yellow-600' },
+                                orange: { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'bg-orange-100', badge: 'bg-orange-100 text-orange-700', btn: 'bg-orange-600 hover:bg-orange-700' },
+                                red:    { bg: 'bg-red-50',    border: 'border-red-200',    icon: 'bg-red-100',    badge: 'bg-red-100 text-red-700',       btn: 'bg-red-600 hover:bg-red-700' },
+                                pink:   { bg: 'bg-pink-50',   border: 'border-pink-200',   icon: 'bg-pink-100',   badge: 'bg-pink-100 text-pink-700',     btn: 'bg-pink-600 hover:bg-pink-700' },
+                                green:  { bg: 'bg-green-50',  border: 'border-green-200',  icon: 'bg-green-100',  badge: 'bg-green-100 text-green-700',   btn: 'bg-green-600 hover:bg-green-700' },
+                                gray:   { bg: 'bg-gray-50',   border: 'border-gray-200',   icon: 'bg-gray-100',   badge: 'bg-gray-100 text-gray-700',     btn: 'bg-gray-700 hover:bg-gray-800' },
+                            };
+                            const c = colorMap[cat.color];
+                            return (
+                                <div key={cat.id} className={`rounded-2xl border ${c.border} ${c.bg} overflow-hidden`}>
+                                    {/* Category header */}
+                                    <div className="flex items-center justify-between px-5 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl ${c.icon} flex items-center justify-center text-xl`}>
+                                                {cat.icon}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 text-base">{cat.title}</h3>
+                                                <p className="text-xs text-gray-500">{cat.subtitle}</p>
+                                            </div>
                                         </div>
+                                        <button
+                                            onClick={() => router.push(`/booking/${token}`)}
+                                            className={`hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-semibold ${c.btn} transition-colors`}
+                                        >
+                                            {language === 'fr' ? 'Réserver' : 'Book'}
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+
+                                    {/* Options list */}
+                                    <div className="px-5 pb-5 grid gap-2 sm:grid-cols-2">
+                                        {cat.options.map((opt, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => router.push(`/booking/${token}?cat=${cat.id}&service=${encodeURIComponent(opt.name)}`)}
+                                                className="text-left bg-white rounded-xl border border-white/80 shadow-sm px-4 py-3 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                                            >
+                                                <div className="font-semibold text-gray-900 text-sm group-hover:text-indigo-600 transition-colors mb-0.5">
+                                                    {opt.name}
+                                                </div>
+                                                <div className="text-xs text-gray-500 leading-relaxed">{opt.detail}</div>
+                                                <div className="mt-1.5 text-[11px] font-semibold text-indigo-500">Réserver ce service →</div>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Mobile book button */}
+                                    <div className="sm:hidden px-5 pb-5">
+                                        <button
+                                            onClick={() => router.push(`/booking/${token}?cat=${cat.id}`)}
+                                            className={`w-full py-2.5 rounded-xl text-white text-sm font-semibold ${c.btn} transition-colors flex items-center justify-center gap-2`}
+                                        >
+                                            {language === 'fr' ? 'Réserver ce service' : 'Book this service'}
+                                            <ArrowRight className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                                    {service.name}
-                                </h3>
-                                <p className="text-sm text-gray-500 line-clamp-3 mb-6 flex-grow">
-                                    {service.description}
-                                </p>
-                                <button
-                                    onClick={() => router.push(`/booking/${token}`)}
-                                    className="w-full py-2.5 rounded-xl border border-indigo-600 text-indigo-600 font-semibold hover:bg-indigo-600 hover:text-white transition-all text-sm"
-                                >
-                                    {language === 'fr' ? 'Détails & Réservation' : 'Details & Booking'}
-                                </button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
 

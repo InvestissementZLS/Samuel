@@ -290,10 +290,18 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
             onClose={onClose}
             title={
                 product
-                    // @ts-ignore
-                    ? (type === 'SERVICE' ? t.productDialog.editService : t.productDialog.editProduct)
-                    // @ts-ignore
-                    : (type === 'SERVICE' ? t.productDialog.newService : t.productDialog.newProduct)
+                    ? (type === 'SERVICE'
+                        ? t.productDialog.editService
+                        : type === 'EQUIPMENT'
+                            // @ts-ignore
+                            ? (t.productDialog as any).editEquipment
+                            : t.productDialog.editProduct)
+                    : (type === 'SERVICE'
+                        ? t.productDialog.newService
+                        : type === 'EQUIPMENT'
+                            // @ts-ignore
+                            ? (t.productDialog as any).newEquipment
+                            : t.productDialog.newProduct)
             }
             maxWidth="max-w-4xl"
         >

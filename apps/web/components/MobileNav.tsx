@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard, Box, Package, Clock, DollarSign, LogOut } from 'lucide-react';
+import { Menu, X, Search, Home, Briefcase, Calendar, Users, FileText, Settings, CreditCard, LayoutDashboard, Box, Package, Clock, DollarSign, LogOut, Route } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -19,7 +19,7 @@ export function MobileNav() {
 
     const logoSrc = division === 'RENOVATION' ? "/renovation-logo.png" : "/zls-logo.png";
 
-    const navigation = [
+    const allNavigation = [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
         { name: t.sidebar.calendar, href: '/calendar', icon: Calendar },
         { name: t.sidebar.jobs, href: '/jobs', icon: Briefcase },
@@ -28,10 +28,16 @@ export function MobileNav() {
         { name: t.sidebar.quotes, href: '/quotes', icon: FileText },
         { name: t.sidebar.products, href: '/products', icon: Package },
         { name: t.sidebar.inventory, href: '/inventory', icon: Box },
+        // Routes Prévention — EXTERMINATION seulement
+        { name: 'Routes Prévention', href: '/prevention-routes', icon: Route, divisionOnly: 'EXTERMINATION' as const },
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
+
+    const navigation = allNavigation.filter(item =>
+        !(item as any).divisionOnly || (item as any).divisionOnly === division
+    );
 
     const handleLogout = async () => {
         try {
