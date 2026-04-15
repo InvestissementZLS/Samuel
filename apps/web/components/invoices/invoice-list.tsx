@@ -182,6 +182,11 @@ export function InvoiceList({ invoices, products, clientId, clients = [], curren
                     clients={clients}
                     clientId={selectedInvoice?.clientId || clientId || ""}
                     onSave={handleSave}
+                    onDelete={selectedInvoice?.id ? async () => {
+                        await deleteInvoice(selectedInvoice.id);
+                        toast.success(t.invoices.deleted);
+                        setIsEditing(false);
+                    } : undefined}
                 />
             </div>
         );

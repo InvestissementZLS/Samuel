@@ -8,7 +8,7 @@ import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
 import { createQuickService } from "@/app/actions/product-actions";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,10 @@ interface InvoiceFormProps {
     clientId: string;
     prefilledClient?: any;
     onSave: (data: any) => Promise<void>;
+    onDelete?: () => Promise<void>;
 }
 
-export function InvoiceForm({ invoice, products, clientId, onSave, clients = [], prefilledClient }: InvoiceFormProps) {
+export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, clients = [], prefilledClient }: InvoiceFormProps) {
     const [loading, setLoading] = useState(false);
     const [selectedClientId, setSelectedClientId] = useState(clientId || invoice?.clientId || "");
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
@@ -237,6 +238,40 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
         .map(c => ({ value: c.id, label: c.name }));
     const selectedClient = resolvedClient;
 
+    const handleSendEmail = async () => {
+        if (!invoice?.id) {
+            toast.error("Enregistrez d'abord la facture avant de l'envoyer.");
+            return;
+        }
+        try {
+            setLoading(true);
+            const { sendInvoice } = await import("@/app/actions/email-actions");
+            const result = await sendInvoice(invoice.id);
+            if (result.success) {
+                toast.success("Courriel envoyé avec succès !");
+            } else {
+                toast.error(String(result.error || "Erreur lors de l'envoi"));
+            }
+        } catch (e) {
+            toast.error("Erreur lors de l'envoi du courriel");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!invoice?.id) return;
+        if (!confirm("Supprimer cette facture ? Cette action est irréversible.")) return;
+        try {
+            setLoading(true);
+            if (onDelete) await onDelete();
+        } catch (e) {
+            toast.error("Erreur lors de la suppression");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="bg-white text-gray-800 p-8 rounded-xl shadow-lg border border-gray-200 max-w-5xl mx-auto font-sans">
             {/* Header */}
@@ -248,6 +283,40 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                     <h1 className="text-xl font-semibold text-gray-800">
                         {invoice ? t.invoices.editInvoice : t.invoices.createInvoice}
                     </h1>
+                </div>
+                <div className="flex items-center gap-2">
+                    {invoice?.id && (
+                        <button
+                            type="button"
+                            onClick={handleSendEmail}
+                            disabled={loading}
+                            title="Envoyer par courriel"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-blue-200 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                            <Mail className="w-4 h-4" /> Envoyer
+                        </button>
+                    )}
+                    {invoice?.id && onDelete && (
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={loading}
+                            title="Supprimer la facture"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-red-200 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                            <Trash2 className="w-4 h-4" /> Supprimer
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => setIsPreviewOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                    >
+                        <FileText className="w-4 h-4" /> Aperçu
+                    </button>
+                    <Button onClick={handleSave} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                        {loading ? "Enregistrement..." : (invoice ? "Mettre à jour" : "Enregistrer")}
+                    </Button>
                 </div>
             </div>
 
