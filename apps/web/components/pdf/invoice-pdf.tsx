@@ -327,11 +327,6 @@ export const InvoicePDF = ({ invoice, language = "FR", logoPath }: InvoicePDFPro
                                             {item.description}
                                         </Text>
                                     )}
-                                    {item?.product?.description && (
-                                        <Text style={[styles.text, { color: '#666', fontSize: 8, marginTop: 2 }]}>
-                                            {item.product.description}
-                                        </Text>
-                                    )}
                                     {item?.product?.warrantyInfo && (
                                         <Text style={[styles.text, { color: '#444', fontSize: 8, fontWeight: 'bold', marginTop: 4 }]}>
                                             {item.product.warrantyInfo}

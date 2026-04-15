@@ -82,7 +82,9 @@ export function InvoiceTemplate({ invoice, client }: InvoiceTemplateProps) {
                         <tr key={item.id}>
                             <td className="py-4 text-sm">
                                 <p className="font-medium">{item.product.name}</p>
-                                {item.description && <p className="text-gray-500 text-xs mt-1">{item.description}</p>}
+                                {item.description && item.description !== item.product.name && (
+                                    <p className="text-gray-500 text-xs mt-1 whitespace-pre-wrap">{item.description}</p>
+                                )}
                             </td>
                             <td className="py-4 text-sm text-right">{item.quantity}</td>
                             <td className="py-4 text-sm text-right">${item.price.toFixed(2)}</td>
