@@ -5,6 +5,7 @@ import { useUser } from "@/components/providers/user-provider";
 
 import { useState, useEffect } from "react";
 import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
+import { createQuickService } from "@/app/actions/product-actions";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText } from "lucide-react";
@@ -41,9 +42,30 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
 
     const [templates, setTemplates] = useState<{id: string, name: string, text: string}[]>([]);
 
+    const [localProducts, setLocalProducts] = useState(products);
+
     useEffect(() => {
         getWarrantyTemplates().then(setTemplates).catch(console.error);
     }, []);
+
+    const handleCreateQuickService = async (index: number) => {
+        const name = prompt(t.invoices?.enterServiceName || "Entrez le nom du nouveau service :");
+        if (!name?.trim()) return;
+        
+        try {
+            setLoading(true);
+            const newProduct = await createQuickService(name.trim());
+            const updatedProducts = [...localProducts, newProduct];
+            // @ts-ignore
+            setLocalProducts(updatedProducts);
+            handleItemChange(index, 'productId', newProduct.id);
+            toast.success(t.common?.success || "Service créé");
+        } catch (e) {
+            toast.error("Erreur lors de la création");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const TemplateSelector = ({ onSelect, label, side = "bottom" }: { onSelect: (text: string) => void, label?: React.ReactNode, side?: "bottom" | "top" | "right" | "left" }) => (
         <Popover>
@@ -135,7 +157,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
         newItems[index] = { ...newItems[index], [field]: value };
 
         if (field === 'productId') {
-            const product = products.find(p => p.id === value);
+            const product = localProducts.find(p => p.id === value);
             if (product) {
                 newItems[index].product = product;
                 newItems[index].description = product.name;
@@ -199,7 +221,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
         }
     };
 
-    const productOptions = products
+    const productOptions = localProducts
         .map(p => ({ value: p.id, label: p.name }));
 
     // Filter clients based on division
@@ -434,7 +456,7 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                 onSelect={(val) => handleItemChange(index, 'productId', val)}
                                                 placeholder={t.common.select}
                                                 className="bg-white border-gray-200 text-gray-900 hover:bg-gray-50 aria-expanded:text-gray-900 justify-between w-full h-8"
-                                                popoverClassName="bg-white border-gray-200 text-gray-900 shadow-md"
+                                                popoverClassName="bg-white border-gray-200 text-gray-900 shadow-xl z-[9999]"
                                                 itemClassName="text-gray-700 aria-selected:bg-indigo-50 aria-selected:text-indigo-700 hover:bg-indigo-50 hover:text-indigo-700"
                                             />
                                             <div className="flex flex-col gap-1 mt-1">
@@ -445,9 +467,16 @@ export function InvoiceForm({ invoice, products, clientId, onSave, clients = [],
                                                     rows={Math.max(1, (item.description || "").split("\n").length)}
                                                     className="w-full bg-transparent border-none p-0 px-1 text-xs text-gray-500 focus:ring-0 placeholder:text-gray-400 resize-none min-h-[20px]"
                                                 />
-                                                <div className="flex justify-end">
+                                                <div className="flex justify-between items-center">
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => handleCreateQuickService(index)}
+                                                        className="text-[10px] flex items-center gap-1 text-emerald-600 hover:text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-medium transition-colors"
+                                                    >
+                                                        <Plus className="w-3 h-3" /> {t.products?.add || "Créer Service"}
+                                                    </button>
                                                     <TemplateSelector 
-                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded"><FileText className="w-3 h-3" /> Templates</span>}
+                                                        label={<span className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded transition-colors"><FileText className="w-3 h-3" /> Templates</span>}
                                                         side="right"
                                                         onSelect={(text) => handleItemChange(index, 'description', item.description ? `${item.description}\n\n${text}` : text)}
                                                     />
