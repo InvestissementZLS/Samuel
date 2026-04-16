@@ -82,9 +82,12 @@ export async function calculateCommissions(jobId: string) {
     }
 }
 
-export async function getCommissionSummary() {
+export async function getCommissionSummary(filterUserId?: string) {
     const pendingCommissions = await prisma.commission.findMany({
-        where: { status: "PENDING" },
+        where: { 
+            status: "PENDING",
+            ...(filterUserId ? { userId: filterUserId } : {})
+        },
         include: { user: true }
     });
 
@@ -117,9 +120,12 @@ export async function payUserCommissions(userId: string) {
     revalidatePath('/commissions');
 }
 
-export async function getCommissionHistory() {
+export async function getCommissionHistory(filterUserId?: string) {
     return await prisma.commission.findMany({
-        where: { status: "PAID" },
+        where: { 
+            status: "PAID",
+            ...(filterUserId ? { userId: filterUserId } : {})
+        },
         include: {
             user: true,
             job: {

@@ -4,16 +4,17 @@ import { CommissionHistory } from "@/components/commissions/commission-history";
 const PageHeader = ({...args}: any) => null;
 import { prisma } from "@/lib/prisma";
 
-async function getCurrentUser() {
-    return await prisma.user.findFirst({
-        where: { role: { in: ['ADMIN', 'OFFICE'] } }
-    });
-}
+import { getUserProfile } from "@/app/actions/user-actions";
 
 export default async function CommissionsPage() {
-    const summary = await getCommissionSummary();
-    const history = await getCommissionHistory();
-    const canManage = true;
+    const user = await getUserProfile();
+    const canManage = user ? (user.role === 'ADMIN' || user.canManageCommissions) : false;
+    
+    // Si l'utilisateur NE PEUT PAS gérer, on force à voir seulement SES propres commissions
+    const filterUserId = canManage ? undefined : user?.id;
+
+    const summary = await getCommissionSummary(filterUserId);
+    const history = await getCommissionHistory(filterUserId);
 
     return (
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
