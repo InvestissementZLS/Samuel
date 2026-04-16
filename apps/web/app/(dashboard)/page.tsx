@@ -7,6 +7,7 @@ import { InventoryForecast } from '@/components/dashboard/inventory-forecast';
 import { InventoryAdminWidget } from '@/components/inventory/inventory-admin-widget';
 import { RecentActivityWidget } from '@/components/dashboard/recent-activity-widget';
 import { PendingRequestsWidget } from '@/components/dashboard/pending-requests-widget';
+import { JarvisWidget } from '@/components/dashboard/jarvis-widget';
 import { cookies } from 'next/headers';
 import { dictionary, Locale } from '@/lib/i18n/dictionary';
 import { getUserProfile } from '@/app/actions/user-actions';
@@ -108,9 +109,9 @@ export default async function DashboardPage() {
                 <PendingRequestsWidget />
             )}
 
-            {/* 🚨 Priority Alerts Widget */}
+            {/* 🤖 JARVIS Health Widget — ADMIN/OFFICE only */}
             {(user?.role === 'ADMIN' || user?.role === 'OFFICE') && (
-                <></>
+                <JarvisWidget />
             )}
 
             <DashboardStats stats={stats} />

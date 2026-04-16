@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { getUserProfile } from "@/app/actions/user-actions";
 import { redirect } from "next/navigation";
 import { FloatingAiButton } from "@/components/floating-ai-button";
+import { JarvisAlertBanner } from "@/components/jarvis-alert-banner";
 
 export const metadata: Metadata = {
     title: "Field Service Admin",
@@ -44,11 +45,14 @@ export default async function DashboardLayout({
                     {/* Sidebar Refresh Trigger */}
                     <Sidebar />
                     <MobileNav />
-                    <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
-                        <CommandMenu />
-                        {children}
-                        <FloatingAiButton />
-                    </main>
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <JarvisAlertBanner />
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
+                            <CommandMenu />
+                            {children}
+                            <FloatingAiButton />
+                        </main>
+                    </div>
                 </div>
             </DivisionProvider>
         </UserProvider>

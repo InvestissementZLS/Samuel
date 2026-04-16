@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { generatePlatformInsights, AIInsight, InsightCategory, InsightPriority } from "@/app/actions/ai-insights-actions";
 import { useDivision } from "@/components/providers/division-provider";
 import Link from "next/link";
@@ -107,13 +107,36 @@ export default function AIInsightsPage() {
     const [isPending, startTransition] = useTransition();
     const [snapshot, setSnapshot] = useState<Awaited<ReturnType<typeof generatePlatformInsights>> | null>(null);
     const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+    const [fromCache, setFromCache] = useState(false);
+
+    // Auto-load on mount (from cache or fresh)
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem('jarvis_snapshot_v1');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                const age = Date.now() - parsed.cachedAt;
+                if (age < 60 * 60 * 1000) { // 1h cache valid
+                    setSnapshot(parsed.data);
+                    setLastGenerated(new Date(parsed.cachedAt).toISOString());
+                    setFromCache(true);
+                    return;
+                }
+            }
+        } catch { }
+        // No valid cache — auto-generate
+        handleGenerate();
+    }, []);
 
     const handleGenerate = () => {
+        setFromCache(false);
         startTransition(async () => {
             try {
                 const result = await generatePlatformInsights(division as any);
                 setSnapshot(result);
                 setLastGenerated(new Date().toISOString());
+                // Update cache
+                try { localStorage.setItem('jarvis_snapshot_v1', JSON.stringify({ data: result, cachedAt: Date.now() })); } catch { }
             } catch (e) {
                 console.error(e);
             }
@@ -232,10 +255,12 @@ export default function AIInsightsPage() {
 
                     {/* Footer */}
                     {lastGenerated && (
-                        <p className="text-xs text-center text-gray-400">
-                            Dernière analyse: {format(new Date(lastGenerated), "d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
+                        <p className="text-xs text-center text-gray-400 flex items-center justify-center gap-2">
+                            <span className={`inline-block w-1.5 h-1.5 rounded-full ${fromCache ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+                            {fromCache ? '💾 Depuis le cache · ' : '🔴 Live · '}
+                            {format(new Date(lastGenerated), "d MMMM yyyy 'à' HH'h'mm", { locale: fr })}
                             {" · "}
-                            <button onClick={handleGenerate} className="underline hover:text-gray-600">Réanalyser</button>
+                            <button onClick={handleGenerate} className="underline hover:text-gray-600">Forcer réanalyse</button>
                         </p>
                     )}
                 </div>
