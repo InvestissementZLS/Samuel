@@ -54,6 +54,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
     const [isCreatingClient, setIsCreatingClient] = useState(false);
     const [newClientName, setNewClientName] = useState("");
     const [newClientEmail, setNewClientEmail] = useState("");
+    const [newClientPhone, setNewClientPhone] = useState("");
     const [newClientAddress, setNewClientAddress] = useState("");
 
     // Initialize
@@ -116,6 +117,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
             const newClient = await createClient({
                 name: newClientName,
                 email: newClientEmail,
+                phone: newClientPhone,
                 billingAddress: newClientAddress,
                 divisions: [division],
             });
@@ -123,6 +125,7 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
             setIsCreatingClient(false);
             setNewClientName("");
             setNewClientEmail("");
+            setNewClientPhone("");
             setNewClientAddress("");
             router.refresh();
             if (newClient) {
@@ -260,8 +263,11 @@ export function EditJobForm({ job, initialDate, clients, technicians, onSuccess,
 
                         {isCreatingClient ? (
                             <div className="space-y-2 p-3 bg-gray-50 rounded-md border text-gray-900">
-                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.name} value={newClientName} onChange={e => setNewClientName(e.target.value)} />
-                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.email} value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
+                                <input className="w-full rounded border p-2 text-sm" placeholder={t.clientDialog.name} value={newClientName} onChange={e => setNewClientName(e.target.value)} required />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input className="w-full rounded border p-2 text-sm" type="email" placeholder={t.clientDialog.email} value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
+                                    <input className="w-full rounded border p-2 text-sm" type="tel" placeholder={(t.clientDialog as any).phone || "Téléphone"} value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} />
+                                </div>
                                 <input className="w-full rounded border p-2 text-sm" placeholder={(t.clientDialog as any).address || "Address"} value={newClientAddress} onChange={e => setNewClientAddress(e.target.value)} />
                                 <button type="button" onClick={handleCreateClient} disabled={loading} className="w-full bg-indigo-600 text-white rounded py-1.5 text-sm">{t.clientDialog.createClient}</button>
                             </div>
