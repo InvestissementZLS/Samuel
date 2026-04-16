@@ -84,7 +84,7 @@ export default async function StockPage() {
 
   // Filtrer les produits qui ont au moins 1 contenant (ou montrer tous si admin)
   const visibleProducts = isAdmin
-    ? products.filter(p => p.containers.length > 0)
+    ? products // Admin voit tous les produits pour pouvoir ajouter le premier stock
     : products.filter(p =>
         p.containers.some(c => c.locationUser?.id === user.id)
       );
@@ -139,7 +139,7 @@ export default async function StockPage() {
         {pendingTransfers.length > 0 && (
           <PendingTransfersWidget
             transfers={pendingTransfers as any}
-            currentUserId={isAdmin ? null : session.user.id}
+            currentUserId={isAdmin ? null : user.id}
           />
         )}
 
@@ -180,7 +180,7 @@ export default async function StockPage() {
                   product={product}
                   containers={product.containers as any}
                   technicians={technicians}
-                  currentUserId={session.user.id}
+                  currentUserId={user.id}
                   isAdmin={isAdmin}
                 />
               </div>

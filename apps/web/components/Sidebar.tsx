@@ -76,13 +76,13 @@ export function Sidebar() {
                 }
             }
 
-            // Protéger explicitement /settings pour les non-admins
-            if (item.href === '/settings' && perms.effectiveRole !== 'ADMIN') return false;
+            // Protéger explicitement /settings pour les non-admins et non-office
+            if (item.href === '/settings' && !['ADMIN', 'OFFICE'].includes(perms.effectiveRole)) return false;
 
             // Routes Prévention uniquement pour la division EXTERMINATION
             if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;
-            // Co-Pilote IA uniquement pour les admins
-            if ((item as any).adminOnly && perms.effectiveRole !== 'ADMIN') return false;
+            // Co-Pilote IA uniquement pour les admins et office
+            if ((item as any).adminOnly && !['ADMIN', 'OFFICE'].includes(perms.effectiveRole)) return false;
             return true;
         });
     }, [navigation, perms, division]);
