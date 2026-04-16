@@ -17,7 +17,6 @@ import {
   Copy,
   CheckCircle2,
   Clock,
-  Filter,
   Layers,
   UserCheck,
   Search,
@@ -26,14 +25,13 @@ import {
   CalendarCheck,
   X,
 } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
+import { differenceInDays } from "date-fns";
 import type {
   PreventionClient,
   SecteurGroup,
-  SECTEUR_SORT_ORDER,
 } from "@/lib/constants/prevention-product-keywords";
 import { batchAssignPreventionJobs } from "@/app/actions/prevention-routes-actions";
+
 
 // ---------------------------------------------------------------------------
 // Helpers
