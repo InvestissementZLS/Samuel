@@ -4,7 +4,7 @@ import { useState, useMemo, memo } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut, Route } from 'lucide-react';
+import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut, Route, Sparkles } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -40,6 +40,8 @@ export function Sidebar() {
         { name: t.sidebar.expenses, href: '/expenses', icon: DollarSign },
         { name: t.sidebar.timesheets, href: '/timesheets', icon: Clock },
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
+        // Co-Pilote IA — Admin seulement
+        { name: '⚡ Co-Pilote IA', href: '/ai-insights', icon: Sparkles, adminOnly: true },
     ], [t]);
 
     const filteredNav = useMemo(() => {
@@ -73,6 +75,8 @@ export function Sidebar() {
 
             // Routes Prévention uniquement pour la division EXTERMINATION
             if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;
+            // Co-Pilote IA uniquement pour les admins
+            if ((item as any).adminOnly && perms.effectiveRole !== 'ADMIN') return false;
             return true;
         });
     }, [navigation, perms, division]);
