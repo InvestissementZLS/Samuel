@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   MapPin,
   Route,
@@ -15,20 +17,26 @@ import {
   Copy,
   CheckCircle2,
   Clock,
-  ChevronDown,
-  ChevronRight,
   Filter,
   Layers,
   UserCheck,
   Search,
+  CheckSquare,
+  Square,
+  CalendarCheck,
+  X,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { PreventionClient, SecteurGroup } from "@/lib/constants/prevention-product-keywords";
+import type {
+  PreventionClient,
+  SecteurGroup,
+  SECTEUR_SORT_ORDER,
+} from "@/lib/constants/prevention-product-keywords";
 import { batchAssignPreventionJobs } from "@/app/actions/prevention-routes-actions";
 
 // ---------------------------------------------------------------------------
-// Helpers & Sub-components
+// Helpers
 // ---------------------------------------------------------------------------
 
 function statusConfig(status: PreventionClient["statusLabel"]) {
@@ -91,8 +99,7 @@ function haversineKm(
 function optimizeClientRoute(clients: PreventionClient[]): PreventionClient[] {
   if (clients.length <= 1) return clients;
 
-  // Sépare les clients avec/sans coordonnées GPS
-  const withGps = clients.filter((c) => c.latitude && c.longitude);
+  const withGps    = clients.filter((c) => c.latitude && c.longitude);
   const withoutGps = clients.filter((c) => !c.latitude || !c.longitude);
 
   if (withGps.length === 0) return clients;
@@ -100,7 +107,6 @@ function optimizeClientRoute(clients: PreventionClient[]): PreventionClient[] {
   const optimized: PreventionClient[] = [];
   const remaining = [...withGps];
 
-  // Partir du premier client (le plus prioritaire — renouvellement)
   let current = remaining.shift()!;
   optimized.push(current);
 
@@ -112,33 +118,33 @@ function optimizeClientRoute(clients: PreventionClient[]): PreventionClient[] {
       const c = remaining[i];
       if (!c.latitude || !c.longitude || !current.latitude || !current.longitude) continue;
       const dist = haversineKm(current.latitude, current.longitude, c.latitude, c.longitude);
-      if (dist < minDist) {
-        minDist = dist;
-        nearestIdx = i;
-      }
+      if (dist < minDist) { minDist = dist; nearestIdx = i; }
     }
 
     current = remaining.splice(nearestIdx, 1)[0];
     optimized.push(current);
   }
 
-  // Ajouter les clients sans GPS à la fin
   return [...optimized, ...withoutGps];
 }
 
 // ---------------------------------------------------------------------------
-// Client Row Card
+// Client Card (with checkbox)
 // ---------------------------------------------------------------------------
 function ClientCard({
   client,
   index,
   prevClient,
   showDistance,
+  isSelected,
+  onToggle,
 }: {
   client: PreventionClient;
   index: number;
   prevClient?: PreventionClient;
   showDistance: boolean;
+  isSelected: boolean;
+  onToggle: () => void;
 }) {
   const status = statusConfig(client.statusLabel);
   const StatusIcon = status.icon;
@@ -150,10 +156,8 @@ function ClientCard({
     client.latitude &&
     client.longitude
       ? haversineKm(
-          prevClient.latitude,
-          prevClient.longitude,
-          client.latitude,
-          client.longitude
+          prevClient.latitude, prevClient.longitude,
+          client.latitude,     client.longitude
         ).toFixed(1)
       : null;
 
@@ -165,14 +169,28 @@ function ClientCard({
 
   return (
     <div
-      className={`relative bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 ${status.border} border-l-4`}
+      onClick={onToggle}
+      className={`relative bg-white border rounded-xl p-4 shadow-sm transition-all duration-200 cursor-pointer
+        ${status.border} border-l-4
+        ${isSelected
+          ? "ring-2 ring-indigo-500 bg-indigo-50/30 shadow-md"
+          : "hover:shadow-md"
+        }`}
     >
       {/* Number badge */}
       <div className="absolute -left-3 top-4 w-6 h-6 rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center shadow">
         {index + 1}
       </div>
 
-      <div className="flex items-start justify-between gap-3">
+      {/* Checkbox (top-right) */}
+      <div className="absolute top-3 right-3">
+        {isSelected
+          ? <CheckSquare className="h-5 w-5 text-indigo-600" />
+          : <Square className="h-5 w-5 text-gray-300" />
+        }
+      </div>
+
+      <div className="flex items-start justify-between gap-3 pr-6">
         <div className="flex-1 min-w-0">
           {/* Name + status */}
           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -193,13 +211,14 @@ function ClientCard({
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 transition-colors mb-1"
           >
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span className="truncate">{client.propertyAddress}</span>
           </a>
 
-          {/* Service label + techniciens */}
+          {/* Service label + techniciens + expiry */}
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded font-medium">
               {client.serviceLabel}
@@ -236,6 +255,7 @@ function ClientCard({
           {client.clientPhone && (
             <a
               href={`tel:${client.clientPhone}`}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-md font-medium transition-colors"
             >
               <Phone className="h-3 w-3" />
@@ -244,6 +264,7 @@ function ClientCard({
           )}
           <Link
             href={`/clients/${client.clientId}`}
+            onClick={(e) => e.stopPropagation()}
             className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
           >
             Voir fiche
@@ -261,16 +282,18 @@ function ClientCard({
 }
 
 // ---------------------------------------------------------------------------
-// Sector Panel
+// Sector Panel (sidebar)
 // ---------------------------------------------------------------------------
 function SecteurPanel({
   group,
   isSelected,
   onSelect,
+  selectionCount,
 }: {
   group: SecteurGroup;
   isSelected: boolean;
   onSelect: () => void;
+  selectionCount: number;
 }) {
   const urgencyColor =
     group.renewalDueCount > 0
@@ -293,13 +316,20 @@ function SecteurPanel({
           <span className={`w-2 h-2 rounded-full ${urgencyColor}`} />
           <span className="font-semibold text-sm">{group.secteur}</span>
         </div>
-        <span
-          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
-          }`}
-        >
-          {group.totalCount}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {selectionCount > 0 && (
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+              {selectionCount} ✓
+            </span>
+          )}
+          <span
+            className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {group.totalCount}
+          </span>
+        </div>
       </div>
       <div className="mt-1.5 flex gap-3 text-xs">
         {group.renewalDueCount > 0 && (
@@ -333,25 +363,36 @@ export function PreventionRoutesView({
   totalRenewalsDue,
   allTechnicians,
 }: PreventionRoutesViewProps) {
+  const router = useRouter();
+
+  // ── Navigation ──
   const [selectedSecteur, setSelectedSecteur] = useState<string | null>(
     secteurs[0]?.secteur ?? null
   );
   const [isRouteOptimized, setIsRouteOptimized] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<"ALL" | "RENOUVELLEMENT_DU" | "GARANTIE_ACTIVE" | "PREMIERE_ANNEE">("ALL");
+  const [filterStatus, setFilterStatus] = useState<
+    "ALL" | "RENOUVELLEMENT_DU" | "GARANTIE_ACTIVE" | "PREMIERE_ANNEE"
+  >("ALL");
   const [filterTechnicianId, setFilterTechnicianId] = useState<string>("ALL");
   const [copied, setCopied] = useState(false);
-  const [secteurSearch, setSecteurSearch] = useState(""); // Nouveau champ de recherche
+  const [secteurSearch, setSecteurSearch] = useState("");
 
-  // Dispatcher States
+  // ── Client selection (manual checkboxes) ──
+  // Key: propertyId
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // ── Dispatch modal ──
   const [showDispatchModal, setShowDispatchModal] = useState(false);
   const [dispatchDate, setDispatchDate] = useState<string>("");
   const [dispatchTechId, setDispatchTechId] = useState<string>("");
-  const [dispatchCount, setDispatchCount] = useState<number>(15);
   const [isDispatching, setIsDispatching] = useState(false);
 
+  // ── Derived data ──
   const filteredSecteurs = useMemo(() => {
     if (!secteurSearch.trim()) return secteurs;
-    return secteurs.filter(s => s.secteur.toLowerCase().includes(secteurSearch.toLowerCase()));
+    return secteurs.filter((s) =>
+      s.secteur.toLowerCase().includes(secteurSearch.toLowerCase())
+    );
   }, [secteurs, secteurSearch]);
 
   const activeGroup = useMemo(
@@ -371,9 +412,53 @@ export function PreventionRoutesView({
     return isRouteOptimized ? optimizeClientRoute(base) : base;
   }, [activeGroup, filterStatus, filterTechnicianId, isRouteOptimized]);
 
+  /** Clients sélectionnés dans la vue courante */
+  const selectedInView = filteredClients.filter((c) =>
+    selectedIds.has(c.propertyId)
+  );
+
+  /** Clients qui seront dispatché (sélectionnés, ou tous si aucun coché) */
+  const clientsToDispatch =
+    selectedInView.length > 0 ? selectedInView : filteredClients;
+
+  // ── Selection helpers ──
+  const toggleClient = useCallback((propertyId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(propertyId)) next.delete(propertyId);
+      else next.add(propertyId);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      filteredClients.forEach((c) => next.add(c.propertyId));
+      return next;
+    });
+  }, [filteredClients]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      filteredClients.forEach((c) => next.delete(c.propertyId));
+      return next;
+    });
+  }, [filteredClients]);
+
+  const changeSecteur = (secteur: string) => {
+    setSelectedSecteur(secteur);
+    setIsRouteOptimized(false);
+    setFilterStatus("ALL");
+    setFilterTechnicianId("ALL");
+    // Don't clear selection — keep cross-sector selection
+  };
+
+  // ── Actions ──
   const copyRouteList = useCallback(async () => {
-    if (!filteredClients.length) return;
-    const text = filteredClients
+    if (!clientsToDispatch.length) return;
+    const text = clientsToDispatch
       .map(
         (c, i) =>
           `${i + 1}. ${c.clientName}\n   ${c.propertyAddress}\n   ${
@@ -384,45 +469,65 @@ export function PreventionRoutesView({
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [filteredClients]);
+  }, [clientsToDispatch]);
 
   const openAllInMaps = useCallback(() => {
-    if (!filteredClients.length) return;
-    const addresses = filteredClients
+    const clients =
+      selectedInView.length > 0 ? selectedInView : filteredClients;
+    if (!clients.length) return;
+    const optimized = optimizeClientRoute(clients);
+    const addresses = optimized
       .filter((c) => c.propertyAddress)
       .map((c) => encodeURIComponent(c.propertyAddress))
       .join("/");
     window.open(`https://www.google.com/maps/dir/${addresses}`, "_blank");
-  }, [filteredClients]);
+  }, [selectedInView, filteredClients]);
 
   const handleBatchDispatch = async () => {
     if (!dispatchTechId || !dispatchDate) {
-      alert("Veuillez choisir un technicien et une date.");
+      toast.error("Veuillez choisir un technicien et une date.");
       return;
     }
-    
-    // Get the first N clients that have a valid job ID
-    const validClients = filteredClients.filter(c => !!c.lastJobId);
-    const clientsToAssign = validClients.slice(0, dispatchCount);
-    const jobIds = clientsToAssign.map(c => c.lastJobId as string);
 
-    if (jobIds.length === 0) {
-      alert("Aucun client valide à assigner dans cette liste.");
+    const validClients = clientsToDispatch.filter((c) => !!c.lastJobId);
+    if (validClients.length === 0) {
+      toast.error("Aucun client valide à assigner dans cette liste.");
       return;
     }
+
+    const jobIds = validClients.map((c) => c.lastJobId as string);
 
     setIsDispatching(true);
     try {
-      await batchAssignPreventionJobs(jobIds, dispatchTechId, dispatchDate);
+      const res = await batchAssignPreventionJobs(jobIds, dispatchTechId, dispatchDate);
       setShowDispatchModal(false);
-      alert(`${jobIds.length} job(s) assigné(s) avec succès !`);
+      toast.success(
+        `✅ ${res.count} job${res.count > 1 ? "s" : ""} créé${res.count > 1 ? "s" : ""} dans le calendrier !`
+      );
+      // Clear selection + refresh page data
+      setSelectedIds(new Set());
+      router.refresh();
     } catch (e: any) {
-      alert(`Erreur: ${e.message}`);
+      toast.error(`Erreur : ${e.message}`);
     } finally {
       setIsDispatching(false);
     }
   };
 
+  // ── Selection count per secteur (for badges in sidebar) ──
+  const selectionCountBySecteur = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const s of secteurs) {
+      counts[s.secteur] = s.clients.filter((c) =>
+        selectedIds.has(c.propertyId)
+      ).length;
+    }
+    return counts;
+  }, [secteurs, selectedIds]);
+
+  const totalSelected = selectedIds.size;
+
+  // ── Render ──
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── Header ── */}
@@ -457,6 +562,12 @@ export function PreventionRoutesView({
                 <div className="text-2xl font-bold text-blue-700">{secteurs.length}</div>
                 <div className="text-xs text-blue-600 font-medium">Secteurs</div>
               </div>
+              {totalSelected > 0 && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 text-center min-w-[90px]">
+                  <div className="text-2xl font-bold text-indigo-700">{totalSelected}</div>
+                  <div className="text-xs text-indigo-600 font-medium">Sélectionnés</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -474,7 +585,8 @@ export function PreventionRoutesView({
             </h2>
             <p className="text-sm text-gray-400 max-w-md mx-auto">
               Les clients apparaîtront ici dès qu'un job avec le service{" "}
-              <strong>Arrosage Extérieur</strong> ou <strong>Plan Annuel – Arrosage Extérieur</strong>{" "}
+              <strong>Arrosage Extérieur</strong> ou{" "}
+              <strong>Plan Annuel – Arrosage Extérieur</strong>{" "}
               sera complété dans la division Extermination.
             </p>
           </div>
@@ -488,8 +600,8 @@ export function PreventionRoutesView({
                   Secteurs ({filteredSecteurs.length})
                 </span>
               </div>
-              
-              {/* Search Bar */}
+
+              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -501,19 +613,26 @@ export function PreventionRoutesView({
                 />
               </div>
 
-              {/* Scrollable list */}
-              <div className="space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 pb-4 custom-scrollbar">
+              {/* Global selection actions */}
+              {totalSelected > 0 && (
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="flex items-center justify-center gap-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg px-3 py-1.5 font-medium transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Effacer sélection ({totalSelected})
+                </button>
+              )}
+
+              {/* Secteur list */}
+              <div className="space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 pb-4">
                 {filteredSecteurs.map((group) => (
                   <SecteurPanel
                     key={group.secteur}
                     group={group}
                     isSelected={group.secteur === selectedSecteur}
-                    onSelect={() => {
-                      setSelectedSecteur(group.secteur);
-                      setIsRouteOptimized(false);
-                      setFilterStatus("ALL");
-                      setFilterTechnicianId("ALL");
-                    }}
+                    onSelect={() => changeSecteur(group.secteur)}
+                    selectionCount={selectionCountBySecteur[group.secteur] ?? 0}
                   />
                 ))}
               </div>
@@ -524,59 +643,82 @@ export function PreventionRoutesView({
               {activeGroup ? (
                 <>
                   {/* Toolbar */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 flex items-center justify-between gap-3 flex-wrap shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-emerald-600" />
-                      <h2 className="font-bold text-gray-900">{activeGroup.secteur}</h2>
-                      <span className="text-sm text-gray-400">
-                        — {filteredClients.length} client{filteredClients.length > 1 ? "s" : ""}
-                      </span>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4 shadow-sm space-y-3">
+                    {/* Row 1 : titre + filtres */}
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-emerald-600" />
+                        <h2 className="font-bold text-gray-900">{activeGroup.secteur}</h2>
+                        <span className="text-sm text-gray-400">
+                          — {filteredClients.length} client{filteredClients.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Filtre technicien */}
+                        {allTechnicians.length > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <UserCheck className="h-3.5 w-3.5 text-gray-400" />
+                            <select
+                              value={filterTechnicianId}
+                              onChange={(e) => setFilterTechnicianId(e.target.value)}
+                              className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                            >
+                              <option value="ALL">Tous les techniciens</option>
+                              {allTechnicians.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Filtre statut */}
+                        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                          {(
+                            [
+                              ["ALL", "Tous"],
+                              ["RENOUVELLEMENT_DU", "⚠ Renouvellement"],
+                              ["GARANTIE_ACTIVE", "✓ Garantie"],
+                              ["PREMIERE_ANNEE", "★ 1ère année"],
+                            ] as const
+                          ).map(([val, label]) => (
+                            <button
+                              key={val}
+                              onClick={() => setFilterStatus(val)}
+                              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                                filterStatus === val
+                                  ? "bg-white shadow text-gray-900"
+                                  : "text-gray-500 hover:text-gray-700"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {/* Filtre technicien */}
-                      {allTechnicians.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="h-3.5 w-3.5 text-gray-400" />
-                          <select
-                            id="filter-technician"
-                            value={filterTechnicianId}
-                            onChange={(e) => setFilterTechnicianId(e.target.value)}
-                            className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                          >
-                            <option value="ALL">Tous les techniciens</option>
-                            {allTechnicians.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                    {/* Row 2 : actions */}
+                    <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-gray-100">
+                      {/* Sélectionner tout / Aucun */}
+                      <button
+                        onClick={selectAll}
+                        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:border-indigo-400 hover:text-indigo-700 transition-colors font-medium"
+                      >
+                        <CheckSquare className="h-3.5 w-3.5" />
+                        Tout sélectionner
+                      </button>
+                      {selectedInView.length > 0 && (
+                        <button
+                          onClick={deselectAll}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:border-red-400 hover:text-red-600 transition-colors font-medium"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Désélectionner ({selectedInView.length})
+                        </button>
                       )}
 
-                      {/* Filtre statut */}
-                      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                        {(
-                          [
-                            ["ALL", "Tous"],
-                            ["RENOUVELLEMENT_DU", "⚠ Renouvellement"],
-                            ["GARANTIE_ACTIVE", "✓ Garantie"],
-                            ["PREMIERE_ANNEE", "★ 1ère année"],
-                          ] as const
-                        ).map(([val, label]) => (
-                          <button
-                            key={val}
-                            onClick={() => setFilterStatus(val)}
-                            className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
-                              filterStatus === val
-                                ? "bg-white shadow text-gray-900"
-                                : "text-gray-500 hover:text-gray-700"
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
+                      <div className="flex-1" />
 
                       {/* Optimiser route */}
                       <button
@@ -591,13 +733,16 @@ export function PreventionRoutesView({
                         {isRouteOptimized ? "Route optimisée ✓" : "Optimiser route"}
                       </button>
 
-                      {/* Ouvrir dans Maps */}
+                      {/* Google Maps */}
                       <button
                         onClick={openAllInMaps}
                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-300 bg-white text-gray-700 hover:border-blue-400 hover:text-blue-700 transition-colors"
                       >
                         <Navigation className="h-3.5 w-3.5" />
-                        Google Maps
+                        {selectedInView.length > 0
+                          ? `Maps (${selectedInView.length} sél.)`
+                          : "Google Maps"
+                        }
                       </button>
 
                       {/* Copier liste */}
@@ -618,21 +763,36 @@ export function PreventionRoutesView({
                         )}
                       </button>
 
-                      {/* Dispatcher de Masse */}
+                      {/* Dispatcher */}
                       <button
                         onClick={() => setShowDispatchModal(true)}
                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold border border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
                       >
-                        🚀 Assigner un Jour
+                        <CalendarCheck className="h-3.5 w-3.5" />
+                        {selectedInView.length > 0
+                          ? `Planifier (${selectedInView.length})`
+                          : `Planifier (${filteredClients.filter(c => !!c.lastJobId).length})`
+                        }
                       </button>
                     </div>
                   </div>
 
-                  {/* Légende garantie */}
+                  {/* Selection info banner */}
+                  {selectedInView.length > 0 && (
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-2 mb-4 flex items-center gap-2 text-xs text-indigo-800">
+                      <CheckSquare className="h-4 w-4 text-indigo-600 shrink-0" />
+                      <span>
+                        <strong>{selectedInView.length} client{selectedInView.length > 1 ? "s" : ""} sélectionné{selectedInView.length > 1 ? "s" : ""}</strong>
+                        {" "}— Seuls ces clients seront inclus dans la route planifiée.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Route optimisée info */}
                   {isRouteOptimized && (
                     <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2 mb-4 flex items-center gap-2 text-xs text-emerald-800">
                       <Route className="h-4 w-4 text-emerald-600" />
-                      <strong>Route optimisée</strong> — Clients ordonnés par proximité géographique (algorithme TSP). Les distances indiquées sont à vol d'oiseau.
+                      <strong>Route optimisée</strong> — Clients ordonnés par proximité géographique (algorithme TSP). Distances à vol d'oiseau.
                     </div>
                   )}
 
@@ -651,6 +811,8 @@ export function PreventionRoutesView({
                           index={i}
                           prevClient={i > 0 ? filteredClients[i - 1] : undefined}
                           showDistance={isRouteOptimized}
+                          isSelected={selectedIds.has(client.propertyId)}
+                          onToggle={() => toggleClient(client.propertyId)}
                         />
                       ))}
                     </div>
@@ -689,72 +851,78 @@ export function PreventionRoutesView({
         )}
       </div>
 
-      {/* ── Modal Batch Dispatcher ── */}
+      {/* ── Modal Dispatch ── */}
       {showDispatchModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !isDispatching && setShowDispatchModal(false)}
-          ></div>
-          
+          />
+
           {/* Modal content */}
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full relative z-10 overflow-hidden">
             <div className="bg-indigo-600 px-6 py-4">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5" />
-                Dispatcher de masse
+                <CalendarCheck className="h-5 w-5" />
+                Planifier une route
               </h2>
               <p className="text-indigo-100 text-sm mt-1">
-                Secteur actuel : {activeGroup?.secteur}
+                Secteur : <strong>{activeGroup?.secteur}</strong>
               </p>
             </div>
-            
+
             <div className="p-6 space-y-5">
+              {/* Résumé clients */}
+              <div className={`rounded-lg px-4 py-3 text-sm ${
+                selectedInView.length > 0
+                  ? "bg-indigo-50 border border-indigo-200 text-indigo-800"
+                  : "bg-gray-50 border border-gray-200 text-gray-700"
+              }`}>
+                {selectedInView.length > 0 ? (
+                  <>
+                    <CheckSquare className="h-4 w-4 inline mr-1.5 text-indigo-600" />
+                    <strong>{selectedInView.length} client{selectedInView.length > 1 ? "s" : ""} sélectionné{selectedInView.length > 1 ? "s" : ""}</strong>
+                    {" "}seront planifiés.
+                  </>
+                ) : (
+                  <>
+                    <Users className="h-4 w-4 inline mr-1.5 text-gray-500" />
+                    <strong>{filteredClients.filter(c => !!c.lastJobId).length} clients</strong>
+                    {" "}(tous les clients du secteur visible) seront planifiés.
+                  </>
+                )}
+              </div>
+
+              {/* Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date d'assignation</label>
-                <input 
-                  type="date" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date de la route
+                </label>
+                <input
+                  type="date"
                   value={dispatchDate}
                   onChange={(e) => setDispatchDate(e.target.value)}
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                 />
               </div>
 
+              {/* Technicien */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Technicien</label>
-                <select 
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Technicien assigné
+                </label>
+                <select
                   value={dispatchTechId}
                   onChange={(e) => setDispatchTechId(e.target.value)}
-                  className="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="w-full border border-gray-300 rounded-lg shadow-sm px-3 py-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
                 >
                   <option value="">-- Sélectionner un technicien --</option>
-                  {allTechnicians.map(t => (
+                  {allTechnicians.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre de clients à assigner (Ordre optimisé)
-                </label>
-                <div className="flex items-center gap-3">
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max={Math.max(1, filteredClients.filter(c => !!c.lastJobId).length)} 
-                    value={dispatchCount}
-                    onChange={(e) => setDispatchCount(parseInt(e.target.value))}
-                    className="flex-1"
-                  />
-                  <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-md text-lg min-w-[3rem] text-center">
-                    {dispatchCount}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Prend les <strong className="text-gray-800">{dispatchCount}</strong> premiers clients valides de la liste visible derrière.
-                </p>
               </div>
             </div>
 
@@ -762,7 +930,7 @@ export function PreventionRoutesView({
               <button
                 onClick={() => setShowDispatchModal(false)}
                 disabled={isDispatching}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               >
                 Annuler
               </button>
@@ -774,10 +942,13 @@ export function PreventionRoutesView({
                 {isDispatching ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    Traitement...
+                    Création en cours...
                   </>
                 ) : (
-                  <>🚀 Lancer l'assignation</>
+                  <>
+                    <CalendarCheck className="h-4 w-4" />
+                    Créer les jobs
+                  </>
                 )}
               </button>
             </div>

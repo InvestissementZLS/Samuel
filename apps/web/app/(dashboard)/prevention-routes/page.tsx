@@ -4,6 +4,7 @@ import { PreventionRoutesView } from "@/components/prevention/prevention-routes-
 import {
   isExteriorPreventionProduct,
   getSecteurFromPostalCode,
+  SECTEUR_SORT_ORDER,
   PreventionClient,
   SecteurGroup,
 } from "@/lib/constants/prevention-product-keywords";
@@ -178,12 +179,15 @@ async function getPreventionData(): Promise<{
     });
   }
 
-  // Secteurs avec le plus de renouvellements en premier
-  secteurGroups.sort((a, b) =>
-    b.renewalDueCount !== a.renewalDueCount
-      ? b.renewalDueCount - a.renewalDueCount
-      : b.totalCount - a.totalCount
-  );
+  // Trier les secteurs : d'abord par ordre géographique logique, puis par urgence
+  secteurGroups.sort((a, b) => {
+    const orderA = SECTEUR_SORT_ORDER[a.secteur] ?? 99;
+    const orderB = SECTEUR_SORT_ORDER[b.secteur] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+    // Même secteur → les plus urgents en premier
+    if (b.renewalDueCount !== a.renewalDueCount) return b.renewalDueCount - a.renewalDueCount;
+    return b.totalCount - a.totalCount;
+  });
 
   // Obtenir tous les utilisateurs ADMIN ou TECHNICIAN du système
   const allUsers = await prisma.user.findMany({
