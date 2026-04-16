@@ -13,6 +13,7 @@ import { optimizeRoute } from '../lib/ai';
 import { format } from 'date-fns';
 import * as Location from 'expo-location';
 import { DailyRunJob } from '../lib/run-schema';
+import { LucidePhone, LucideSettings, LucideTruck, LucidePackage, LucideFileText, LucideBox, LucideReceipt, LucideScanBarcode } from 'lucide-react-native';
 
 // P-01 FIX: French status labels
 const STATUS_LABELS: Record<string, string> = {
@@ -243,44 +244,54 @@ export default function JobListScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* 📞 Bouton Appel Urgent — prioritaire */}
-                <TouchableOpacity
-                    style={styles.callBtn}
-                    onPress={() => navigation.navigate('QuickAddJob', { userId })}
-                >
-                    <Text style={styles.callBtnText}>📞 Appel reçu — Ajouter à la route</Text>
-                </TouchableOpacity>
+                {/* Quick Actions Grid - Refactored */}
+                <View style={styles.quickActionsGrid}>
+                    <TouchableOpacity 
+                        style={[styles.gridBtn]} 
+                        onPress={() => navigation.navigate('QuickAddJob', { userId })}
+                    >
+                        <LucidePhone size={24} color="#1e40af" />
+                        <Text style={styles.gridBtnTextBtn}>Appel Urgent</Text>
+                    </TouchableOpacity>
 
-                {/* AI / Actions Row */}
-                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-                    <TouchableOpacity
-                        style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}
+                    <TouchableOpacity 
+                        style={[styles.gridBtn]} 
                         onPress={handleOptimize}
                     >
-                        <Text style={[styles.inventoryBtnText, { color: '#16a34a' }]}>⚡ Optimiser route</Text>
+                        <LucideScanBarcode size={24} color="#16a34a" />
+                        <Text style={styles.gridBtnTextBtn}>Optimiser Route</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.inventoryBtn, { flex: 1, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}
-                        onPress={() => navigation.navigate('CreateQuote')}
+                    <TouchableOpacity 
+                        style={[styles.gridBtn, { backgroundColor: '#e0e7ff', borderColor: '#c7d2fe', borderWidth: 1 }]} 
+                        onPress={() => navigation.navigate('MyEquipment' as any)}
                     >
-                        <Text style={[styles.inventoryBtnText, { color: '#1d4ed8' }]}>📝 Soumission</Text>
+                        <LucideTruck size={24} color="#4338ca" />
+                        <Text style={[styles.gridBtnTextBtn, { color: '#4338ca', fontWeight: 'bold' }]}>Mon Camion</Text>
                     </TouchableOpacity>
-                </View>
 
-                <View style={{ flexDirection: 'row', gap: 10, marginTop: 8 }}>
-                    <TouchableOpacity
-                        style={[styles.inventoryBtn, { flex: 1, marginTop: 0 }]}
+                    <TouchableOpacity 
+                        style={[styles.gridBtn]} 
                         onPress={() => navigation.navigate('Inventory')}
                     >
-                        <Text style={styles.inventoryBtnText}>📦 Inventaire</Text>
+                        <LucideBox size={24} color="#4b5563" />
+                        <Text style={styles.gridBtnTextBtn}>Inventaire</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.inventoryBtn, { flex: 1, marginTop: 0, backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}
+                    <TouchableOpacity 
+                        style={[styles.gridBtn]} 
                         onPress={() => navigation.navigate('AddExpense', { userId })}
                     >
-                        <Text style={[styles.inventoryBtnText, { color: '#d97706' }]}>🧾 Dépense</Text>
+                        <LucideReceipt size={24} color="#d97706" />
+                        <Text style={styles.gridBtnTextBtn}>Dépense</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={[styles.gridBtn]} 
+                        onPress={() => navigation.navigate('CreateQuote')}
+                    >
+                        <LucideFileText size={24} color="#0369a1" />
+                        <Text style={styles.gridBtnTextBtn}>Soumission</Text>
                     </TouchableOpacity>
                 </View>
                 
@@ -482,35 +493,31 @@ const styles = StyleSheet.create({
         color: '#999',
         fontSize: 16,
     },
-    inventoryBtn: {
-        marginTop: 12,
-        backgroundColor: '#f3f4f6',
-        padding: 10,
-        borderRadius: 8,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#e5e7eb'
+    quickActionsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginTop: 10,
+        justifyContent: 'space-between',
     },
-    inventoryBtnText: {
+    gridBtn: {
+        width: '31%',
+        backgroundColor: '#f9fafb',
+        borderRadius: 12,
+        paddingVertical: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+    },
+    gridBtnTextBtn: {
+        fontSize: 11,
         color: '#4b5563',
         fontWeight: '600',
-        fontSize: 14
-    },
-    callBtn: {
-        marginTop: 12,
-        backgroundColor: '#1e40af',
-        padding: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        shadowColor: '#1e40af',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 5,
-    },
-    callBtnText: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 15,
+        marginTop: 6,
+        textAlign: 'center'
     }
 });

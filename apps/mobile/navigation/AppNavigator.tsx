@@ -19,6 +19,7 @@ export type RootStackParamList = {
     CreateQuote: undefined;
     AddExpense: { userId: string };
     QuickAddJob: { userId: string };
+    MyEquipment: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -75,6 +76,11 @@ export default function AppNavigator() {
                 name="QuickAddJob"
                 component={QuickAddJobScreen}
                 options={{ title: '📞 Appel entrant', headerBackTitle: 'Retour' }}
+            />
+            <Stack.Screen
+                name="MyEquipment"
+                component={require('../screens/MyEquipmentScreen').default}
+                options={{ title: 'Mon Camion & Équipement' }}
             />
         </Stack.Navigator>
     );

@@ -18,7 +18,15 @@ export async function GET(
             include: {
                 property: {
                     include: {
-                        client: true,
+                        client: {
+                            include: {
+                                equipmentAssets: {
+                                    include: {
+                                        product: { select: { name: true, isClientDeployable: true } }
+                                    }
+                                }
+                            }
+                        },
                     },
                 },
                 notes: true,

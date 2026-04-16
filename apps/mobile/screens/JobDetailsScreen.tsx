@@ -49,6 +49,15 @@ interface JobDetail {
     products: { product: { name: string; unit: string; type: string }; quantity: number }[];
 }
 
+interface EquipmentAsset {
+    id: string;
+    assetTag: string;
+    product: {
+        name: string;
+        isClientDeployable: boolean;
+    }
+}
+
 export default function JobDetailsScreen() {
     const navigation = useNavigation<JobDetailsNavigationProp>();
     const route = useRoute<JobDetailsScreenRouteProp>();
@@ -72,10 +81,25 @@ export default function JobDetailsScreen() {
     const [technicianNotes, setTechnicianNotes] = useState("");
     const [capturedSignature, setCapturedSignature] = useState<string | null>(null);
 
+    // Equipment Transfer State
+    const [isEquipmentModalOpen, setIsEquipmentModalOpen] = useState(false);
+    const [myDeployable, setMyDeployable] = useState<any[]>([]);
+    const [fetchingEquipment, setFetchingEquipment] = useState(false);
+    const [transferringEquipment, setTransferringEquipment] = useState(false);
+    
+    // Derived from API: equipment left at client
+    const [clientEquipment, setClientEquipment] = useState<any[]>([]);
+
     const fetchJobDetails = async () => {
         try {
             const response = await api.get(`/api/jobs/${jobId}`);
             setJob(response.data);
+            
+            // Extract client equipment
+            if (response.data?.property?.client?.equipmentAssets) {
+                setClientEquipment(response.data.property.client.equipmentAssets);
+            }
+            
             // Reset state on refresh
             setCapturedSignature(null);
             setTechnicianNotes("");
@@ -116,6 +140,73 @@ export default function JobDetailsScreen() {
         } finally {
             setSavingProduct(false);
         }
+    };
+
+    const openEquipmentModal = async () => {
+        setIsEquipmentModalOpen(true);
+        setFetchingEquipment(true);
+        try {
+            const userId = await AsyncStorage.getItem('userId');
+            const res = await api.get(`/api/equipment?userId=${userId}`);
+            setMyDeployable(res.data.deployable || []);
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erreur", "Impossible de charger votre camion.");
+        } finally {
+            setFetchingEquipment(false);
+        }
+    };
+
+    const handleDeployEquipment = async (assetId: string) => {
+        setTransferringEquipment(true);
+        try {
+            const userId = await AsyncStorage.getItem('userId');
+            await api.post(`/api/equipment/transfer`, {
+                assetId,
+                userId,
+                destinationType: 'CLIENT',
+                destinationId: job?.property.client.id
+            });
+            Alert.alert("Succès", "Équipement installé chez le client !");
+            setIsEquipmentModalOpen(false);
+            fetchJobDetails(); // Refresh job to show the new equipment on site
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Erreur", "Le transfert a échoué.");
+        } finally {
+            setTransferringEquipment(false);
+        }
+    };
+
+    const handleRetrieveEquipment = (assetId: string) => {
+        Alert.alert(
+            "Ramasser la Cage",
+            "Voulez-vous ramasser cet équipement et le remettre dans votre camion ?",
+            [
+                { text: "Annuler", style: "cancel" },
+                { 
+                    text: "Oui, ramasser", 
+                    onPress: async () => {
+                        setUpdating(true);
+                        try {
+                            const userId = await AsyncStorage.getItem('userId');
+                            await api.post(`/api/equipment/transfer`, {
+                                assetId,
+                                userId,
+                                destinationType: 'TECH',
+                                destinationId: userId
+                            });
+                            Alert.alert("Succès", "Équipement remis dans votre camion !");
+                            fetchJobDetails();
+                        } catch (error) {
+                            Alert.alert("Erreur", "Le transfert a échoué.");
+                        } finally {
+                            setUpdating(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const confirmCompletion = async (signature: string | null, isClientUnreachable: boolean) => {
@@ -374,6 +465,35 @@ export default function JobDetailsScreen() {
                     ))}
                 </View>
 
+                {/* Cages & Caméras Section */}
+                <View style={styles.section}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <Text style={styles.sectionTitle}>📍 Cages & Caméras sur place</Text>
+                        <TouchableOpacity onPress={openEquipmentModal}>
+                            <Text style={{ color: '#2563eb', fontWeight: 'bold' }}>+ Laisser équipement</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {clientEquipment.length === 0 && (
+                        <Text style={{ color: '#999', fontStyle: 'italic' }}>Aucun équipement chez ce client.</Text>
+                    )}
+
+                    {clientEquipment.map((eq, index) => (
+                        <View key={index} style={[styles.productRow, { alignItems: 'center' }]}>
+                            <View style={{ flex: 1 }}>
+                                <Text style={[styles.productName, { fontWeight: 'bold' }]}>{eq.product.name}</Text>
+                                <Text style={{ color: '#6b7280', fontSize: 12 }}>ID: {eq.assetTag}</Text>
+                            </View>
+                            <TouchableOpacity 
+                                style={{ backgroundColor: '#eff6ff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe' }}
+                                onPress={() => handleRetrieveEquipment(eq.id)}
+                            >
+                                <Text style={{ color: '#1d4ed8', fontSize: 12, fontWeight: 'bold' }}>Reprendre</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </View>
+
                 {/* Actions */}
                 <View style={styles.actions}>
                     {/* Flow: SCHEDULED -> EN_ROUTE -> IN_PROGRESS -> COMPLETED */}
@@ -574,6 +694,49 @@ export default function JobDetailsScreen() {
                                 <Text style={[styles.actionButtonText, { color: '#666' }]}>Cancel</Text>
                             </TouchableOpacity>
                         </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Equipment Transfer Modal */}
+            <Modal visible={isEquipmentModalOpen} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Qu'est-ce que vous laissez ici ?</Text>
+
+                        {fetchingEquipment ? (
+                            <ActivityIndicator size="small" color="#2563eb" style={{ marginVertical: 20 }} />
+                        ) : myDeployable.length === 0 ? (
+                            <Text style={{ textAlign: 'center', color: '#666', marginVertical: 20 }}>
+                                Vous n'avez aucune cage/caméra dans votre camion.
+                            </Text>
+                        ) : (
+                            <ScrollView style={{ maxHeight: 300, marginBottom: 16 }}>
+                                {myDeployable.map(eq => (
+                                    <TouchableOpacity
+                                        key={eq.id}
+                                        style={[styles.productRow, { paddingHorizontal: 10, paddingVertical: 12, backgroundColor: '#f9fafb', borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#eee' }]}
+                                        onPress={() => handleDeployEquipment(eq.id)}
+                                        disabled={transferringEquipment}
+                                    >
+                                        <View>
+                                            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>{eq.product.name}</Text>
+                                            <Text style={{ color: '#666', fontSize: 13 }}>ID: {eq.assetTag}</Text>
+                                        </View>
+                                        <View style={{ justifyContent: 'center' }}>
+                                            <Text style={{ color: '#16a34a', fontWeight: 'bold' }}>Laisser</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </ScrollView>
+                        )}
+                        
+                        <TouchableOpacity
+                            style={[styles.actionButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#ccc' }]}
+                            onPress={() => setIsEquipmentModalOpen(false)}
+                        >
+                            <Text style={[styles.actionButtonText, { color: '#666' }]}>Annuler</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
