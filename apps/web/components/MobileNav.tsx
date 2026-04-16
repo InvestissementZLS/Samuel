@@ -51,7 +51,7 @@ export function MobileNav() {
         if (item.href === '/commissions' && !perms.canManageCommissions) return false;
         
         // Restreindre les TECHNICIENS
-        if (user?.role === 'TECHNICIAN') {
+        if (perms.effectiveRole === 'TECHNICIAN') {
             const techAllowed = [
                 '/', 
                 '/calendar', 
@@ -69,7 +69,7 @@ export function MobileNav() {
         }
 
         // Protéger explicitement /settings pour les non-admins
-        if (item.href === '/settings' && user?.role !== 'ADMIN') return false;
+        if (item.href === '/settings' && perms.effectiveRole !== 'ADMIN') return false;
 
         return true;
     });

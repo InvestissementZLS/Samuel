@@ -51,7 +51,7 @@ export function Sidebar() {
             if (item.href === '/commissions' && !perms.canManageCommissions) return false;
             
             // Restreindre les TECHNICIENS (On retire settings, timesheets, expenses, reports, technicians, routes)
-            if (user?.role === 'TECHNICIAN') {
+            if (perms.effectiveRole === 'TECHNICIAN') {
                 const techAllowed = [
                     '/', 
                     '/calendar', 
@@ -69,7 +69,7 @@ export function Sidebar() {
             }
 
             // Protéger explicitement /settings pour les non-admins
-            if (item.href === '/settings' && user?.role !== 'ADMIN') return false;
+            if (item.href === '/settings' && perms.effectiveRole !== 'ADMIN') return false;
 
             // Routes Prévention uniquement pour la division EXTERMINATION
             if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;

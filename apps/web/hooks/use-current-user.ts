@@ -30,6 +30,7 @@ interface PermissionCheck {
     canManageUsers: boolean;
     canManageCommissions: boolean;
     hasDivisionAccess: boolean;
+    effectiveRole: Role;
 }
 
 import { useUser } from "@/components/providers/user-provider";
@@ -53,7 +54,8 @@ export function useCurrentUser() {
             canManageExpenses: false,
             canManageUsers: false,
             canManageCommissions: false,
-            hasDivisionAccess: false
+            hasDivisionAccess: false,
+            effectiveRole: "TECHNICIAN" // Default fallback
         };
 
         // Master Override
@@ -63,7 +65,8 @@ export function useCurrentUser() {
             canManageExpenses: true,
             canManageUsers: true,
             canManageCommissions: true,
-            hasDivisionAccess: true
+            hasDivisionAccess: true,
+            effectiveRole: "ADMIN"
         };
 
         // Check specific division access
@@ -78,7 +81,8 @@ export function useCurrentUser() {
                     canManageExpenses: false,
                     canManageUsers: false,
                     canManageCommissions: false,
-                    hasDivisionAccess: true
+                    hasDivisionAccess: true,
+                    effectiveRole: userProfile.role // Fallback to global role if flat array is used
                 };
             }
 
@@ -88,7 +92,8 @@ export function useCurrentUser() {
                 canManageExpenses: false,
                 canManageUsers: false,
                 canManageCommissions: false,
-                hasDivisionAccess: false
+                hasDivisionAccess: false,
+                effectiveRole: "TECHNICIAN" // No access = base access
             };
         }
 
@@ -98,7 +103,8 @@ export function useCurrentUser() {
             canManageExpenses: access.canManageExpenses,
             canManageUsers: access.canManageUsers,
             canManageCommissions: access.canManageCommissions,
-            hasDivisionAccess: true
+            hasDivisionAccess: true,
+            effectiveRole: access.role // [!] The crucial per-division role override
         };
     };
 
