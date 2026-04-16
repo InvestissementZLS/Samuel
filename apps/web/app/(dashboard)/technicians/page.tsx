@@ -18,6 +18,9 @@ export default async function TechniciansPage() {
             role: { in: ['TECHNICIAN', 'OFFICE', 'ADMIN'] },
             ...(isAdmin ? {} : { isActive: true }) // Only show active technicians if not admin
         },
+        include: {
+            accesses: true
+        },
         orderBy: { name: 'asc' },
     });
 
