@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openaiClient = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+// Marked dynamic so Next.js never tries to statically analyze this route at build time
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,6 +12,12 @@ export async function POST(request: NextRequest) {
                 { status: 500 }
             );
         }
+
+        // Initialize client INSIDE the handler — never at module level —
+        // so it's not evaluated during Next.js static build analysis
+        const openaiClient = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        });
 
         const formData = await request.formData();
         const audioFile = formData.get('audio') as File | null;
@@ -24,8 +29,6 @@ export async function POST(request: NextRequest) {
         // Convert File to a format Whisper accepts
         const arrayBuffer = await audioFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-
-        // Create a File object compatible with OpenAI SDK
         const file = new File([buffer], 'recording.webm', { type: 'audio/webm' });
 
         const response = await openaiClient.audio.transcriptions.create({
