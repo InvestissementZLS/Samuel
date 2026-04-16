@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await audioFile.arrayBuffer();
         const base64Audio = Buffer.from(arrayBuffer).toString('base64');
 
-        // Use Gemini Flash for transcription
+        // Use Gemini 1.5 Flash for transcription
         const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         const result = await model.generateContent([
             {

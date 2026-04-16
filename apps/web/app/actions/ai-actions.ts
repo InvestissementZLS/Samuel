@@ -73,7 +73,7 @@ export async function parseCallNotes(text: string, imageBase64?: string) {
         }
 
         const { object } = await generateObject({
-            model: google('gemini-2.0-flash'),
+            model: google('gemini-1.5-flash'),
             system: `Tu es le cerveau de Praxis ZLS, une plateforme de gestion pour exterminateurs et gestionnaires immobiliers/industriels au Québec.
 Tu reçois des commandes en français québécois (texte brut, vocal, ou captures d'écran) et tu dois en extraire la structure complète.
 
