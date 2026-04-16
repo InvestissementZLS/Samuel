@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Brain, Mic, Image as ImageIcon, Send, X, AlertTriangle, Info, MessageSquare, RefreshCw, ChevronRight } from "lucide-react";
+import { Sparkles, Brain, Mic, Send, X, AlertTriangle, MessageSquare, RefreshCw, ChevronRight, CheckCircle2, UserPen, AlertCircle } from "lucide-react";
 import { QuickCallDialog } from "./quick-call-dialog";
 import { askJarvis } from "@/app/actions/jarvis-chat-action";
+import { executeClientUpdate, WriteIntent, FoundClient, UpdatableClientField } from "@/app/actions/jarvis-update-action";
 import { generatePlatformInsights, AIInsight, InsightPriority } from "@/app/actions/ai-insights-actions";
 import { useDivision } from "./providers/division-provider";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const CACHE_KEY = "jarvis_snapshot_v1";
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -40,19 +42,137 @@ const priorityConfig: Record<InsightPriority, { badge: string; dot: string }> = 
     INFO: { badge: "bg-gray-100 text-gray-600 border border-gray-200", dot: "bg-gray-400" },
 };
 
-interface ChatMessage {
+// ── Message Types ──────────────────────────────────────────────────
+interface TextMessage {
     role: "user" | "jarvis";
     content: string;
     loading?: boolean;
 }
 
+interface WriteConfirmMessage {
+    role: "jarvis";
+    type: "write_confirm";
+    intent: WriteIntent;
+}
+
+type ChatMessage = TextMessage | WriteConfirmMessage;
+
 const SUGGESTED_QUESTIONS = [
     "Quels clients n'ont pas payé?",
     "Jobs sans technicien cette semaine?",
-    "Qui est mon client le plus rentable?",
-    "Services récurrents à venir?",
+    "Ajoute le email test@gmail.com pour Tremblay",
+    "Change le téléphone de Bergeron à 514-555-4321",
 ];
 
+// ── Write Confirmation Card ────────────────────────────────────────
+function WriteConfirmCard({ intent, onConfirm, onCancel }: {
+    intent: WriteIntent;
+    onConfirm: (clientId: string, clientName: string) => void;
+    onCancel: () => void;
+}) {
+    const [selectedClientId, setSelectedClientId] = useState<string | null>(
+        intent.candidates.length === 1 ? intent.candidates[0].id : null
+    );
+    const [confirming, setConfirming] = useState(false);
+
+    const selectedClient = intent.candidates.find(c => c.id === selectedClientId);
+
+    const handleConfirm = async () => {
+        if (!selectedClientId || !selectedClient) return;
+        setConfirming(true);
+        const result = await executeClientUpdate(selectedClientId, intent.field, intent.value);
+        setConfirming(false);
+        if (result.success) {
+            toast.success(`✅ ${intent.fieldLabel} de ${result.clientName} mis à jour !`);
+            onConfirm(selectedClientId, result.clientName);
+        } else {
+            toast.error(result.error || "Erreur lors de la mise à jour.");
+        }
+    };
+
+    if (intent.candidates.length === 0) {
+        return (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs">
+                <div className="flex items-center gap-2 mb-1">
+                    <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                    <p className="font-bold text-amber-800">Aucun client trouvé</p>
+                </div>
+                <p className="text-amber-700">Aucun client correspondant à <strong>"{intent.clientSearch}"</strong>.</p>
+                <button onClick={onCancel} className="mt-2 text-[10px] text-amber-600 underline">Annuler</button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="rounded-xl border border-purple-200 bg-purple-50 p-3 space-y-3 text-xs w-full max-w-[90%]">
+            {/* Header */}
+            <div className="flex items-center gap-2">
+                <UserPen size={14} className="text-purple-600 shrink-0" />
+                <p className="font-bold text-purple-900">Modifier un client</p>
+            </div>
+
+            {/* What we're changing */}
+            <div className="bg-white rounded-lg border border-purple-100 p-2 space-y-1">
+                <p className="text-gray-500">Champ : <span className="font-bold text-gray-800">{intent.fieldLabel}</span></p>
+                <p className="text-gray-500">Nouvelle valeur : <span className="font-bold text-emerald-700">{intent.value || <em className="text-gray-400">vide</em>}</span></p>
+            </div>
+
+            {/* Client selection (if multiple candidates) */}
+            {intent.candidates.length > 1 && (
+                <div>
+                    <p className="text-gray-500 mb-1.5">{intent.candidates.length} clients trouvés — choisissez le bon :</p>
+                    <div className="space-y-1.5">
+                        {intent.candidates.map(c => (
+                            <button
+                                key={c.id}
+                                onClick={() => setSelectedClientId(c.id)}
+                                className={`w-full text-left rounded-lg border p-2 transition-all ${selectedClientId === c.id
+                                    ? "border-purple-500 bg-purple-100 text-purple-900"
+                                    : "border-gray-200 bg-white hover:border-purple-300 text-gray-700"}`}
+                            >
+                                <p className="font-semibold">{c.name}</p>
+                                {c.companyName && <p className="text-[10px] text-gray-400">{c.companyName}</p>}
+                                <p className="text-[10px] text-gray-400">{c.phone || c.email || "Pas de contact"}</p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Single candidate preview */}
+            {intent.candidates.length === 1 && selectedClient && (
+                <div className="bg-white rounded-lg border border-gray-100 p-2">
+                    <p className="font-semibold text-gray-900">{selectedClient.name}</p>
+                    {selectedClient.companyName && <p className="text-[10px] text-gray-400">{selectedClient.companyName}</p>}
+                    <p className="text-[10px] text-gray-500">{selectedClient.phone || selectedClient.email || "Pas de contact"}</p>
+                </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2">
+                <button
+                    onClick={handleConfirm}
+                    disabled={!selectedClientId || confirming}
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-purple-600 text-white rounded-lg py-2 font-semibold hover:bg-purple-700 transition-colors disabled:opacity-40"
+                >
+                    {confirming ? (
+                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Mise à jour...</>
+                    ) : (
+                        <><CheckCircle2 size={12} />Confirmer</>
+                    )}
+                </button>
+                <button
+                    onClick={onCancel}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                    Annuler
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ── Main Panel ─────────────────────────────────────────────────────
 export function JarvisPanel() {
     const { division } = useDivision();
     const [isOpen, setIsOpen] = useState(false);
@@ -66,7 +186,10 @@ export function JarvisPanel() {
 
     // Chat
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { role: "jarvis", content: "Bonjour ! Je suis JARVIS, votre assistant IA Praxis ZLS. Posez-moi n'importe quelle question sur vos clients, jobs, factures ou techniciens." }
+        {
+            role: "jarvis",
+            content: "Bonjour ! Je suis JARVIS. Posez-moi une question ou dites-moi de modifier une info client.\n\nEx: \"Ajoute le email tremblay@gmail.com pour Jean Tremblay\""
+        }
     ]);
     const [chatInput, setChatInput] = useState("");
     const [chatLoading, setChatLoading] = useState(false);
@@ -107,16 +230,30 @@ export function JarvisPanel() {
         const question = q ?? chatInput.trim();
         if (!question) return;
         setChatInput("");
-        const userMsg: ChatMessage = { role: "user", content: question };
-        const loadingMsg: ChatMessage = { role: "jarvis", content: "", loading: true };
+
+        const userMsg: TextMessage = { role: "user", content: question };
+        const loadingMsg: TextMessage = { role: "jarvis", content: "", loading: true };
         setMessages(prev => [...prev, userMsg, loadingMsg]);
         setChatLoading(true);
+
         try {
-            const { answer, error } = await askJarvis(question, division as any);
-            setMessages(prev => [
-                ...prev.slice(0, -1),
-                { role: "jarvis", content: error || answer || "Je n'ai pas pu répondre." }
-            ]);
+            const response = await askJarvis(question, division as any);
+
+            if (response.type === "write_intent") {
+                // Replace loading bubble with confirmation card
+                const confirmMsg: WriteConfirmMessage = {
+                    role: "jarvis",
+                    type: "write_confirm",
+                    intent: response,
+                };
+                setMessages(prev => [...prev.slice(0, -1), confirmMsg]);
+            } else {
+                // Regular text answer
+                setMessages(prev => [
+                    ...prev.slice(0, -1),
+                    { role: "jarvis", content: response.error || response.answer || "Je n'ai pas pu répondre." }
+                ]);
+            }
         } catch {
             setMessages(prev => [
                 ...prev.slice(0, -1),
@@ -125,6 +262,27 @@ export function JarvisPanel() {
         } finally {
             setChatLoading(false);
         }
+    };
+
+    const handleWriteConfirm = (idx: number, clientId: string, clientName: string) => {
+        // Replace the confirmation card with a success message
+        setMessages(prev => {
+            const updated = [...prev];
+            const confirmMsg = updated[idx] as WriteConfirmMessage;
+            updated[idx] = {
+                role: "jarvis",
+                content: `✅ ${confirmMsg.intent.fieldLabel} de **${clientName}** mis à jour avec succès !`,
+            };
+            return updated;
+        });
+    };
+
+    const handleWriteCancel = (idx: number) => {
+        setMessages(prev => {
+            const updated = [...prev];
+            updated[idx] = { role: "jarvis", content: "Modification annulée." };
+            return updated;
+        });
     };
 
     const criticalCount = snapshot?.insights.filter(i => i.priority === "CRITIQUE").length ?? 0;
@@ -176,9 +334,9 @@ export function JarvisPanel() {
                         {/* Tabs */}
                         <div className="flex border-b border-gray-100 shrink-0">
                             {([
-                                { id: "quickcall" as Tab, label: "⚡ Action", icon: Mic },
-                                { id: "alerts" as Tab, label: `🔔 Alertes${hotCount > 0 ? ` (${hotCount})` : ""}`, icon: AlertTriangle },
-                                { id: "chat" as Tab, label: "💬 Chat", icon: MessageSquare },
+                                { id: "quickcall" as Tab, label: "⚡ Action" },
+                                { id: "alerts" as Tab, label: `🔔 Alertes${hotCount > 0 ? ` (${hotCount})` : ""}` },
+                                { id: "chat" as Tab, label: "💬 Chat" },
                             ] as const).map(tab => (
                                 <button
                                     key={tab.id}
@@ -258,8 +416,7 @@ export function JarvisPanel() {
                                         <div className="flex flex-col items-center py-10 gap-3 text-center">
                                             <AlertTriangle size={28} className="text-gray-300" />
                                             <p className="text-xs text-gray-500">Aucune analyse chargée.</p>
-                                            <button onClick={loadAlerts}
-                                                className="text-xs text-purple-600 font-semibold hover:underline">
+                                            <button onClick={loadAlerts} className="text-xs text-purple-600 font-semibold hover:underline">
                                                 Lancer l'analyse
                                             </button>
                                         </div>
@@ -267,7 +424,6 @@ export function JarvisPanel() {
 
                                     {!loadingAlerts && snapshot && (
                                         <>
-                                            {/* Health Row */}
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg border-4 ${snapshot.healthScore >= 75 ? "border-emerald-400 text-emerald-600 bg-emerald-50" : snapshot.healthScore >= 50 ? "border-amber-400 text-amber-600 bg-amber-50" : "border-red-400 text-red-600 bg-red-50"}`}>
                                                     {snapshot.healthScore}
@@ -278,7 +434,6 @@ export function JarvisPanel() {
                                                 </div>
                                             </div>
 
-                                            {/* Insights */}
                                             {["CRITIQUE", "IMPORTANT", "INFO"].map(prio =>
                                                 snapshot.insights
                                                     .filter(i => i.priority === prio)
@@ -318,23 +473,43 @@ export function JarvisPanel() {
                                 <div className="flex flex-col h-full">
                                     {/* Messages */}
                                     <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                                        {messages.map((msg, idx) => (
-                                            <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                                                {msg.role === "jarvis" && (
-                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 mr-1.5 mt-0.5">
-                                                        <Sparkles size={10} className="text-white" />
+                                        {messages.map((msg, idx) => {
+                                            // Write confirmation card
+                                            if ("type" in msg && msg.type === "write_confirm") {
+                                                return (
+                                                    <div key={idx} className="flex justify-start gap-1.5">
+                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+                                                            <Sparkles size={10} className="text-white" />
+                                                        </div>
+                                                        <WriteConfirmCard
+                                                            intent={msg.intent}
+                                                            onConfirm={(cId, cName) => handleWriteConfirm(idx, cId, cName)}
+                                                            onCancel={() => handleWriteCancel(idx)}
+                                                        />
                                                     </div>
-                                                )}
-                                                <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${msg.role === "user"
-                                                    ? "bg-purple-600 text-white rounded-br-sm"
-                                                    : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
-                                                    {msg.loading
-                                                        ? <span className="flex gap-1 items-center"><span className="animate-bounce" style={{ animationDelay: "0ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "150ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "300ms" }}>●</span></span>
-                                                        : <span style={{ whiteSpace: "pre-wrap" }}>{msg.content}</span>
-                                                    }
+                                                );
+                                            }
+
+                                            // Regular text bubble
+                                            const textMsg = msg as TextMessage;
+                                            return (
+                                                <div key={idx} className={`flex ${textMsg.role === "user" ? "justify-end" : "justify-start"}`}>
+                                                    {textMsg.role === "jarvis" && (
+                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 mr-1.5 mt-0.5">
+                                                            <Sparkles size={10} className="text-white" />
+                                                        </div>
+                                                    )}
+                                                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${textMsg.role === "user"
+                                                        ? "bg-purple-600 text-white rounded-br-sm"
+                                                        : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
+                                                        {textMsg.loading
+                                                            ? <span className="flex gap-1 items-center"><span className="animate-bounce" style={{ animationDelay: "0ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "150ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "300ms" }}>●</span></span>
+                                                            : <span style={{ whiteSpace: "pre-wrap" }}>{textMsg.content}</span>
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                         <div ref={chatBottomRef} />
                                     </div>
 
@@ -358,7 +533,7 @@ export function JarvisPanel() {
                                                 value={chatInput}
                                                 onChange={e => setChatInput(e.target.value)}
                                                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskJarvis(); } }}
-                                                placeholder="Posez une question à JARVIS..."
+                                                placeholder="Question ou modification client..."
                                                 disabled={chatLoading}
                                                 className="flex-1 text-xs rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 disabled:opacity-50 outline-none"
                                             />

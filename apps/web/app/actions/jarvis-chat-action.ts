@@ -1,19 +1,76 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { generateText } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { subDays, subMonths, addDays } from 'date-fns';
+import { z } from 'zod';
+import { findClientsForUpdate, UpdatableClientField, WriteIntent, ReadAnswer } from './jarvis-update-action';
 
-export async function askJarvis(question: string, division?: string): Promise<{ answer: string; error?: string }> {
-    if (!question?.trim()) return { answer: '' };
+// ── Intent Detection Schema ────────────────────────────────────────
+const intentSchema = z.object({
+    intent: z.enum(['READ', 'UPDATE_CLIENT']).describe(
+        "READ = question/recherche de données. UPDATE_CLIENT = demande de modifier/ajouter une information d'un client existant."
+    ),
+    clientSearch: z.string().optional().describe(
+        "Nom du client à rechercher (pour UPDATE_CLIENT). Ex: 'Jean Tremblay', 'Bergeron Construction'."
+    ),
+    field: z.enum(['email', 'phone', 'companyName', 'billingAddress', 'name']).optional().describe(
+        "Champ à modifier sur le client."
+    ),
+    value: z.string().optional().describe(
+        "Nouvelle valeur à appliquer au champ."
+    ),
+});
 
+const FIELD_LABELS: Record<UpdatableClientField, string> = {
+    email: 'Courriel',
+    phone: 'Téléphone',
+    companyName: 'Compagnie',
+    billingAddress: 'Adresse de facturation',
+    name: 'Nom',
+};
+
+// ── Main exported function ─────────────────────────────────────────
+export async function askJarvis(
+    question: string,
+    division?: string
+): Promise<ReadAnswer | WriteIntent> {
+    if (!question?.trim()) return { type: 'answer', answer: '' };
+
+    // Step 1: Detect intent with a fast structured call
+    let detected: z.infer<typeof intentSchema>;
+    try {
+        const { object } = await generateObject({
+            model: google('gemini-2.5-flash'),
+            schema: intentSchema,
+            prompt: `Analyse cette demande et détermine l'intention de l'utilisateur. Voici la demande:\n"${question}"`,
+        });
+        detected = object;
+    } catch {
+        // If intent detection fails, treat as read
+        detected = { intent: 'READ' };
+    }
+
+    // Step 2: If it's a write intent, search for the client
+    if (detected.intent === 'UPDATE_CLIENT' && detected.clientSearch && detected.field && detected.value !== undefined) {
+        const candidates = await findClientsForUpdate(detected.clientSearch, division);
+        return {
+            type: 'write_intent',
+            field: detected.field,
+            value: detected.value,
+            clientSearch: detected.clientSearch,
+            candidates,
+            fieldLabel: FIELD_LABELS[detected.field],
+        };
+    }
+
+    // Step 3: Regular READ — proceed with DB context + Gemini answer
     const now = new Date();
     const divFilter = division ? { division: division as any } : {};
     const divClientFilter = division ? { divisions: { has: division as any } } : {};
 
     try {
-        // Fetch relevant live data based on keywords in question
         const [
             overdueInvoices,
             unpaidTotal,
@@ -102,7 +159,6 @@ export async function askJarvis(question: string, division?: string): Promise<{ 
             }),
         ]);
 
-        // Resolve top client names
         const clientIds = topClients.map(c => c.clientId);
         const topClientNames = await prisma.client.findMany({
             where: { id: { in: clientIds } },
@@ -113,7 +169,6 @@ export async function askJarvis(question: string, division?: string): Promise<{ 
             return { name: c?.name || 'Inconnu', total: Number(tc._sum.total || 0) };
         });
 
-        // Build context
         const context = `
 DONNÉES EN TEMPS RÉEL — Praxis ZLS (${now.toLocaleDateString('fr-CA')}):
 
@@ -150,12 +205,13 @@ Format: texte court, listes à puces si nécessaire. Pas de markdown complexe.`,
             prompt: `Données actuelles:\n${context}\n\nQuestion: ${question}`,
         });
 
-        return { answer: text };
+        return { type: 'answer', answer: text };
     } catch (error: any) {
         console.error('[Jarvis Chat Error]', error);
         return {
+            type: 'answer',
             answer: '',
-            error: `Erreur JARVIS: ${error?.message || 'Impossible de contacter l\'IA'}`,
+            error: `Erreur JARVIS: ${error?.message || "Impossible de contacter l'IA"}`,
         };
     }
 }
