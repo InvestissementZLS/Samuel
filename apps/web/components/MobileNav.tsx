@@ -9,6 +9,7 @@ import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
 import { useDivision } from '@/components/providers/division-provider';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function MobileNav() {
     const pathname = usePathname();
@@ -18,6 +19,9 @@ export function MobileNav() {
     const { division } = useDivision();
 
     const logoSrc = division === 'RENOVATION' ? "/renovation-logo.png" : "/zls-logo.png";
+
+    const { user, checkPermission } = useCurrentUser();
+    const perms = checkPermission(division);
 
     const allNavigation = [
         { name: t.sidebar.dashboard, href: '/', icon: Home },
@@ -35,9 +39,30 @@ export function MobileNav() {
         { name: t.sidebar.settings, href: '/settings', icon: Settings },
     ];
 
-    const navigation = allNavigation.filter(item =>
-        !(item as any).divisionOnly || (item as any).divisionOnly === division
-    );
+    const navigation = allNavigation.filter(item => {
+        // Validation division
+        if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;
+        
+        // Permissions standards
+        if (item.href === '/reports' && !perms.canViewReports) return false;
+        if (item.href === '/timesheets' && !perms.canManageTimesheets) return false;
+        if (item.href === '/expenses' && !perms.canManageExpenses) return false;
+        if (item.href === '/technicians' && !perms.canManageUsers) return false;
+        if (item.href === '/commissions' && !perms.canManageCommissions) return false;
+        
+        // Restreindre sévèrement les TECHNICIENS
+        if (user?.role === 'TECHNICIAN') {
+            const techAllowed = ['/', '/calendar', '/jobs'];
+            if (!techAllowed.includes(item.href)) {
+                return false;
+            }
+        }
+
+        // Protéger explicitement /settings pour les non-admins
+        if (item.href === '/settings' && user?.role !== 'ADMIN') return false;
+
+        return true;
+    });
 
     const handleLogout = async () => {
         try {

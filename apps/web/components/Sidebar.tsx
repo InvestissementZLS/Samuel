@@ -49,6 +49,18 @@ export function Sidebar() {
             if (item.href === '/expenses' && !perms.canManageExpenses) return false;
             if (item.href === '/technicians' && !perms.canManageUsers) return false;
             if (item.href === '/commissions' && !perms.canManageCommissions) return false;
+            
+            // Restreindre sévèrement les TECHNICIENS (Cacher tout accès admin/bureau)
+            if (user?.role === 'TECHNICIAN') {
+                const techAllowed = ['/', '/calendar', '/jobs'];
+                if (!techAllowed.includes(item.href)) {
+                    return false;
+                }
+            }
+
+            // Protéger explicitement /settings pour les non-admins
+            if (item.href === '/settings' && user?.role !== 'ADMIN') return false;
+
             // Routes Prévention uniquement pour la division EXTERMINATION
             if ((item as any).divisionOnly && (item as any).divisionOnly !== division) return false;
             return true;
