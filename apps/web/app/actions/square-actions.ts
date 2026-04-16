@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
-import { Client, Environment } from 'square';
+import { Client } from 'square';
 
 // Initialize Square Client
 // It uses sandbox by default if the token is missing or if we specify SANDBOX.
@@ -11,7 +11,7 @@ const squareLocationId = process.env.SQUARE_LOCATION_ID || '';
 const isProduction = process.env.SQUARE_ENVIRONMENT === 'production';
 
 const squareClient = new Client({
-    environment: isProduction ? Environment.Production : Environment.Sandbox,
+    environment: (isProduction ? 'production' : 'sandbox') as any,
     accessToken: squareAccessToken,
 });
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { Invoice, Product } from "@prisma/client";
 import { createSquareCheckoutLink } from "@/app/actions/square-actions";
 import { toast } from "sonner";
