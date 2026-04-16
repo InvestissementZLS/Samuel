@@ -56,8 +56,11 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
     // Quick Client Create State
     const [isCreatingClient, setIsCreatingClient] = useState(false);
     const [newClientName, setNewClientName] = useState("");
+    const [newClientCompanyName, setNewClientCompanyName] = useState("");
     const [newClientEmail, setNewClientEmail] = useState("");
+    const [newClientPhone, setNewClientPhone] = useState("");
     const [newClientAddress, setNewClientAddress] = useState("");
+    const [newClientLanguage, setNewClientLanguage] = useState<"FR" | "EN">("FR");
     const router = useRouter();
 
     const handleCreateClient = async () => {
@@ -72,15 +75,21 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
         try {
             const newClient = await createClient({
                 name: newClientName,
+                companyName: newClientCompanyName,
                 email: newClientEmail,
+                phone: newClientPhone,
                 billingAddress: newClientAddress,
                 divisions: [division],
+                language: newClientLanguage,
             });
             toast.success("Client created");
             setIsCreatingClient(false);
             setNewClientName("");
+            setNewClientCompanyName("");
             setNewClientEmail("");
+            setNewClientPhone("");
             setNewClientAddress("");
+            setNewClientLanguage("FR");
             router.refresh();
             if (newClient) {
                 setClientId(newClient.id);
@@ -279,9 +288,15 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                         </div>
                         {isCreatingClient ? (
                             <div className="space-y-2 p-2 bg-muted/50 rounded-md border">
-                                <input type="text" placeholder="Client Name *" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <input type="text" placeholder="Client Name *" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                    <input type="text" placeholder="Company Name (Optional)" value={newClientCompanyName} onChange={(e) => setNewClientCompanyName(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <input type="email" placeholder="Email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                    <input type="tel" placeholder="Phone" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm" />
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
                                     <AddressAutocomplete 
                                         value={newClientAddress}
                                         onChange={setNewClientAddress}
@@ -289,6 +304,12 @@ export function JobDialog({ isOpen, onClose, job, initialDate, clients, technici
                                         placeholder="Address (Required) *"
                                         className="w-full rounded-md border px-2 py-1.5 text-sm"
                                     />
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                    <select value={newClientLanguage} onChange={(e) => setNewClientLanguage(e.target.value as "FR" | "EN")} className="w-full rounded-md border px-2 py-1.5 text-sm">
+                                        <option value="FR">Français (FR)</option>
+                                        <option value="EN">English (EN)</option>
+                                    </select>
                                 </div>
                                 <button type="button" onClick={handleCreateClient} disabled={!newClientName || !newClientAddress || loading} className="w-full bg-indigo-600 text-white px-3 py-1.5 rounded text-xs hover:bg-indigo-700 disabled:opacity-50">Save Client</button>
                             </div>
