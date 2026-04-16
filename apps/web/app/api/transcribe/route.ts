@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
         // Use Gemini 1.5 Flash for transcription
         const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
         const result = await model.generateContent([
             {
