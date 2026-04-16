@@ -279,13 +279,13 @@ export default function ClientPortalPage() {
                                     { name: 'Nid de Terre', detail: 'Élimination ciblée nids au sol • Garantie 3 mois' },
                                     { name: 'Service Complet Guêpes', detail: 'Intérieur + 2 traitements ext. + calfeutrage • Garantie 1 an' },
                                     { name: 'Arrosage Extérieur', detail: 'Soffites, portes, fenêtres, périmètre — Dragnet (perméthrine)' },
-                                    { name: 'Plan Annuel Arrosage', detail: '3 traitements mai–août (guêpes, fourmis, araignées) • Garantie saison' },
+                                    { name: 'Plan Annuel Arrosage', detail: '2 traitements saisonniers (guêpes, fourmis, araignées) • Garantie saison' },
                                 ] : [
                                     { name: 'Wasp Nest Treatment', detail: 'Treatment + extraction if possible • 3 month warranty' },
                                     { name: 'Ground Nest', detail: 'Targeted ground nest elimination • 3 month warranty' },
                                     { name: 'Complete Wasp Service', detail: 'Interior + 2 exterior treatments + sealing • 1 year warranty' },
                                     { name: 'Exterior Spraying', detail: 'Soffits, doors, windows, perimeter — Dragnet (permethrin)' },
-                                    { name: 'Annual Spraying Plan', detail: '3 treatments May–Aug (wasps, ants, spiders) • Season warranty' },
+                                    { name: 'Annual Spraying Plan', detail: '2 seasonal treatments (wasps, ants, spiders) • Season warranty' },
                                 ],
                             },
                             {

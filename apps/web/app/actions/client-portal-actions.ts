@@ -41,23 +41,47 @@ async function autoCreatePreventionJobIfNeeded(clientId: string, productIds: str
 
         if (existingJob) return;
 
-        // Auto-create a Job to ensure the client enters the Prevention Routes list
-        await prisma.job.create({
-            data: {
-                propertyId: firstProperty.id,
-                status: 'PENDING',
-                scheduledAt: new Date(), // Today (they will be grouped in current renewal season)
-                description: 'Généré automatiquement suite à une facturation ou soumission de prévention.',
-                division: 'EXTERMINATION',
-                products: {
-                    create: preventionProducts.map(p => ({
-                        productId: p.id,
-                        quantity: 1,
-                        price: p.price || 0
-                    }))
-                }
+        // Determine if it's an annual plan (needs 2 visits)
+        const isAnnualPlan = preventionProducts.some(p => 
+            p.name.toLowerCase().includes('plan annuel') || 
+            p.name.toLowerCase().includes('deux traitements') || 
+            p.name.toLowerCase().includes('2 traitements')
+        );
+
+        const visitsToCreate = isAnnualPlan ? 2 : 1;
+
+        for (let i = 0; i < visitsToCreate; i++) {
+            // Space the second visit by 60 days
+            const scheduledDate = new Date();
+            if (i === 1) {
+                scheduledDate.setDate(scheduledDate.getDate() + 60);
             }
-        });
+
+            let description = 'Généré automatiquement suite à une facturation ou soumission de prévention.';
+            if (isAnnualPlan) {
+                description = i === 0 
+                    ? 'Visite 1 (Initiale) - Plan Annuel généré automatiquement.'
+                    : 'Visite 2 (Mi-saison) - Plan Annuel généré automatiquement.';
+            }
+
+            await prisma.job.create({
+                data: {
+                    propertyId: firstProperty.id,
+                    status: 'PENDING',
+                    scheduledAt: scheduledDate, 
+                    description: description,
+                    division: 'EXTERMINATION',
+                    products: {
+                        create: preventionProducts.map(p => ({
+                            productId: p.id,
+                            quantity: 1,
+                            price: p.price || 0
+                        }))
+                    }
+                }
+            });
+        }
+
         console.log(`Auto-created prevention job for client ${clientId}`);
     } catch (error) {
         console.error("Error auto-creating prevention job:", error);

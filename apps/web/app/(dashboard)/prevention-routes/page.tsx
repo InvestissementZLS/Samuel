@@ -61,8 +61,24 @@ async function getPreventionData(): Promise<{
     const key = job.propertyId;
     visitCountByProperty.set(key, (visitCountByProperty.get(key) ?? 0) + 1);
     const existing = latestByProperty.get(key);
-    if (!existing || job.scheduledAt > existing.scheduledAt) {
+    
+    if (!existing) {
       latestByProperty.set(key, job);
+    } else {
+      const isExistingPending = existing.status === 'PENDING';
+      const isJobPending = job.status === 'PENDING';
+      
+      if (isJobPending && !isExistingPending) {
+          latestByProperty.set(key, job);
+      } else if (isJobPending && isExistingPending) {
+          if (job.scheduledAt < existing.scheduledAt) {
+              latestByProperty.set(key, job);
+          }
+      } else if (!isJobPending && !isExistingPending) {
+          if (job.scheduledAt > existing.scheduledAt) {
+              latestByProperty.set(key, job);
+          }
+      }
     }
   }
 
