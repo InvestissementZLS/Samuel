@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Marked dynamic so Next.js never tries to statically analyze this route at build time
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
     try {
-        if (!process.env.OPENAI_API_KEY) {
+        if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
             return NextResponse.json(
-                { error: 'Clé OpenAI non configurée sur le serveur.' },
+                { error: 'Clé Google AI non configurée sur le serveur.' },
                 { status: 500 }
             );
         }
-
-        // Initialize client INSIDE the handler — never at module level —
-        // so it's not evaluated during Next.js static build analysis
-        const openaiClient = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
-        });
 
         const formData = await request.formData();
         const audioFile = formData.get('audio') as File | null;
@@ -26,19 +19,30 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Aucun fichier audio reçu.' }, { status: 400 });
         }
 
-        // Convert File to a format Whisper accepts
         const arrayBuffer = await audioFile.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const file = new File([buffer], 'recording.webm', { type: 'audio/webm' });
+        const base64Audio = Buffer.from(arrayBuffer).toString('base64');
 
-        const response = await openaiClient.audio.transcriptions.create({
-            file,
-            model: 'whisper-1',
-            language: 'fr',
-            prompt: 'Gestionnaire immobilier/exterminateur québécois dictant des informations client ou de prise de rendez-vous.',
-        });
+        // Use Gemini Flash for transcription
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-        return NextResponse.json({ text: response.text });
+        const result = await model.generateContent([
+            {
+                inlineData: {
+                    mimeType: 'audio/webm',
+                    data: base64Audio,
+                }
+            },
+            {
+                text: `Transcris exactement ce qui est dit dans cet audio en français québécois. 
+                Contexte: Un gestionnaire d'entreprise d'extermination ou d'entretien au Québec dicte des informations client ou de prise de rendez-vous.
+                Retourne uniquement la transcription, sans explication ni formatage supplémentaire.`
+            }
+        ]);
+
+        const text = result.response.text().trim();
+        return NextResponse.json({ text });
+
     } catch (error: any) {
         console.error('[Transcribe API Error]', error);
         return NextResponse.json(

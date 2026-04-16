@@ -1,7 +1,7 @@
 'use server';
 
 import { generateObject } from 'ai';
-import { openai as aiSdkOpenAI } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
@@ -73,7 +73,7 @@ export async function parseCallNotes(text: string, imageBase64?: string) {
         }
 
         const { object } = await generateObject({
-            model: aiSdkOpenAI('gpt-4o'),
+            model: google('gemini-2.0-flash'),
             system: `Tu es le cerveau de Praxis ZLS, une plateforme de gestion pour exterminateurs et gestionnaires immobiliers/industriels au Québec.
 Tu reçois des commandes en français québécois (texte brut, vocal, ou captures d'écran) et tu dois en extraire la structure complète.
 

@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, addDays } from 'date-fns';
 
@@ -194,9 +194,9 @@ SERVICES LES PLUS DEMANDÉS (2 derniers mois):
 ${topJobDescriptions.map(j => `- "${j.description}": ${j._count} fois`).join('\n')}
 `.trim();
 
-    // ── GPT-4o Analysis ──────────────────────────────────────────
+    // ── Gemini 2.0 Flash Analysis ────────────────────────────────
     const { object } = await generateObject({
-        model: openai('gpt-4o'),
+        model: google('gemini-2.0-flash'),
         system: `Tu es le Co-Pilote IA de Praxis ZLS, expert en gestion d'entreprises d'entretien et d'extermination au Québec.
 Tu analyse les métriques de la plateforme et tu fournis des recommandations précises, actionnables, et priorisées.
 Chaque recommandation doit être en français, courte, directe, et spécifique au contexte québécois.
@@ -210,8 +210,8 @@ Ne génère que des insights qui ont une valeur réelle — pas de conseil gén�
                 title: z.string().describe("Titre court et percutant (max 8 mots)"),
                 description: z.string().describe("Explication du problème ou opportunité (max 2 phrases)"),
                 action: z.string().describe("Action concrète recommandée (max 1 phrase impérative)"),
-                actionUrl: z.string().optional().describe("URL interne si applicable (ex: '/calendar', '/clients', '/recurring')"),
-                metric: z.string().optional().describe("Chiffre clé à mettre en avant (ex: '5 jobs non assignés', '$2,400 non-payé')"),
+                actionUrl: z.string().describe("URL interne si applicable (ex: '/calendar', '/clients', '/recurring'). Vide si aucune."),
+                metric: z.string().describe("Chiffre clé à mettre en avant (ex: '5 jobs non assignés'). Vide si aucun."),
             })),
             summary: z.string().describe("Résumé exécutif de l'état de la plateforme en 2 phrases."),
             healthScore: z.number().min(0).max(100).describe("Score de santé global de 0 à 100 basé sur les métriques."),

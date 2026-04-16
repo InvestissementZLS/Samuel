@@ -16,6 +16,14 @@
     "@ai-sdk/provider-utils" "4.0.23"
     "@vercel/oidc" "3.1.0"
 
+"@ai-sdk/google@^3.0.63":
+  version "3.0.63"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/google/-/google-3.0.63.tgz#12ca92f80712b1de30b116a9d557e3ba11a3add3"
+  integrity sha512-RfOZWVMYSPu2sPRfGajrauWAZ9BSaRopSn+AszkKWQ1MFj8nhaXvCqRHB5pBQUaHTfZKagvOmMpNfa/s3gPLgQ==
+  dependencies:
+    "@ai-sdk/provider" "3.0.8"
+    "@ai-sdk/provider-utils" "4.0.23"
+
 "@ai-sdk/openai@^3.0.53":
   version "3.0.53"
   resolved "https://registry.yarnpkg.com/@ai-sdk/openai/-/openai-3.0.53.tgz#e2fde1f48eca955a259c4d8fbcc5a086b53ea504"
@@ -1571,6 +1579,11 @@
   version "0.2.11"
   resolved "https://registry.npmjs.org/@floating-ui/utils/-/utils-0.2.11.tgz"
   integrity sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==
+
+"@google/generative-ai@^0.24.1":
+  version "0.24.1"
+  resolved "https://registry.yarnpkg.com/@google/generative-ai/-/generative-ai-0.24.1.tgz#634a3c06f8ea7a6125c1b0d6c1e66bb11afb52c9"
+  integrity sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==
 
 "@hono/node-server@^1.19.9":
   version "1.19.11"
