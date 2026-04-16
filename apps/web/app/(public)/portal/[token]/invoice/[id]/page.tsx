@@ -9,7 +9,7 @@ import { ArrowLeft, CreditCard, Download, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/pdf/invoice-pdf";
-import { PaymentModal } from "@/components/portal/payment-modal";
+import { createSquareCheckoutLink } from "@/app/actions/square-actions";
 
 export default function InvoicePreviewPage() {
     const params = useParams();
@@ -21,7 +21,7 @@ export default function InvoicePreviewPage() {
 
     const [loading, setLoading] = useState(true);
     const [invoice, setInvoice] = useState<any>(null);
-    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+    const [isPaying, setIsPaying] = useState(false);
 
     useEffect(() => {
         if (!token || !id) return;
@@ -52,6 +52,25 @@ export default function InvoicePreviewPage() {
     const amountPaid = invoice.transactions?.reduce((sum: number, t: any) => sum + t.amount, 0) || 0;
     const balanceDue = invoice.total - amountPaid;
     const isPaid = balanceDue <= 0.01;
+
+    const handlePayment = async () => {
+        setIsPaying(true);
+        const toastId = toast.loading("Redirection vers le paiement sécurisé...");
+        try {
+            const data = await createSquareCheckoutLink(invoice.id);
+            if (data.error) {
+                toast.error(data.error, { id: toastId });
+            } else if (data.url) {
+                toast.success("Redirection en cours...", { id: toastId });
+                window.location.href = data.url;
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Une erreur est survenue lors de l'initialisation du paiement.", { id: toastId });
+        } finally {
+            setIsPaying(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 print:bg-white p-4 md:p-8 print:p-0">
@@ -175,11 +194,12 @@ export default function InvoicePreviewPage() {
                     <div className="border-t pt-8 mt-8 flex flex-col md:flex-row items-center justify-end gap-4 print:hidden">
                         {!isPaid && (
                             <button
-                                onClick={() => setIsPaymentOpen(true)}
-                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow flex items-center gap-2"
+                                onClick={handlePayment}
+                                disabled={isPaying}
+                                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow flex items-center gap-2 disabled:opacity-50"
                             >
                                 <CreditCard className="h-5 w-5" />
-                                Payer maintenant ({balanceDue.toFixed(2)} $)
+                                {isPaying ? "Chargement..." : `Payer maintenant (${balanceDue.toFixed(2)} $)`}
                             </button>
                         )}
                         {isPaid && (
@@ -192,18 +212,6 @@ export default function InvoicePreviewPage() {
                 </div>
             </div>
 
-            {/* Payment Modal */}
-            <PaymentModal
-                isOpen={isPaymentOpen}
-                onClose={() => setIsPaymentOpen(false)}
-                invoiceId={invoice.id}
-                amount={balanceDue}
-                onSuccess={() => {
-                    setIsPaymentOpen(false);
-                    toast.success("Payment Received!");
-                    window.location.reload();
-                }}
-            />
         </div>
     );
 }

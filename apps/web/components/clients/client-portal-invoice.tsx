@@ -1,5 +1,5 @@
 import { Invoice, Product } from "@prisma/client";
-import { createCheckoutSession } from "@/app/actions/payment-actions";
+import { createSquareCheckoutLink } from "@/app/actions/square-actions";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
@@ -17,7 +17,7 @@ export function ClientPortalInvoice({ invoice, language = "FR" }: ClientPortalIn
     const handlePay = async () => {
         const toastId = toast.loading(t.redirecting);
         try {
-            const result = await createCheckoutSession(invoice.id);
+            const result = await createSquareCheckoutLink(invoice.id);
             if (result.url) {
                 window.location.href = result.url;
             } else {

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Invoice, Product } from "@prisma/client";
 import { createInvoice, updateInvoiceStatus, updateInvoice, deleteInvoice } from "@/app/actions/client-portal-actions";
-import { createCheckoutSession } from "@/app/actions/payment-actions";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Trash2, Plus, FileText, Filter, DollarSign, RefreshCcw, Eye } from "lucide-react";
