@@ -126,6 +126,25 @@ export async function getAllProducts() {
     return await prisma.product.findMany();
 }
 
+// Returns only physical products (CONSUMABLE + EQUIPMENT) — excludes services
+export async function getStockableProducts() {
+    return await prisma.product.findMany({
+        where: {
+            type: { in: ['CONSUMABLE', 'EQUIPMENT'] }
+        },
+        orderBy: [
+            { type: 'asc' },
+            { name: 'asc' }
+        ],
+        select: {
+            id: true,
+            name: true,
+            unit: true,
+            type: true,
+        }
+    });
+}
+
 export async function getAudits() {
     return await prisma.inventoryAudit.findMany({
         include: {
