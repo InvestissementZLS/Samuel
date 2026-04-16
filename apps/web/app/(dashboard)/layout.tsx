@@ -6,6 +6,7 @@ import { UserProvider } from "@/components/providers/user-provider";
 import { MobileNav } from "@/components/MobileNav";
 import { getUserProfile } from "@/app/actions/user-actions";
 import { redirect } from "next/navigation";
+import { FloatingAiButton } from "@/components/floating-ai-button";
 
 export const metadata: Metadata = {
     title: "Field Service Admin",
@@ -46,6 +47,7 @@ export default async function DashboardLayout({
                     <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
                         <CommandMenu />
                         {children}
+                        <FloatingAiButton />
                     </main>
                 </div>
             </DivisionProvider>
