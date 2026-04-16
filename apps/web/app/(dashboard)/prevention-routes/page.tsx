@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { PreventionRoutesView } from "@/components/prevention/prevention-routes-view";
 import {
   isExteriorPreventionProduct,
-  getSecteurFromPostalCode,
+  getSecteur,
   SECTEUR_SORT_ORDER,
   PreventionClient,
   SecteurGroup,
@@ -121,7 +121,7 @@ async function getPreventionData(): Promise<{
       statusLabel = "PREMIERE_ANNEE";
     }
 
-    const secteur = getSecteurFromPostalCode(property.postalCode ?? undefined);
+    const secteur = getSecteur(property.postalCode, property.city);
 
     preventionClients.push({
       clientId: client.id,

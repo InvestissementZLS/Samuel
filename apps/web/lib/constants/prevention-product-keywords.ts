@@ -107,6 +107,7 @@ export const SECTEURS_GEOGRAPHIQUES: Record<string, string> = {
 export function getSecteurFromPostalCode(postalCode: string | null | undefined): string {
   if (!postalCode) return "Inconnu";
   const clean = postalCode.trim().toUpperCase().replace(/\s/g, "");
+  if (clean.length < 2) return "Autre";
   const threeChar = clean.substring(0, 3); // J8A, J7L, H7P…
   const twoChar   = clean.substring(0, 2); // J3, J6, H7…
   const oneChar   = clean.substring(0, 1); // J, H…
@@ -118,6 +119,93 @@ export function getSecteurFromPostalCode(postalCode: string | null | undefined):
     "Autre"
   );
 }
+
+/**
+ * Fallback : détermine le secteur à partir du nom de ville (insensible à la casse).
+ * Utilisé quand le code postal est absent ou non reconnu.
+ */
+const CITY_TO_SECTEUR: Record<string, string> = {
+  // Montréal / Laval
+  "montréal": "Montréal / Laval",
+  "montreal": "Montréal / Laval",
+  "laval": "Montréal / Laval",
+  "saint-léonard": "Montréal / Laval",
+  "saint-laurent": "Montréal / Laval",
+  "dollard-des-ormeaux": "Montréal / Laval",
+  "pierrefonds": "Montréal / Laval",
+  "kirkland": "Montréal / Laval",
+  "beaconsfield": "Montréal / Laval",
+  "pointe-claire": "Montréal / Laval",
+  "lachine": "Montréal / Laval",
+  "verdun": "Montréal / Laval",
+  "lasalle": "Montréal / Laval",
+  "ahuntsic": "Montréal / Laval",
+  // Rive-Sud
+  "longueuil": "Rive-Sud",
+  "brossard": "Rive-Sud",
+  "saint-bruno": "Rive-Sud",
+  "saint-hubert": "Rive-Sud",
+  "laprairie": "Rive-Sud",
+  "boucherville": "Rive-Sud",
+  "varennes": "Rive-Sud",
+  // Basse Laurentides
+  "blainville": "Basse Laurentides",
+  "boisbriand": "Basse Laurentides",
+  "rosemère": "Basse Laurentides",
+  "rosemere": "Basse Laurentides",
+  "sainte-thérèse": "Basse Laurentides",
+  "sainte-therese": "Basse Laurentides",
+  "deux-montagnes": "Basse Laurentides",
+  "saint-eustache": "Basse Laurentides",
+  "mirabel": "Basse Laurentides",
+  "oka": "Basse Laurentides",
+  "lorraine": "Basse Laurentides",
+  "bois-des-filion": "Basse Laurentides",
+  "sainte-anne-des-plaines": "Basse Laurentides",
+  // Saint-Jérôme
+  "saint-jérôme": "Saint-Jérôme",
+  "saint-jerome": "Saint-Jérôme",
+  "prévost": "Saint-Jérôme",
+  "prevost": "Saint-Jérôme",
+  "sainte-sophie": "Saint-Jérôme",
+  "lachute": "Saint-Jérôme",
+  // Saint-Hippolyte
+  "saint-hippolyte": "Saint-Hippolyte",
+  "saint-colomban": "Saint-Hippolyte",
+  // Sainte-Agathe et alentours
+  "sainte-agathe-des-monts": "Sainte-Agathe et alentours",
+  "sainte-agathe": "Sainte-Agathe et alentours",
+  "val-david": "Sainte-Agathe et alentours",
+  "val-morin": "Sainte-Agathe et alentours",
+  "sainte-anne-des-lacs": "Sainte-Agathe et alentours",
+  "mont-tremblant": "Sainte-Agathe et alentours",
+  // Lanaudière
+  "repentigny": "Lanaudière",
+  "terrebonne": "Lanaudière",
+  "mascouche": "Lanaudière",
+  "joliette": "Lanaudière",
+  "l'assomption": "Lanaudière",
+  "lassomption": "Lanaudière",
+};
+
+export function getSecteurFromCity(city: string | null | undefined): string {
+  if (!city) return "Inconnu";
+  const key = city.trim().toLowerCase();
+  return CITY_TO_SECTEUR[key] ?? "Autre";
+}
+
+/**
+ * Détermine le secteur en essayant d'abord le code postal, puis la ville.
+ */
+export function getSecteur(
+  postalCode: string | null | undefined,
+  city: string | null | undefined
+): string {
+  const fromPostal = getSecteurFromPostalCode(postalCode);
+  if (fromPostal !== "Inconnu" && fromPostal !== "Autre") return fromPostal;
+  return getSecteurFromCity(city);
+}
+
 
 /**
  * Ordre de tri des secteurs dans la sidebar (du plus proche au plus loin du depot).
