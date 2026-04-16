@@ -162,7 +162,7 @@ const CITY_TO_SECTEUR: Record<string, string> = {
   "lorraine": "Basse Laurentides",
   "bois-des-filion": "Basse Laurentides",
   "sainte-anne-des-plaines": "Basse Laurentides",
-  // Saint-Jérôme
+  // Saint-Jérôme (incluant Prévost — même code J0R que Saint-Sauveur, géré ici)
   "saint-jérôme": "Saint-Jérôme",
   "saint-jerome": "Saint-Jérôme",
   "prévost": "Saint-Jérôme",
@@ -172,13 +172,27 @@ const CITY_TO_SECTEUR: Record<string, string> = {
   // Saint-Hippolyte
   "saint-hippolyte": "Saint-Hippolyte",
   "saint-colomban": "Saint-Hippolyte",
+  // Saint-Sauveur / Morin Heights (Pays-d'en-Haut)
+  "saint-sauveur": "Saint-Sauveur / Morin Heights",
+  "morin heights": "Saint-Sauveur / Morin Heights",
+  "morin-heights": "Saint-Sauveur / Morin Heights",
+  "sainte-adèle": "Saint-Sauveur / Morin Heights",
+  "sainte-adele": "Saint-Sauveur / Morin Heights",
+  "sainte-anne-des-lacs": "Saint-Sauveur / Morin Heights",
+  "estérel": "Saint-Sauveur / Morin Heights",
+  "esterel": "Saint-Sauveur / Morin Heights",
+  "lac-des-seize-îles": "Saint-Sauveur / Morin Heights",
   // Sainte-Agathe et alentours
   "sainte-agathe-des-monts": "Sainte-Agathe et alentours",
   "sainte-agathe": "Sainte-Agathe et alentours",
   "val-david": "Sainte-Agathe et alentours",
   "val-morin": "Sainte-Agathe et alentours",
-  "sainte-anne-des-lacs": "Sainte-Agathe et alentours",
   "mont-tremblant": "Sainte-Agathe et alentours",
+  "mont-blanc": "Sainte-Agathe et alentours",
+  "sainte-marguerite-du-lac-masson": "Sainte-Agathe et alentours",
+  "lantier": "Sainte-Agathe et alentours",
+  "les laurentides": "Sainte-Agathe et alentours",
+  "les-laurentides": "Sainte-Agathe et alentours",
   // Lanaudière
   "repentigny": "Lanaudière",
   "terrebonne": "Lanaudière",
@@ -186,6 +200,9 @@ const CITY_TO_SECTEUR: Record<string, string> = {
   "joliette": "Lanaudière",
   "l'assomption": "Lanaudière",
   "lassomption": "Lanaudière",
+  "saint-lin-laurentides": "Lanaudière",
+  "saint-donat-de-montcalm": "Haute Laurentides",
+  "saint-damien": "Lanaudière",
 };
 
 export function getSecteurFromCity(city: string | null | undefined): string {
@@ -211,15 +228,16 @@ export function getSecteur(
  * Ordre de tri des secteurs dans la sidebar (du plus proche au plus loin du depot).
  */
 export const SECTEUR_SORT_ORDER: Record<string, number> = {
-  "Montréal / Laval":             1,
-  "Basse Laurentides":            2,
-  "Saint-Jérôme":                 3,
-  "Saint-Hippolyte":              4,
-  "Sainte-Agathe et alentours":   5,
-  "Haute Laurentides":            6,
-  "Lanaudière":                   7,
-  "Rive-Sud":                     8,
-  "Montérégie Rurale":            9,
+  "Montréal / Laval":               1,
+  "Basse Laurentides":              2,
+  "Saint-Jérôme":                   3,
+  "Saint-Hippolyte":                4,
+  "Saint-Sauveur / Morin Heights":  5,
+  "Sainte-Agathe et alentours":     6,
+  "Haute Laurentides":              7,
+  "Lanaudière":                     8,
+  "Rive-Sud":                       9,
+  "Montérégie Rurale":              10,
 };
 
 /**
