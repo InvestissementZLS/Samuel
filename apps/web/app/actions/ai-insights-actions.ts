@@ -194,9 +194,9 @@ SERVICES LES PLUS DEMANDÉS (2 derniers mois):
 ${topJobDescriptions.map(j => `- "${j.description}": ${j._count} fois`).join('\n')}
 `.trim();
 
-    // ── Gemini 1.5 Flash Analysis ────────────────────────────────
+    // ── Gemini 2.5 Flash Analysis ────────────────────────────────
     const { object } = await generateObject({
-        model: google('gemini-1.5-flash-latest'),
+        model: google('gemini-2.5-flash'),
         system: `Tu es le Co-Pilote IA de Praxis ZLS, expert en gestion d'entreprises d'entretien et d'extermination au Québec.
 Tu analyse les métriques de la plateforme et tu fournis des recommandations précises, actionnables, et priorisées.
 Chaque recommandation doit être en français, courte, directe, et spécifique au contexte québécois.
