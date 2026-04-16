@@ -69,11 +69,22 @@ export async function parseCallNotes(text: string, imageBase64?: string) {
             });
         }
         
+        // Fix: FileReader.readAsDataURL() returns "data:image/jpeg;base64,XXXX"
+        // The AI SDK needs the raw base64 string + mimeType separately
         if (imageBase64) {
-            content.push({
-                type: 'image',
-                image: imageBase64,
-            });
+            const dataUrlMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+            if (dataUrlMatch) {
+                const mimeType = dataUrlMatch[1] as any; // e.g. 'image/jpeg'
+                const rawBase64 = dataUrlMatch[2];
+                content.push({
+                    type: 'image',
+                    image: rawBase64,
+                    mimeType,
+                });
+            } else {
+                // Already raw base64, use as-is
+                content.push({ type: 'image', image: imageBase64 });
+            }
         }
 
         const { object } = await generateObject({
@@ -82,10 +93,10 @@ export async function parseCallNotes(text: string, imageBase64?: string) {
 Tu reçois des commandes en français québécois (texte brut, vocal, ou captures d'écran) et tu dois en extraire la structure complète.
 
 RÈGLES CRITIQUES:
-1. Si l'utilisateur parle d'un client EXISTANT (ex: "Tremblay", "Manolo", "La Boulangerie du coin"), mets ce nom dans "searchName" pour qu'on puisse le trouver dans la BD.
-2. Si c'est un NOUVEAU client, mets les infos dans les champs "name", "phone", etc. et laisse "searchName" vide.
+1. Si l’utilisateur parle d’un client EXISTANT (ex: "Tremblay", "Manolo", "La Boulangerie du coin"), mets ce nom dans "searchName" pour qu’on puisse le trouver dans la BD.
+2. Si c’est un NOUVEAU client, mets les infos dans les champs "name", "phone", etc. et laisse "searchName" vide.
 3. Pour les dates: "demain" = demain, "lundi" = prochain lundi. Retourne la date lisible en français (ex: "demain", "lundi prochain", ou "2025-04-22").
-4. Pour les heures: "PM" = après-midi, "matin" ou "AM" = avant-midi. Si l'heure exacte est dite, mets-la (ex: "14h00").
+4. Pour les heures: "PM" = après-midi, "matin" ou "AM" = avant-midi. Si l’heure exacte est dite, mets-la (ex: "14h00").
 5. Formate les numéros de téléphone au format 514-555-5555.
 6. Ne retourne jamais null, utilise "" pour les champs manquants.`,
             messages: [{ role: 'user', content }],
@@ -94,8 +105,8 @@ RÈGLES CRITIQUES:
 
         return object;
     } catch (error: any) {
-        console.error("AI Parsing Error:", error);
-        throw new Error("L'IA n'a pas pu analyser cette commande. Essayez d'être plus précis ou vérifiez votre clé OpenAI.");
+        console.error("AI Parsing Error:", error?.message || error);
+        throw new Error(`L’IA n’a pas pu analyser cette commande: ${error?.message || 'Erreur inconnue'}`);
     }
 }
 
