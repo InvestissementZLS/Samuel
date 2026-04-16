@@ -11,7 +11,7 @@ export default async function TechniciansPage() {
     const t = dictionary[lang as keyof typeof dictionary] || dictionary.en;
     
     const user = await getUserProfile();
-    const isAdmin = user?.role === "ADMIN";
+    const isAdmin = user?.role === "ADMIN" || user?.canManageUsers;
 
     const technicians = await prisma.user.findMany({
         where: {

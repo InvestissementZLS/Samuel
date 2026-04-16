@@ -35,15 +35,22 @@ export function DivisionSwitcher() {
     const { user, loading, checkPermission } = useCurrentUser();
     const [open, setOpen] = useState(false);
 
-    // If loading, assume restricted or just show current to prevent flashing secrets
-    // If user is present, filter divisions based on their permissions
-
-
-
-    const allowedDivisions = divisions.filter(d =>
-        // @ts-ignore
-        checkPermission(d.value).hasDivisionAccess
-    );
+    let allowedDivisionsData: typeof divisions[0][] = [];
+    if (user) {
+        if (user.canManageDivisions) {
+            allowedDivisionsData = divisions;
+        } else if (user.accesses && user.accesses.length > 0) {
+            allowedDivisionsData = divisions.filter(d => 
+                user.accesses.some(a => a.division === d.value)
+            );
+        } else {
+            allowedDivisionsData = divisions.filter(d => 
+                user.divisions?.includes(d.value as any)
+            );
+        }
+    } else {
+        allowedDivisionsData = divisions;
+    }
 
     const selectedDivision = divisions.find((d) => d.value === division);
 
@@ -66,7 +73,7 @@ export function DivisionSwitcher() {
                 align="start"
             >
                 <div className="flex flex-col p-1">
-                    {allowedDivisions.map((d) => (
+                    {allowedDivisionsData.map((d) => (
                         <button
                             key={d.value}
                             onClick={() => {

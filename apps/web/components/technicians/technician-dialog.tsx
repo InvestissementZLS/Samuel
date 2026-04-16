@@ -409,6 +409,30 @@ export function TechnicianDialog({ isOpen, onClose, technician }: TechnicianDial
                     </div>
                 )}
 
+                {/* Simplified Role Selector for Non-Masters */}
+                {!isMaster && accesses.length > 0 && (
+                    <div className="border-t pt-4 mt-4">
+                        <label className="block text-sm font-medium mb-1 text-foreground">
+                            Role (in {division})
+                        </label>
+                        <select
+                            value={accesses[0]?.role || "TECHNICIAN"}
+                            onChange={(e) => {
+                                const newAccesses = [...accesses];
+                                if (newAccesses.length > 0) {
+                                    // @ts-ignore
+                                    newAccesses[0].role = e.target.value;
+                                    setAccesses(newAccesses);
+                                }
+                            }}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                        >
+                            <option value="TECHNICIAN">Technician</option>
+                            <option value="OFFICE">Office</option>
+                        </select>
+                    </div>
+                )}
+
                 <div className="flex justify-end gap-2 pt-4">
                     {technician && (
                         <button
