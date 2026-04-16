@@ -50,9 +50,19 @@ export function Sidebar() {
             if (item.href === '/technicians' && !perms.canManageUsers) return false;
             if (item.href === '/commissions' && !perms.canManageCommissions) return false;
             
-            // Restreindre sévèrement les TECHNICIENS (Cacher tout accès admin/bureau)
+            // Restreindre les TECHNICIENS (On retire settings, timesheets, expenses, reports, technicians, routes)
             if (user?.role === 'TECHNICIAN') {
-                const techAllowed = ['/', '/calendar', '/jobs'];
+                const techAllowed = [
+                    '/', 
+                    '/calendar', 
+                    '/jobs', 
+                    '/clients', 
+                    '/quotes', 
+                    '/invoices', 
+                    '/products', 
+                    '/inventory', 
+                    '/commissions'
+                ];
                 if (!techAllowed.includes(item.href)) {
                     return false;
                 }

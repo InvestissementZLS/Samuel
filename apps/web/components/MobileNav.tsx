@@ -50,9 +50,19 @@ export function MobileNav() {
         if (item.href === '/technicians' && !perms.canManageUsers) return false;
         if (item.href === '/commissions' && !perms.canManageCommissions) return false;
         
-        // Restreindre sévèrement les TECHNICIENS
+        // Restreindre les TECHNICIENS
         if (user?.role === 'TECHNICIAN') {
-            const techAllowed = ['/', '/calendar', '/jobs'];
+            const techAllowed = [
+                '/', 
+                '/calendar', 
+                '/jobs', 
+                '/clients', 
+                '/quotes', 
+                '/invoices', 
+                '/products', 
+                '/inventory', 
+                '/commissions'
+            ];
             if (!techAllowed.includes(item.href)) {
                 return false;
             }
