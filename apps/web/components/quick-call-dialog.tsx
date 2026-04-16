@@ -47,7 +47,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
     const [step, setStep] = useState<Step>('input');
     const [rawText, setRawText] = useState("");
     const [loading, setLoading] = useState(false);
-    const [imageBase64, setImageBase64] = useState<string>("");
+    const [imagesBase64, setImagesBase64] = useState<string[]>([]);
 
     // Audio
     const [isRecording, setIsRecording] = useState(false);
@@ -70,7 +70,14 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
         phone: "",
         email: "",
         billingAddress: "",
+        email: "",
+        billingAddress: "",
         language: "FR" as "FR" | "EN",
+    });
+
+    const [jobData, setJobData] = useState({
+        description: "",
+        period: "ANY" as "AM" | "PM" | "ANY",
     });
 
     // ─── Audio Recording ──────────────────────────────────────
@@ -125,27 +132,29 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImageBase64(reader.result as string);
-                toast.success("Image ajoutée !");
-            };
-            reader.readAsDataURL(file);
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImagesBase64(prev => [...prev, reader.result as string]);
+                    toast.success("Image ajoutée !");
+                };
+                reader.readAsDataURL(file);
+            });
         }
     };
 
     // ─── Step 1: Analyze ──────────────────────────────────────
     const handleAnalyze = async () => {
-        if (!rawText.trim() && !imageBase64) {
-            toast.error("Entrez du texte, parlez au micro, ou joignez une image.");
+        if (!rawText.trim() && imagesBase64.length === 0) {
+            toast.error("Entrez du texte, parlez au micro, ou joignez des images.");
             return;
         }
 
         setLoading(true);
         try {
-            const response = await parseCallNotes(rawText, imageBase64);
+            const response = await parseCallNotes(rawText, imagesBase64);
 
             // Handle structured error return (no throw across server boundary)
             if (!response.success) {
@@ -156,7 +165,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
             const result = response.data;
             setAiResult(result);
 
-            // Pre-populate client form
+            // Pre-populate client and job forms
             setClientData({
                 name: result.client.name || "",
                 companyName: result.client.companyName || "",
@@ -164,6 +173,11 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                 email: result.client.email || "",
                 billingAddress: result.client.billingAddress || "",
                 language: result.client.language || "FR",
+            });
+            
+            setJobData({
+                description: result.job.description || "",
+                period: result.job.period || "ANY",
             });
 
             // Parse scheduled date if job is needed
@@ -237,7 +251,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
             await createJobFromAI({
                 clientId: selectedClient.id,
                 propertyId: selectedPropertyId,
-                description: aiResult?.job.description || "Service planifié via Action Rapide",
+                description: jobData.description || "Service planifié via Action Rapide",
                 scheduledAt: scheduledDate,
                 division: division as any,
             });
@@ -295,7 +309,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                 await createJobFromAI({
                     clientId: client.id,
                     propertyId: firstProp.id,
-                    description: aiResult?.job.description || "Service planifié",
+                    description: jobData.description || "Service planifié",
                     scheduledAt: scheduledDate,
                     division: division as any,
                 });
@@ -324,7 +338,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                 divisions: [division as any],
                 sendLink: true,
                 division: division as any,
-                preferredPeriod: aiResult?.job.period !== 'ANY' ? aiResult?.job.period as any : undefined,
+                preferredPeriod: jobData.period !== 'ANY' ? jobData.period as any : undefined,
             });
             if (result.emailSent) toast.success("Client créé + lien de réservation envoyé !");
             else toast.warning("Client créé, mais l'email n'a pas pu être envoyé.");
@@ -335,7 +349,7 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
     const closeReset = () => {
         setStep('input');
         setRawText("");
-        setImageBase64("");
+        setImagesBase64([]);
         setAiResult(null);
         setScheduledDate(null);
         setClientMatches([]);
@@ -390,24 +404,28 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
 
                         <label className="flex-1 flex justify-center items-center gap-2 p-2.5 bg-white rounded-lg border border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700 cursor-pointer text-sm font-medium transition-all">
                             <ImageIcon size={15} />
-                            Joindre image
-                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            Joindre images
+                            <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
                         </label>
                     </div>
 
-                    {imageBase64 && (
-                        <div className="relative inline-flex items-center gap-2 mt-1 p-2 border rounded-lg bg-gray-50">
-                            <img src={imageBase64} alt="Attached" className="h-12 w-12 object-cover rounded" />
-                            <span className="text-xs text-gray-500">Image attachée à l'analyse</span>
-                            <button onClick={() => setImageBase64("")} className="ml-auto text-red-400 hover:text-red-600">
-                                <X size={14} />
-                            </button>
+                    {imagesBase64.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {imagesBase64.map((img, idx) => (
+                                <div key={idx} className="relative inline-flex items-center gap-2 p-2 border rounded-lg bg-gray-50">
+                                    <img src={img} alt="Attached" className="h-12 w-12 object-cover rounded" />
+                                    <span className="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">Image {idx + 1}</span>
+                                    <button onClick={() => setImagesBase64(prev => prev.filter((_, i) => i !== idx))} className="ml-1 text-red-400 hover:text-red-600">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
 
                     <button
                         onClick={handleAnalyze}
-                        disabled={loading || (!rawText.trim() && !imageBase64) || isRecording}
+                        disabled={loading || (!rawText.trim() && imagesBase64.length === 0) || isRecording}
                         className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-3 rounded-xl font-semibold shadow-md transition-all disabled:opacity-40 mt-1"
                     >
                         {loading ? (
@@ -473,36 +491,60 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                         </div>
                     </div>
 
-                    {/* Job Details */}
+                    {/* Editable Job Details */}
                     {aiResult?.job.needsJob && (
-                        <div className="bg-purple-50 rounded-xl p-4 space-y-2 border border-purple-100">
-                            <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider">Détails du Job détecté</h4>
+                        <div className="bg-purple-50 rounded-xl p-4 space-y-3 border border-purple-100">
+                            <h4 className="text-xs font-bold text-purple-800 uppercase tracking-wider flex items-center justify-between">
+                                Détails du Job détecté
+                                <span className="text-[10px] bg-purple-200 px-2 rounded-full py-0.5 font-medium lowercase">Modifiable</span>
+                            </h4>
 
-                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                                <MessageSquare size={14} className="text-purple-400" />
-                                <span>{aiResult.job.description || "Service à confirmer"}</span>
+                            <div className="space-y-2">
+                                <div>
+                                    <label className="block text-xs font-medium text-purple-900 mb-0.5">Service à effectuer</label>
+                                    <div className="relative">
+                                        <MessageSquare size={14} className="absolute left-2.5 top-2.5 text-purple-400" />
+                                        <input 
+                                            value={jobData.description} 
+                                            onChange={e => setJobData({ ...jobData, description: e.target.value })} 
+                                            className="w-full rounded-lg border-purple-200 pl-8 pr-2 py-2 text-sm bg-white shadow-sm focus:ring-purple-500 focus:border-purple-500" 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="block text-xs font-medium text-purple-900 mb-0.5">Date</label>
+                                        <div className="relative">
+                                            <Calendar size={14} className="absolute left-2.5 top-2.5 text-purple-400" />
+                                            <input 
+                                                type="date" 
+                                                value={scheduledDate ? format(scheduledDate, 'yyyy-MM-dd') : ''}
+                                                onChange={e => setScheduledDate(e.target.value ? new Date(e.target.value + 'T12:00:00') : null)}
+                                                className="w-full rounded-lg border-purple-200 pl-8 pr-2 py-2 text-sm bg-white shadow-sm" 
+                                            />
+                                        </div>
+                                        {!scheduledDate && (
+                                            <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1"><AlertCircle size={10}/> Requise pour créer le job</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-purple-900 mb-0.5">Période</label>
+                                        <div className="relative">
+                                            <Clock size={14} className="absolute left-2.5 top-2.5 text-purple-400" />
+                                            <select 
+                                                value={jobData.period} 
+                                                onChange={e => setJobData({ ...jobData, period: e.target.value as any })}
+                                                className="w-full rounded-lg border-purple-200 pl-8 pr-2 py-2 text-sm bg-white shadow-sm"
+                                            >
+                                                <option value="ANY">Peu importe</option>
+                                                <option value="AM">Matin (AM)</option>
+                                                <option value="PM">Après-midi (PM)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
-                            {formattedDate && (
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                    <Calendar size={14} className="text-purple-400" />
-                                    <span className="font-medium capitalize">{formattedDate}</span>
-                                </div>
-                            )}
-
-                            {!formattedDate && (
-                                <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded p-2">
-                                    <AlertCircle size={12} />
-                                    Aucune date détectée. Précisez (ex: "demain 14h") dans vos notes pour créer le job directement.
-                                </div>
-                            )}
-
-                            {aiResult.job.period !== 'ANY' && (
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                    <Clock size={14} className="text-purple-400" />
-                                    <span>Période préférée: <strong>{aiResult.job.period}</strong></span>
-                                </div>
-                            )}
                         </div>
                     )}
 
@@ -599,13 +641,45 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                         </div>
                     </div>
 
-                    {/* Job Preview */}
+                    {/* Editable Job Settings */}
                     {aiResult?.job.needsJob && (
-                        <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 space-y-1">
-                            <p className="font-bold flex items-center gap-1"><Calendar size={12} /> Job détecté</p>
-                            {aiResult.job.description && <p>📋 {aiResult.job.description}</p>}
-                            {formattedDate && <p>📅 <span className="font-semibold capitalize">{formattedDate}</span></p>}
-                            {aiResult.job.period !== 'ANY' && <p>🕐 Période: {aiResult.job.period}</p>}
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2 mt-2">
+                            <h4 className="text-xs font-bold text-amber-900 flex items-center justify-between">
+                                <span className="flex items-center gap-1"><Calendar size={12} /> Détails du Job (Modifiable)</span>
+                            </h4>
+                            
+                            <div>
+                                <label className="block text-[10px] font-medium text-amber-900 mb-0.5">Service</label>
+                                <input 
+                                    value={jobData.description} 
+                                    onChange={e => setJobData({ ...jobData, description: e.target.value })} 
+                                    className="w-full rounded-md border-amber-200 py-1.5 px-2 text-sm bg-white" 
+                                />
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-[10px] font-medium text-amber-900 mb-0.5">Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={scheduledDate ? format(scheduledDate, 'yyyy-MM-dd') : ''}
+                                        onChange={e => setScheduledDate(e.target.value ? new Date(e.target.value + 'T12:00:00') : null)}
+                                        className="w-full rounded-md border-amber-200 py-1.5 px-2 text-sm bg-white" 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-medium text-amber-900 mb-0.5">Heure/Période</label>
+                                    <select 
+                                        value={jobData.period} 
+                                        onChange={e => setJobData({ ...jobData, period: e.target.value as any })}
+                                        className="w-full rounded-md border-amber-200 py-1.5 px-2 text-sm bg-white"
+                                    >
+                                        <option value="ANY">Peu importe</option>
+                                        <option value="AM">Matin</option>
+                                        <option value="PM">Après-midi</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     )}
 

@@ -41,13 +41,9 @@ const AiCommandSchema = z.object({
 // ============================================================
 // parseCallNotes - Main multimodal AI extraction function
 // ============================================================
-export async function parseCallNotes(text: string, imageBase64?: string) {
-    if (!text && !imageBase64) {
+export async function parseCallNotes(text: string, imagesBase64: string[] = []) {
+    if (!text && imagesBase64.length === 0) {
         return { success: false as const, error: "Aucun texte ni image fourni." };
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-        return { success: false as const, error: "Clé OpenAI non configurée. Contactez l'administrateur." };
     }
 
     try {
@@ -61,14 +57,15 @@ export async function parseCallNotes(text: string, imageBase64?: string) {
         }
         
         // Fix: FileReader.readAsDataURL() returns "data:image/jpeg;base64,XXXX"
-        if (imageBase64) {
-            const dataUrlMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+        for (const imgBase64 of imagesBase64) {
+            if (!imgBase64) continue;
+            const dataUrlMatch = imgBase64.match(/^data:([^;]+);base64,(.+)$/);
             if (dataUrlMatch) {
                 const mimeType = dataUrlMatch[1] as any;
                 const rawBase64 = dataUrlMatch[2];
                 content.push({ type: 'image', image: rawBase64, mimeType });
             } else {
-                content.push({ type: 'image', image: imageBase64 });
+                content.push({ type: 'image', image: imgBase64 });
             }
         }
 
