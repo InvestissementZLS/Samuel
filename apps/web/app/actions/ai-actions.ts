@@ -108,24 +108,41 @@ RÈGLES CRITIQUES:
 // ============================================================
 // searchExistingClients - Search clients in DB from AI hint
 // ============================================================
-export async function searchExistingClients(searchName: string, division?: string) {
-    if (!searchName || searchName.trim().length < 2) return [];
+export async function searchExistingClients(searchName: string, division?: string, phone?: string, email?: string) {
+    const orConditions: any[] = [];
+    const divisionFilter = division ? [{ divisions: { has: division as any } }] : [];
 
-    const terms = searchName.trim().split(/\s+/);
-    
+    // Search by name keywords
+    if (searchName && searchName.trim().length >= 2) {
+        const terms = searchName.trim().split(/\s+/);
+        terms.forEach(term => {
+            orConditions.push({ name: { contains: term, mode: 'insensitive' as const } });
+            orConditions.push({ companyName: { contains: term, mode: 'insensitive' as const } });
+        });
+    }
+
+    // Direct phone match (strips non-digits for flexible matching)
+    if (phone && phone.trim().length >= 7) {
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length >= 7) {
+            orConditions.push({ phone: { contains: digits.slice(-7) } }); // Last 7 digits
+            orConditions.push({ phone: { contains: phone.trim() } });      // Raw format
+        }
+    }
+
+    // Direct email match
+    if (email && email.includes('@')) {
+        orConditions.push({ email: { equals: email.trim(), mode: 'insensitive' as const } });
+    }
+
+    if (orConditions.length === 0) return [];
+
     const clients = await prisma.client.findMany({
         where: {
             isDeleted: false,
             AND: [
-                ...(division ? [{ divisions: { has: division as any } }] : []),
-                {
-                    OR: terms.flatMap(term => [
-                        { name: { contains: term, mode: 'insensitive' as const } },
-                        { companyName: { contains: term, mode: 'insensitive' as const } },
-                        { phone: { contains: term } },
-                        { email: { contains: term, mode: 'insensitive' as const } },
-                    ])
-                }
+                ...divisionFilter,
+                { OR: orConditions }
             ]
         },
         include: {
@@ -135,6 +152,7 @@ export async function searchExistingClients(searchName: string, division?: strin
             }
         },
         take: 5,
+        orderBy: { createdAt: 'desc' },
     });
 
     return clients;

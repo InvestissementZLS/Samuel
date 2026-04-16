@@ -158,10 +158,20 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                 setScheduledDate(date);
             }
 
-            // Search for existing clients if a name was detected
+            // Search for existing clients by name, phone, AND email simultaneously
             const searchTerm = result.client.searchName || result.client.name;
-            if (searchTerm && searchTerm.trim().length >= 2) {
-                const matches = await searchExistingClients(searchTerm, division);
+            const hasSearchCriteria =
+                (searchTerm && searchTerm.trim().length >= 2) ||
+                (result.client.phone && result.client.phone.trim().length >= 7) ||
+                (result.client.email && result.client.email.includes('@'));
+
+            if (hasSearchCriteria) {
+                const matches = await searchExistingClients(
+                    searchTerm || "",
+                    division,
+                    result.client.phone || "",
+                    result.client.email || ""
+                );
                 setClientMatches(matches as ClientMatch[]);
                 if (matches.length > 0) {
                     setStep('client_match');
