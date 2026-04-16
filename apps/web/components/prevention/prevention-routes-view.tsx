@@ -24,6 +24,7 @@ import {
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { PreventionClient, SecteurGroup } from "@/lib/constants/prevention-product-keywords";
+import { batchAssignPreventionJobs } from "@/app/actions/prevention-routes-actions";
 
 // ---------------------------------------------------------------------------
 // Helpers & Sub-components
@@ -339,6 +340,13 @@ export function PreventionRoutesView({
   const [filterTechnicianId, setFilterTechnicianId] = useState<string>("ALL");
   const [copied, setCopied] = useState(false);
 
+  // Dispatcher States
+  const [showDispatchModal, setShowDispatchModal] = useState(false);
+  const [dispatchDate, setDispatchDate] = useState<string>("");
+  const [dispatchTechId, setDispatchTechId] = useState<string>("");
+  const [dispatchCount, setDispatchCount] = useState<number>(15);
+  const [isDispatching, setIsDispatching] = useState(false);
+
   const activeGroup = useMemo(
     () => secteurs.find((s) => s.secteur === selectedSecteur),
     [secteurs, selectedSecteur]
@@ -379,6 +387,34 @@ export function PreventionRoutesView({
       .join("/");
     window.open(`https://www.google.com/maps/dir/${addresses}`, "_blank");
   }, [filteredClients]);
+
+  const handleBatchDispatch = async () => {
+    if (!dispatchTechId || !dispatchDate) {
+      alert("Veuillez choisir un technicien et une date.");
+      return;
+    }
+    
+    // Get the first N clients that have a valid job ID
+    const validClients = filteredClients.filter(c => !!c.lastJobId);
+    const clientsToAssign = validClients.slice(0, dispatchCount);
+    const jobIds = clientsToAssign.map(c => c.lastJobId as string);
+
+    if (jobIds.length === 0) {
+      alert("Aucun client valide à assigner dans cette liste.");
+      return;
+    }
+
+    setIsDispatching(true);
+    try {
+      await batchAssignPreventionJobs(jobIds, dispatchTechId, dispatchDate);
+      setShowDispatchModal(false);
+      alert(`${jobIds.length} job(s) assigné(s) avec succès !`);
+    } catch (e: any) {
+      alert(`Erreur: ${e.message}`);
+    } finally {
+      setIsDispatching(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -558,6 +594,14 @@ export function PreventionRoutesView({
                           </>
                         )}
                       </button>
+
+                      {/* Dispatcher de Masse */}
+                      <button
+                        onClick={() => setShowDispatchModal(true)}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-bold border border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors"
+                      >
+                        🚀 Assigner un Jour
+                      </button>
                     </div>
                   </div>
 
@@ -621,6 +665,102 @@ export function PreventionRoutesView({
           </div>
         )}
       </div>
+
+      {/* ── Modal Batch Dispatcher ── */}
+      {showDispatchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !isDispatching && setShowDispatchModal(false)}
+          ></div>
+          
+          {/* Modal content */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full relative z-10 overflow-hidden">
+            <div className="bg-indigo-600 px-6 py-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5" />
+                Dispatcher de masse
+              </h2>
+              <p className="text-indigo-100 text-sm mt-1">
+                Secteur actuel : {activeGroup?.secteur}
+              </p>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date d'assignation</label>
+                <input 
+                  type="date" 
+                  value={dispatchDate}
+                  onChange={(e) => setDispatchDate(e.target.value)}
+                  className="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Technicien</label>
+                <select 
+                  value={dispatchTechId}
+                  onChange={(e) => setDispatchTechId(e.target.value)}
+                  className="w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value="">-- Sélectionner un technicien --</option>
+                  {allTechnicians.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre de clients à assigner (Ordre optimisé)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max={Math.max(1, filteredClients.filter(c => !!c.lastJobId).length)} 
+                    value={dispatchCount}
+                    onChange={(e) => setDispatchCount(parseInt(e.target.value))}
+                    className="flex-1"
+                  />
+                  <span className="font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-md text-lg min-w-[3rem] text-center">
+                    {dispatchCount}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Prend les <strong className="text-gray-800">{dispatchCount}</strong> premiers clients valides de la liste visible derrière.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
+              <button
+                onClick={() => setShowDispatchModal(false)}
+                disabled={isDispatching}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleBatchDispatch}
+                disabled={isDispatching || !dispatchDate || !dispatchTechId}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+              >
+                {isDispatching ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Traitement...
+                  </>
+                ) : (
+                  <>🚀 Lancer l'assignation</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
