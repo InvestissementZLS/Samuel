@@ -11,19 +11,17 @@ import { revalidatePath } from 'next/cache';
 // ============================================================
 const AiCommandSchema = z.object({
     intent: z.enum([
-        'CREATE_CLIENT_ONLY',       // Just capture a new client
-        'CREATE_CLIENT_AND_JOB',    // New client + schedule job
-        'SCHEDULE_JOB_EXISTING',    // Existing client, create/schedule a job
-        'SEND_BOOKING_LINK',        // Create client and send booking link
-        'UNKNOWN',                  // Could not determine intent
+        'CREATE_CLIENT_ONLY',
+        'CREATE_CLIENT_AND_JOB',
+        'SCHEDULE_JOB_EXISTING',
+        'SEND_BOOKING_LINK',
+        'UNKNOWN',
     ]).describe("L'intention principale de la commande."),
 
     client: z.object({
-        // For existing client lookup
-        searchName: z.string().describe("Le nom ou partiel du client existant à rechercher dans la base de données. Ex: 'Tremblay'. Vide si nouveau client."),
-        // For new client creation
-        name: z.string().describe("Le prénom et/ou nom complet ou nom d'entreprise. Vide si le client existant suffit."),
-        companyName: z.string().optional().describe("Le nom de l'entreprise si applicable."),
+        searchName: z.string().describe("Nom ou partiel du client existant à rechercher. Ex: 'Tremblay'. Vide si nouveau client."),
+        name: z.string().describe("Prénom et/ou nom complet ou d'entreprise. Vide si client existant suffit."),
+        companyName: z.string().describe("Nom de l'entreprise si applicable. Vide sinon."),
         phone: z.string().describe("Numéro de téléphone au format 514-555-5555. Vide si absent."),
         email: z.string().describe("Adresse courriel. Vide si absente."),
         billingAddress: z.string().describe("Adresse complète. Vide si absente."),
@@ -31,23 +29,12 @@ const AiCommandSchema = z.object({
     }),
 
     job: z.object({
-        needsJob: z.boolean().describe("Vrai si la commande implique la création d'un rendez-vous ou d'un travail."),
-        description: z.string().describe("Description courte du service ou problème. Ex: 'Inspection fourmis charpentières'. Vide si non applicable."),
-        
-        // === Date & Time Intelligence ===
-        scheduledDateHint: z.string().describe(`
-            Date souhaitée sous forme lisible en français.
-            Exemples: 'demain', 'lundi prochain', '22 avril', '2025-04-22'.
-            Vide si non mentionné.
-        `),
-        scheduledTimeHint: z.string().describe(`
-            Heure souhaitée. Exemples: '14h00', '8h30', '9h', 'matin', 'après-midi'.
-            Vide si non mentionné.
-        `),
-        period: z.enum(["AM", "PM", "ANY"]).describe("Période de la journée préférée, ou ANY si pas de préférence."),
-        
-        // === Service Type ===
-        serviceKeyword: z.string().describe("Mot-clé du type de service demandé. Ex: 'extermination', 'inspection', 'prévention', 'rénovation', 'souris', 'fourmis', 'coquerelles'. Vide si non applicable."),
+        needsJob: z.boolean().describe("Vrai si la commande implique un rendez-vous ou travail."),
+        description: z.string().describe("Description courte du service. Ex: 'Inspection fourmis charpentières'. Vide si non applicable."),
+        scheduledDateHint: z.string().describe("Date souhaitée en français. Ex: 'demain', 'lundi prochain', '22 avril'. Vide si non mentionné."),
+        scheduledTimeHint: z.string().describe("Heure souhaitée. Ex: '14h00', '8h30', 'matin', 'après-midi'. Vide si non mentionné."),
+        period: z.enum(["AM", "PM", "ANY"]).describe("Période de la journée préférée."),
+        serviceKeyword: z.string().describe("Mot-clé du service. Ex: 'souris', 'fourmis', 'coquerelles', 'inspection'. Vide si non applicable."),
     }),
 });
 
