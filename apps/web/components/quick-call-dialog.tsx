@@ -28,7 +28,8 @@ interface QuickCallDialogProps {
 type Step = 'input' | 'review' | 'client_match' | 'confirm_job';
 
 // ---- Types ----
-type AiResult = Awaited<ReturnType<typeof parseCallNotes>>;
+type AiResultResponse = Awaited<ReturnType<typeof parseCallNotes>>;
+type AiResult = Extract<AiResultResponse, { success: true }>['data'];
 type ClientMatch = {
     id: string;
     name: string;
@@ -144,7 +145,15 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
 
         setLoading(true);
         try {
-            const result = await parseCallNotes(rawText, imageBase64);
+            const response = await parseCallNotes(rawText, imageBase64);
+
+            // Handle structured error return (no throw across server boundary)
+            if (!response.success) {
+                toast.error(response.error || "Erreur lors de l'analyse IA.");
+                return;
+            }
+
+            const result = response.data;
             setAiResult(result);
 
             // Pre-populate client form
