@@ -19,10 +19,13 @@ interface ClientDialogProps {
 export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
     const { t } = useLanguage();
     const [name, setName] = useState("");
+    const [companyName, setCompanyName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [language, setLanguage] = useState<"EN" | "FR">("FR");
+    const [serviceAddress, setServiceAddress] = useState("");
     const [billingAddress, setBillingAddress] = useState("");
+    const [billingSameAsService, setBillingSameAsService] = useState(true);
     const [divisions, setDivisions] = useState<("EXTERMINATION" | "ENTREPRISES" | "RENOVATION")[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -43,19 +46,26 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
             setPotentialDuplicates([]);
             if (client) {
                 setName(client.name);
+                // @ts-ignore
+                setCompanyName(client.companyName || "");
                 setEmail(client.email || "");
                 setPhone(client.phone || "");
                 setLanguage((client.language as "EN" | "FR") || "FR");
                 setBillingAddress(client.billingAddress || "");
+                setServiceAddress(""); // properties loaded separately
+                setBillingSameAsService(!client.billingAddress);
                 // @ts-ignore
                 setDivisions(client.divisions || ["EXTERMINATION"]);
             } else {
                 setName("");
+                setCompanyName("");
                 setEmail("");
                 setPhone("");
                 setLanguage("FR");
+                setServiceAddress("");
                 setBillingAddress("");
-                setDivisions([division]); // Default to current division
+                setBillingSameAsService(true);
+                setDivisions([division]);
             }
         }
     }, [isOpen, client, division]);
@@ -93,11 +103,12 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
         }
 
         try {
+            const effectiveBilling = billingSameAsService ? serviceAddress : billingAddress;
             if (client) {
-                await updateClient(client.id, { name, email, phone, billingAddress, language, divisions });
+                await updateClient(client.id, { name, companyName, email, phone, billingAddress: effectiveBilling || undefined, language, divisions });
                 toast.success(t.clientDialog.updateSuccess);
             } else {
-                await createClient({ name, email, phone, billingAddress, divisions, language });
+                await createClient({ name, companyName, email, phone, serviceAddress, billingAddress: effectiveBilling || undefined, divisions, language });
                 toast.success(t.clientDialog.createSuccess);
             }
             onClose();
@@ -147,15 +158,29 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
             title={client ? t.clientDialog.editClient : t.clientDialog.newClient}
         >
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.name}</label>
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-md border p-2 bg-background text-foreground"
-                        required
-                    />
+                {/* Nom + Compagnie */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.name} *</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            placeholder="Jean Tremblay"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 text-foreground">Compagnie <span className="text-gray-400 text-xs font-normal">(optionnel)</span></label>
+                        <input
+                            type="text"
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
+                            className="w-full rounded-md border p-2 bg-background text-foreground"
+                            placeholder="Les Toits Inc."
+                        />
+                    </div>
                 </div>
 
                 <div>
@@ -253,14 +278,40 @@ export function ClientDialog({ isOpen, onClose, client }: ClientDialogProps) {
 
                 </div>
 
+                {/* Adresse de service */}
                 <div>
-                    <label className="block text-sm font-medium mb-1 text-foreground">{t.clientDialog.billingAddress}</label>
+                    <label className="block text-sm font-medium mb-1 text-foreground">Adresse de service</label>
                     <AddressAutocomplete 
-                        value={billingAddress}
-                        onChange={(val) => setBillingAddress(val)}
-                        onSelectAddress={(val) => setBillingAddress(val)}
-                        placeholder={t.clientDialog.billingAddress}
+                        value={serviceAddress}
+                        onChange={(val) => setServiceAddress(val)}
+                        onSelectAddress={(val) => setServiceAddress(val)}
+                        placeholder="123 rue des Pins, Montréal, QC"
                     />
+                </div>
+
+                {/* Adresse de facturation */}
+                <div>
+                    <label className="flex items-center gap-2 cursor-pointer mb-2">
+                        <input
+                            type="checkbox"
+                            checked={billingSameAsService}
+                            onChange={(e) => setBillingSameAsService(e.target.checked)}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-foreground">Adresse de facturation = même que l'adresse de service</span>
+                    </label>
+
+                    {!billingSameAsService && (
+                        <div>
+                            <label className="block text-xs text-gray-500 mb-1">Adresse de facturation différente</label>
+                            <AddressAutocomplete 
+                                value={billingAddress}
+                                onChange={(val) => setBillingAddress(val)}
+                                onSelectAddress={(val) => setBillingAddress(val)}
+                                placeholder="Adresse de facturation..."
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {showDuplicateWarning && (

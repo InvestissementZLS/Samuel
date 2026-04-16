@@ -62,19 +62,58 @@ export function ClientTabs({ client, jobs, notes, quotes, invoices, products, ca
                     <div className="space-y-8">
                         {/* Contact Info */}
                         <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-                            <h2 className="text-lg font-semibold mb-4 border-b pb-2">Contact Details</h2>
+                            <h2 className="text-lg font-semibold mb-4 border-b pb-2">Informations du client</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Nom complet + compagnie */}
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Email</label>
-                                    <p className="text-gray-900">{client.email || 'N/A'}</p>
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Nom</label>
+                                    <p className="text-gray-900 font-medium">{client.name}</p>
+                                    {/* @ts-ignore */}
+                                    {client.companyName && (
+                                        // @ts-ignore
+                                        <p className="text-sm text-gray-500 mt-0.5">🏢 {client.companyName}</p>
+                                    )}
                                 </div>
+
+                                {/* Contact */}
+                                <div className="space-y-1">
+                                    <label className="block text-xs font-medium text-gray-500 uppercase">Contact</label>
+                                    {client.phone && <p className="text-gray-900">📞 {client.phone}</p>}
+                                    {client.email && <p className="text-gray-900">✉️ {client.email}</p>}
+                                    {!client.phone && !client.email && <p className="text-gray-400 text-sm">Aucun contact</p>}
+                                </div>
+
+                                {/* Adresse de service */}
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Phone</label>
-                                    <p className="text-gray-900">{client.phone || 'N/A'}</p>
+                                    <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Adresse de service</label>
+                                    {client.properties.length > 0 ? (
+                                        <div className="space-y-1">
+                                            {client.properties.map((p, i) => (
+                                                <p key={p.id} className="text-gray-900 text-sm">
+                                                    {i === 0 ? "📍 " : "📍 "}{p.address}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-400 text-sm">Aucune adresse de service</p>
+                                    )}
                                 </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-xs font-medium text-gray-500 uppercase">Billing Address</label>
-                                    <p className="text-gray-900 whitespace-pre-wrap">{client.billingAddress || 'N/A'}</p>
+
+                                {/* Adresse de facturation */}
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Adresse de facturation</label>
+                                    {client.billingAddress ? (
+                                        <div>
+                                            <p className="text-gray-900 text-sm whitespace-pre-wrap">🧾 {client.billingAddress}</p>
+                                            {client.properties.length > 0 && client.billingAddress !== client.properties[0]?.address && (
+                                                <span className="inline-block mt-1 text-[10px] bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full font-medium">
+                                                    Différente de l'adresse de service
+                                                </span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-400 text-sm">Même que l'adresse de service</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
