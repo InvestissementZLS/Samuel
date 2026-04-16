@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, Brain, Mic, Send, X, AlertTriangle, MessageSquare, RefreshCw, ChevronRight, CheckCircle2, UserPen, AlertCircle } from "lucide-react";
+import { Sparkles, Brain, Mic, MicOff, Send, X, AlertTriangle, MessageSquare, RefreshCw, ChevronRight, CheckCircle2, UserPen, AlertCircle, Image as ImageIcon } from "lucide-react";
 import { QuickCallDialog } from "./quick-call-dialog";
 import { askJarvis } from "@/app/actions/jarvis-chat-action";
 import { executeClientUpdate, WriteIntent, FoundClient, UpdatableClientField } from "@/app/actions/jarvis-update-action";
@@ -42,11 +42,12 @@ const priorityConfig: Record<InsightPriority, { badge: string; dot: string }> = 
     INFO: { badge: "bg-gray-100 text-gray-600 border border-gray-200", dot: "bg-gray-400" },
 };
 
-// ── Message Types ──────────────────────────────────────────────────
+// ── TextMessage type with optional image previews ─────────────────
 interface TextMessage {
     role: "user" | "jarvis";
     content: string;
     loading?: boolean;
+    images?: string[]; // preview base64 for user messages
 }
 
 interface WriteConfirmMessage {
@@ -188,12 +189,19 @@ export function JarvisPanel() {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: "jarvis",
-            content: "Bonjour ! Je suis JARVIS. Posez-moi une question ou dites-moi de modifier une info client.\n\nEx: \"Ajoute le email tremblay@gmail.com pour Jean Tremblay\""
+            content: "Bonjour ! Je suis JARVIS. Posez-moi une question, joignez un screenshot ou parlez au micro.\n\nEx: \"Ajoute le email tremblay@gmail.com pour Jean Tremblay\""
         }
     ]);
     const [chatInput, setChatInput] = useState("");
     const [chatLoading, setChatLoading] = useState(false);
     const chatBottomRef = useRef<HTMLDivElement | null>(null);
+
+    // Multimodal attachments
+    const [attachedImages, setAttachedImages] = useState<string[]>([]);
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
 
     // Load alerts on tab switch
     useEffect(() => {
@@ -226,18 +234,87 @@ export function JarvisPanel() {
         }
     };
 
+    // ── Voice Recording ────────────────────────────────────────────
+    const handleMicToggle = async () => {
+        if (isRecording) {
+            mediaRecorderRef.current?.stop();
+            setIsRecording(false);
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = mediaRecorder;
+                audioChunksRef.current = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunksRef.current.push(e.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.webm');
+                    setIsTranscribing(true);
+                    try {
+                        const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error);
+                        setChatInput(prev => (prev ? prev + ' ' : '') + data.text);
+                    } catch (e: any) {
+                        toast.error(e.message || 'Erreur de transcription');
+                    } finally {
+                        setIsTranscribing(false);
+                        stream.getTracks().forEach(t => t.stop());
+                    }
+                };
+
+                mediaRecorder.start();
+                setIsRecording(true);
+            } catch {
+                toast.error('Autorisez l\'accès au microphone.');
+            }
+        }
+    };
+
+    // ── Image Upload ───────────────────────────────────────────────
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAttachedImages(prev => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+        });
+        // Reset the input so same file can be re-selected
+        e.target.value = '';
+    };
+
+    const removeImage = (idx: number) => {
+        setAttachedImages(prev => prev.filter((_, i) => i !== idx));
+    };
+
     const handleAskJarvis = async (q?: string) => {
         const question = q ?? chatInput.trim();
-        if (!question) return;
-        setChatInput("");
+        const imagesToSend = [...attachedImages];
+        if (!question && imagesToSend.length === 0) return;
 
-        const userMsg: TextMessage = { role: "user", content: question };
+        setChatInput("");
+        setAttachedImages([]);
+
+        // Build user message content for display
+        const userDisplayContent = [
+            question,
+            imagesToSend.length > 0 ? `[${imagesToSend.length} image${imagesToSend.length > 1 ? 's' : ''} jointe${imagesToSend.length > 1 ? 's' : ''}]` : ''
+        ].filter(Boolean).join(' ');
+
+        const userMsg: TextMessage = { role: "user", content: userDisplayContent, images: imagesToSend };
         const loadingMsg: TextMessage = { role: "jarvis", content: "", loading: true };
         setMessages(prev => [...prev, userMsg, loadingMsg]);
         setChatLoading(true);
 
         try {
-            const response = await askJarvis(question, division as any);
+            const response = await askJarvis(question, division as any, imagesToSend.length > 0 ? imagesToSend : undefined);
 
             if (response.type === "write_intent") {
                 // Replace loading bubble with confirmation card
@@ -493,20 +570,31 @@ export function JarvisPanel() {
                                             // Regular text bubble
                                             const textMsg = msg as TextMessage;
                                             return (
-                                                <div key={idx} className={`flex ${textMsg.role === "user" ? "justify-end" : "justify-start"}`}>
-                                                    {textMsg.role === "jarvis" && (
-                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 mr-1.5 mt-0.5">
-                                                            <Sparkles size={10} className="text-white" />
+                                                <div key={idx} className={`flex flex-col ${textMsg.role === "user" ? "items-end" : "items-start"}`}>
+                                                    <div className={`flex ${textMsg.role === "user" ? "justify-end" : "justify-start"} w-full`}>
+                                                        {textMsg.role === "jarvis" && (
+                                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 mr-1.5 mt-0.5">
+                                                                <Sparkles size={10} className="text-white" />
+                                                            </div>
+                                                        )}
+                                                        <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${textMsg.role === "user"
+                                                            ? "bg-purple-600 text-white rounded-br-sm"
+                                                            : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
+                                                            {textMsg.loading
+                                                                ? <span className="flex gap-1 items-center"><span className="animate-bounce" style={{ animationDelay: "0ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "150ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "300ms" }}>●</span></span>
+                                                                : <span style={{ whiteSpace: "pre-wrap" }}>{textMsg.content}</span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    {/* Image previews in user bubble */}
+                                                    {textMsg.images && textMsg.images.length > 0 && (
+                                                        <div className="flex gap-1.5 flex-wrap mt-1 max-w-[80%] justify-end">
+                                                            {textMsg.images.map((img, i) => (
+                                                                <img key={i} src={img} alt={`Image ${i + 1}`}
+                                                                    className="h-16 w-16 object-cover rounded-xl border-2 border-purple-300 shadow-sm" />
+                                                            ))}
                                                         </div>
                                                     )}
-                                                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${textMsg.role === "user"
-                                                        ? "bg-purple-600 text-white rounded-br-sm"
-                                                        : "bg-gray-100 text-gray-800 rounded-bl-sm"}`}>
-                                                        {textMsg.loading
-                                                            ? <span className="flex gap-1 items-center"><span className="animate-bounce" style={{ animationDelay: "0ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "150ms" }}>●</span><span className="animate-bounce" style={{ animationDelay: "300ms" }}>●</span></span>
-                                                            : <span style={{ whiteSpace: "pre-wrap" }}>{textMsg.content}</span>
-                                                        }
-                                                    </div>
                                                 </div>
                                             );
                                         })}
@@ -525,21 +613,80 @@ export function JarvisPanel() {
                                         </div>
                                     )}
 
-                                    {/* Input */}
-                                    <div className="p-3 border-t border-gray-100 shrink-0">
-                                        <div className="flex gap-2">
+                                    {/* Input zone */}
+                                    <div className="border-t border-gray-100 shrink-0">
+                                        {/* Image preview strip */}
+                                        {attachedImages.length > 0 && (
+                                            <div className="flex gap-1.5 flex-wrap px-3 pt-2">
+                                                {attachedImages.map((img, i) => (
+                                                    <div key={i} className="relative group">
+                                                        <img src={img} alt={`Pièce jointe ${i + 1}`}
+                                                            className="h-14 w-14 object-cover rounded-xl border border-gray-200 shadow-sm" />
+                                                        <button
+                                                            onClick={() => removeImage(i)}
+                                                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X size={10} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Transcribing indicator */}
+                                        {isTranscribing && (
+                                            <div className="flex items-center gap-1.5 px-3 pt-1.5">
+                                                <div className="w-2.5 h-2.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                                                <p className="text-[10px] text-purple-600 font-medium">Transcription en cours...</p>
+                                            </div>
+                                        )}
+
+                                        {/* Input row */}
+                                        <div className="flex items-center gap-1.5 p-3">
+                                            {/* Mic */}
+                                            <button
+                                                onClick={handleMicToggle}
+                                                disabled={chatLoading || isTranscribing}
+                                                title={isRecording ? "Arrêter" : "Dictée vocale"}
+                                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                                                    isRecording
+                                                        ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-200"
+                                                        : "bg-gray-100 text-gray-500 hover:bg-purple-100 hover:text-purple-700"
+                                                } disabled:opacity-40`}
+                                            >
+                                                {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
+                                            </button>
+
+                                            {/* Image */}
+                                            <label
+                                                title="Joindre une image / screenshot"
+                                                className="w-8 h-8 rounded-xl flex items-center justify-center bg-gray-100 text-gray-500 hover:bg-purple-100 hover:text-purple-700 transition-all cursor-pointer shrink-0"
+                                            >
+                                                <ImageIcon size={14} />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    className="hidden"
+                                                    onChange={handleImageUpload}
+                                                />
+                                            </label>
+
+                                            {/* Text input */}
                                             <input
                                                 type="text"
                                                 value={chatInput}
                                                 onChange={e => setChatInput(e.target.value)}
                                                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskJarvis(); } }}
-                                                placeholder="Question ou modification client..."
-                                                disabled={chatLoading}
-                                                className="flex-1 text-xs rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 disabled:opacity-50 outline-none"
+                                                placeholder={isRecording ? "🔴 Enregistrement..." : "Question, commande, ou laissez vide avec une image..."}
+                                                disabled={chatLoading || isRecording}
+                                                className="flex-1 text-xs rounded-xl border border-gray-200 px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 disabled:opacity-60 outline-none"
                                             />
+
+                                            {/* Send */}
                                             <button
                                                 onClick={() => handleAskJarvis()}
-                                                disabled={chatLoading || !chatInput.trim()}
+                                                disabled={chatLoading || isRecording || (!chatInput.trim() && attachedImages.length === 0)}
                                                 className="w-8 h-8 bg-purple-600 text-white rounded-xl flex items-center justify-center hover:bg-purple-700 transition-colors disabled:opacity-40 shrink-0"
                                             >
                                                 <Send size={14} />

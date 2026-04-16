@@ -34,9 +34,11 @@ const FIELD_LABELS: Record<UpdatableClientField, string> = {
 // ── Main exported function ─────────────────────────────────────────
 export async function askJarvis(
     question: string,
-    division?: string
+    division?: string,
+    images?: string[], // base64 data URLs
 ): Promise<ReadAnswer | WriteIntent> {
-    if (!question?.trim()) return { type: 'answer', answer: '' };
+    if (!question?.trim() && (!images || images.length === 0)) return { type: 'answer', answer: '' };
+
 
     // Step 1: Detect intent with a fast structured call
     let detected: z.infer<typeof intentSchema>;
@@ -196,14 +198,46 @@ TECHNICIENS (activité 7 derniers jours):
 ${technicianStats.map(t => `  • ${t.name}: ${(t as any)._count?.jobs || 0} job(s)`).join('\n')}
 `.trim();
 
-        const { text } = await generateText({
-            model: google('gemini-2.5-flash'),
-            system: `Tu es JARVIS, l'assistant IA de Praxis ZLS. Tu réponds en français québécois, de façon directe, précise et actionnable.
+        const systemPrompt = `Tu es JARVIS, l'assistant IA de Praxis ZLS. Tu réponds en français québécois, de façon directe, précise et actionnable.
 Tu as accès aux données en temps réel de la base de données. Réponds uniquement à ce qui est demandé. Sois concis mais complet.
 Si tu listes des clients, inclus leur numéro de téléphone quand disponible.
-Format: texte court, listes à puces si nécessaire. Pas de markdown complexe.`,
-            prompt: `Données actuelles:\n${context}\n\nQuestion: ${question}`,
-        });
+Si une image est jointe, analyse-là en détail et réponds en tenant compte du contexte de l'entreprise (factures, clients, jobs, infestation, chantiers).
+Format: texte court, listes à puces si nécessaire. Pas de markdown complexe.`;
+
+        const textPrompt = `Données actuelles:\n${context}\n\nQuestion: ${question || "Analyse cette image et dis-moi ce que tu vois qui est pertinent pour mon business."}`;
+
+        let text: string;
+
+        if (images && images.length > 0) {
+            // Multimodal: text + images
+            const { text: multimodalText } = await generateText({
+                model: google('gemini-2.5-flash'),
+                system: systemPrompt,
+                messages: [
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: textPrompt },
+                            ...images.map(img => {
+                                // Strip data URL prefix if present
+                                const base64 = img.includes(',') ? img.split(',')[1] : img;
+                                const mimeType = img.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+                                return { type: 'image' as const, image: base64, mimeType };
+                            }),
+                        ],
+                    },
+                ],
+            });
+            text = multimodalText;
+        } else {
+            // Text only
+            const { text: textOnly } = await generateText({
+                model: google('gemini-2.5-flash'),
+                system: systemPrompt,
+                prompt: textPrompt,
+            });
+            text = textOnly;
+        }
 
         return { type: 'answer', answer: text };
     } catch (error: any) {
