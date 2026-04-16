@@ -2,7 +2,67 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { QuoteStatus, InvoiceStatus } from '@prisma/client';
+import { QuoteStatus, InvoiceStatus, Prisma } from '@prisma/client';
+import { isExteriorPreventionProduct } from '@/lib/constants/prevention-product-keywords';
+
+async function autoCreatePreventionJobIfNeeded(clientId: string, productIds: string[]) {
+    if (!productIds || productIds.length === 0) return;
+
+    try {
+        const products = await prisma.product.findMany({
+            where: { id: { in: productIds } }
+        });
+
+        // Check if there's any prevention product included
+        const preventionProducts = products.filter(p => isExteriorPreventionProduct(p.name));
+        if (preventionProducts.length === 0) return;
+
+        // Get main property of client
+        const firstProperty = await prisma.property.findFirst({
+            where: { clientId, isDeleted: false },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        if (!firstProperty) return; // Cannot create job without a property
+
+        // Prevent duplicates: skip if a pending prevention job already exists
+        const existingJob = await prisma.job.findFirst({
+            where: {
+                propertyId: firstProperty.id,
+                status: 'PENDING',
+                isDeleted: false,
+                products: {
+                    some: {
+                        productId: { in: preventionProducts.map(p => p.id) }
+                    }
+                }
+            }
+        });
+
+        if (existingJob) return;
+
+        // Auto-create a Job to ensure the client enters the Prevention Routes list
+        await prisma.job.create({
+            data: {
+                propertyId: firstProperty.id,
+                status: 'PENDING',
+                scheduledAt: new Date(), // Today (they will be grouped in current renewal season)
+                description: 'Généré automatiquement suite à une facturation ou soumission de prévention.',
+                division: 'EXTERMINATION',
+                products: {
+                    create: preventionProducts.map(p => ({
+                        productId: p.id,
+                        quantity: 1,
+                        price: p.price || 0
+                    }))
+                }
+            }
+        });
+        console.log(`Auto-created prevention job for client ${clientId}`);
+    } catch (error) {
+        console.error("Error auto-creating prevention job:", error);
+    }
+}
 
 // Client Notes
 export async function addClientNote(clientId: string, content: string) {
@@ -181,10 +241,18 @@ export async function updateQuote(data: {
 }
 
 export async function updateQuoteStatus(id: string, clientId: string, status: QuoteStatus) {
-    await prisma.quote.update({
+    const updatedQuote = await prisma.quote.update({
         where: { id },
         data: { status },
+        include: { items: true }
     });
+    
+    // Auto trigger prevention job
+    if (status === 'ACCEPTED') {
+        const productIds = updatedQuote.items.map(item => item.productId).filter(id => id !== null) as string[];
+        await autoCreatePreventionJobIfNeeded(clientId, productIds);
+    }
+
     revalidatePath(`/clients/${clientId}`);
 }
 
@@ -240,6 +308,13 @@ export async function createInvoice(data: {
             },
         });
         console.log("Invoice created successfully:", invoice.id);
+
+        // Auto trigger prevention job
+        if (data.items && data.items.length > 0) {
+            const productIds = data.items.map(item => item.productId).filter(id => id !== null) as string[];
+            await autoCreatePreventionJobIfNeeded(data.clientId, productIds);
+        }
+
         revalidatePath(`/clients/${data.clientId}`);
         revalidatePath('/invoices');
         return { id: invoice.id };
@@ -297,6 +372,12 @@ export async function updateInvoice(data: {
             });
         }
     });
+
+    // Auto trigger prevention job
+    if (data.items && data.items.length > 0) {
+        const productIds = data.items.map(item => item.productId).filter(id => id !== null) as string[];
+        await autoCreatePreventionJobIfNeeded(data.clientId, productIds);
+    }
 
     revalidatePath(`/clients/${data.clientId}`);
 }

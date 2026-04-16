@@ -7,7 +7,7 @@ import { format, isAfter, addHours } from "date-fns";
 import { Calendar, Clock, AlertTriangle, CheckCircle, XCircle, FileText, CreditCard, Download, Eye, ShoppingBag, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { dictionary, Locale } from "@/lib/i18n/dictionary";
-import { PaymentModal } from "@/components/portal/payment-modal";
+import { createSquareCheckoutLink } from "@/app/actions/square-actions";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/pdf/invoice-pdf";
 import { QuotePDF } from "@/components/pdf/quote-pdf";
@@ -38,8 +38,7 @@ export default function ClientPortalPage() {
     const [services, setServices] = useState<any[]>([]);
 
     // Payment State
-    const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
-    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+    const [isPayingId, setIsPayingId] = useState<string | null>(null);
 
     // Language (Derive from client preference later, default FR for now as per project)
     const [language, setLanguage] = useState<Locale>('fr');
@@ -122,11 +121,21 @@ export default function ClientPortalPage() {
         }
     };
 
-    const handlePaymentSuccess = () => {
-        setIsPaymentOpen(false);
-        toast.success("Payment Received!");
-        // Reload to update invoice status
-        window.location.reload();
+    const handlePayment = async (inv: any) => {
+        setIsPayingId(inv.id);
+        const toastId = toast.loading(t.redirecting || "Redirection en cours...");
+        try {
+            const result = await createSquareCheckoutLink(inv.id);
+            if (result.url) {
+                window.location.href = result.url;
+            } else {
+                toast.error(result.error || "Erreur de paiement", { id: toastId });
+            }
+        } catch (error) {
+            toast.error("Une erreur est survenue", { id: toastId });
+        } finally {
+            setIsPayingId(null);
+        }
     };
 
 
@@ -576,14 +585,12 @@ export default function ClientPortalPage() {
                                                 </button>
                                                 {inv.status !== 'PAID' && (inv.total - (inv.amountPaid || 0)) > 0 && (
                                                     <button
-                                                        onClick={() => {
-                                                            setSelectedInvoice(inv);
-                                                            setIsPaymentOpen(true);
-                                                        }}
-                                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                                                        onClick={() => handlePayment(inv)}
+                                                        disabled={isPayingId === inv.id}
+                                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                                                     >
                                                         <CreditCard className="h-4 w-4 mr-2" />
-                                                        Pay Now
+                                                        {isPayingId === inv.id ? "..." : "Pay Now"}
                                                     </button>
                                                 )}
                                             </div>
@@ -734,18 +741,6 @@ export default function ClientPortalPage() {
                     </section>
                 )}
 
-                {/* Payment Modal */}
-                {
-                    selectedInvoice && (
-                        <PaymentModal
-                            isOpen={isPaymentOpen}
-                            onClose={() => setIsPaymentOpen(false)}
-                            invoiceId={selectedInvoice.id}
-                            amount={selectedInvoice.total - selectedInvoice.amountPaid}
-                            onSuccess={handlePaymentSuccess}
-                        />
-                    )
-                }
 
             </main >
         </div >
