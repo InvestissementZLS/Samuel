@@ -7,8 +7,6 @@ import { logCapture, deleteCaptureLog } from "@/app/actions/capture-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Plus, Info } from "lucide-react";
 
 interface ClientCapturesProps {
@@ -84,26 +82,25 @@ export function ClientCaptures({ clientId, captures }: ClientCapturesProps) {
                     
                     <div className="space-y-4">
                         <div className="space-y-1">
-                            <Label>Type d'animal</Label>
-                            <Select value={animalType} onValueChange={setAnimalType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionner un animal" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Raton laveur">Raton laveur</SelectItem>
-                                    <SelectItem value="Moufette">Moufette</SelectItem>
-                                    <SelectItem value="Marmotte">Marmotte</SelectItem>
-                                    <SelectItem value="Écureuil">Écureuil</SelectItem>
-                                    <SelectItem value="Oiseau">Oiseau</SelectItem>
-                                    <SelectItem value="Chauve-souris">Chauve-souris</SelectItem>
-                                    <SelectItem value="Autre">Autre...</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <label className="text-sm font-medium">Type d'animal</label>
+                            <select 
+                                value={animalType} 
+                                onChange={(e) => setAnimalType(e.target.value)}
+                                className="w-full flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="Raton laveur">Raton laveur</option>
+                                <option value="Moufette">Moufette</option>
+                                <option value="Marmotte">Marmotte</option>
+                                <option value="Écureuil">Écureuil</option>
+                                <option value="Oiseau">Oiseau</option>
+                                <option value="Chauve-souris">Chauve-souris</option>
+                                <option value="Autre">Autre...</option>
+                            </select>
                         </div>
                         
                         {animalType === "Autre" && (
                             <div className="space-y-1">
-                                <Label>Spécifiez l'animal</Label>
+                                <label className="text-sm font-medium">Spécifiez l'animal</label>
                                 <Input 
                                     value={customAnimal} 
                                     onChange={(e) => setCustomAnimal(e.target.value)} 
@@ -113,9 +110,9 @@ export function ClientCaptures({ clientId, captures }: ClientCapturesProps) {
                         )}
 
                         <div className="space-y-1">
-                            <Label className="flex justify-between">
+                            <label className="text-sm font-medium flex justify-between">
                                 <span>Tag de la Cage (optionnel)</span>
-                            </Label>
+                            </label>
                             <Input 
                                 value={assetId} 
                                 onChange={(e) => setAssetId(e.target.value)} 
@@ -124,7 +121,7 @@ export function ClientCaptures({ clientId, captures }: ClientCapturesProps) {
                         </div>
 
                         <div className="space-y-1">
-                            <Label>Notes (optionnel)</Label>
+                            <label className="text-sm font-medium">Notes (optionnel)</label>
                             <Input 
                                 value={notes} 
                                 onChange={(e) => setNotes(e.target.value)} 
