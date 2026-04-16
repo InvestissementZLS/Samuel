@@ -5,7 +5,6 @@ import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
 import {
     parseCallNotes,
-    transcribeAudio,
     searchExistingClients,
     createJobFromAI
 } from "@/app/actions/ai-actions";
@@ -93,13 +92,23 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                     const formData = new FormData();
                     formData.append("audio", audioBlob, "recording.webm");
+
                     setLoading(true);
                     try {
-                        const text = await transcribeAudio(formData);
-                        setRawText((prev) => prev + (prev ? " " : "") + text);
+                        // Use API route instead of server action for reliable binary upload
+                        const res = await fetch('/api/transcribe', {
+                            method: 'POST',
+                            body: formData,
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (!res.ok) throw new Error(data.error || 'Erreur transcription');
+                        
+                        setRawText((prev) => prev + (prev ? " " : "") + data.text);
                         toast.success("Audio transcrit !");
-                    } catch {
-                        toast.error("Échec de la transcription.");
+                    } catch (e: any) {
+                        toast.error(e.message || "Échec de la transcription.");
                     } finally {
                         setLoading(false);
                         stream.getTracks().forEach(t => t.stop());

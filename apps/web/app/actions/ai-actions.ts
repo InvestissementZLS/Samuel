@@ -3,14 +3,8 @@
 import { generateObject } from 'ai';
 import { openai as aiSdkOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
-import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-
-// Official OpenAI client for Whisper API
-const openaiClient = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 // ============================================================
 // SCHEMA - Complete AI intelligence extraction schema
@@ -188,26 +182,4 @@ export async function createJobFromAI(data: {
     return job;
 }
 
-// ============================================================
-// transcribeAudio - Whisper-1 voice to text  
-// ============================================================
-export async function transcribeAudio(formData: FormData) {
-    try {
-        const file = formData.get('audio') as File;
-        if (!file) {
-            throw new Error("Aucun fichier audio fourni");
-        }
 
-        const response = await openaiClient.audio.transcriptions.create({
-            file,
-            model: 'whisper-1',
-            language: 'fr',
-            prompt: 'Contexte: Gestionnaire immobilier/exterminateur québécois dictant des informations clients ou de prise de rendez-vous.',
-        });
-
-        return response.text;
-    } catch (error: any) {
-        console.error("Audio Transcription Error:", error);
-        throw new Error("L'Intelligence Artificielle n'a pas pu transcrire l'audio.");
-    }
-}
