@@ -8,7 +8,19 @@
         "DIRECT_URL",
         "RESEND_API_KEY",
         "RESEND_API_KEY_ENTREPRISES",
-        "RESEND_API_KEY_EXTERMINATION"
+        "RESEND_API_KEY_EXTERMINATION",
+        "OPENAI_API_KEY",
+        "SUPABASE_SERVICE_KEY",
+        "NEXT_PUBLIC_APP_URL",
+        "SQUARE_ACCESS_TOKEN",
+        "SQUARE_LOCATION_ID",
+        "SQUARE_ENVIRONMENT",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY"
     ],
     "tasks": {
         "build": {
