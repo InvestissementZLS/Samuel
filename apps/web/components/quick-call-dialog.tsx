@@ -7,9 +7,9 @@ import {
     parseCallNotes,
     transcribeAudio,
     searchExistingClients,
-    parseScheduledDate,
     createJobFromAI
 } from "@/app/actions/ai-actions";
+import { parseScheduledDate } from "@/lib/date-utils";
 import { createClientAndSendLink, createClient } from "@/app/actions/client-actions";
 import { useRouter } from "next/navigation";
 import { useDivision } from "@/components/providers/division-provider";
