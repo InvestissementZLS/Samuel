@@ -602,6 +602,58 @@ export default function ClientPortalPage() {
                     )}
                 </section>
 
+                {/* 🔥 Bulletproof Step 3: WOW Progress Bar for Annual Plan */}
+                {(() => {
+                    const annualPlanJobs = jobs.filter(j => 
+                        new Date(j.scheduledAt).getFullYear() === new Date().getFullYear() &&
+                        j.products?.some((p: any) => 
+                            p.product?.name?.toLowerCase().includes('plan annuel') || 
+                            p.product?.name?.toLowerCase().includes('deux traitements') || 
+                            p.product?.name?.toLowerCase().includes('2 traitements')
+                        )
+                    );
+
+                    if (annualPlanJobs.length === 0) return null;
+
+                    const totalAnnual = annualPlanJobs.length;
+                    const completedAnnual = annualPlanJobs.filter(j => j.status === 'COMPLETED').length;
+                    const percent = Math.round((completedAnnual / totalAnnual) * 100);
+
+                    return (
+                        <section className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+                            <div className="flex items-center gap-3 mb-2">
+                                <ShieldCheck className="w-6 h-6 text-indigo-600" />
+                                <h2 className="text-xl font-bold text-indigo-900">
+                                    {language === 'fr' ? `Votre Plan Annuel ${new Date().getFullYear()}` : `Your Annual Plan ${new Date().getFullYear()}`}
+                                </h2>
+                            </div>
+                            <p className="text-indigo-700/80 text-sm mb-6 max-w-2xl">
+                                {language === 'fr' 
+                                  ? "Garantie de tranquillité d'esprit : suivez l'avancement de vos traitements préventifs saisonniers."
+                                  : "Peace of mind guarantee: track the progress of your seasonal preventive treatments."}
+                            </p>
+
+                            <div className="mb-4 flex items-center justify-between">
+                                <span className="text-sm font-semibold text-indigo-800">
+                                    {language === 'fr' ? 'Progression des Visites' : 'Visit Progress'}
+                                </span>
+                                <span className="text-sm font-bold text-indigo-600">
+                                    {completedAnnual} / {totalAnnual} {language === 'fr' ? 'complétés' : 'completed'}
+                                </span>
+                            </div>
+                            
+                            <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden border border-indigo-100/50 shadow-inner">
+                                <div 
+                                    className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all duration-1000 relative"
+                                    style={{ width: `${percent}%` }}
+                                >
+                                    <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full"></div>
+                                </div>
+                            </div>
+                        </section>
+                    );
+                })()}
+
                 {/* Upcoming */}
                 <section>
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">

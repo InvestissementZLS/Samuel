@@ -18,12 +18,32 @@ async function autoCreatePreventionJobIfNeeded(clientId: string, productIds: str
         if (preventionProducts.length === 0) return;
 
         // Get main property of client
-        const firstProperty = await prisma.property.findFirst({
+        let firstProperty = await prisma.property.findFirst({
             where: { clientId, isDeleted: false },
             orderBy: { createdAt: 'asc' }
         });
 
-        if (!firstProperty) return; // Cannot create job without a property
+        // 🔥 Bulletproof Step 1: Guarantee Property Creation
+        if (!firstProperty) {
+            const client = await prisma.client.findUnique({ where: { id: clientId } });
+            if (!client) return; // Client must exist
+
+            const addressStr = client.billingAddress || "";
+            const pcMatch = addressStr.match(/[A-Z]\d[A-Z]\s?\d[A-Z]\d/i);
+            const postalCode = pcMatch ? pcMatch[0].toUpperCase().replace(/\s/g, '') : null;
+
+            firstProperty = await prisma.property.create({
+                data: {
+                    clientId: client.id,
+                    address: addressStr || "Adresse à confirmer",
+                    postalCode: postalCode,
+                    type: "RESIDENTIAL",
+                    province: "QC",
+                    country: "Canada"
+                }
+            });
+            console.log(`Auto-created missing property for client ${clientId} using billing address. Postal Code extracted: ${postalCode}`);
+        }
 
         // Prevent duplicates: skip if a pending prevention job already exists
         const existingJob = await prisma.job.findFirst({
@@ -275,6 +295,16 @@ export async function updateQuoteStatus(id: string, clientId: string, status: Qu
     if (status === 'ACCEPTED') {
         const productIds = updatedQuote.items.map(item => item.productId).filter(id => id !== null) as string[];
         await autoCreatePreventionJobIfNeeded(clientId, productIds);
+    } else if (status === 'REJECTED') {
+        // 🔥 Bulletproof Step 2: Auto cancel jobs if quote rejected
+        await prisma.job.deleteMany({
+            where: {
+                property: { clientId: clientId },
+                status: 'PENDING',
+                description: { contains: 'généré automatiquement' }
+            }
+        });
+        console.log(`Auto-deleted prevention jobs for client ${clientId} due to quote rejection`);
     }
 
     revalidatePath(`/clients/${clientId}`);
@@ -411,6 +441,19 @@ export async function updateInvoiceStatus(id: string, clientId: string, status: 
         where: { id },
         data: { status },
     });
+
+    if (status === 'CANCELLED' || status === 'REFUNDED') {
+        // 🔥 Bulletproof Step 2: Auto cancel jobs if invoice cancelled
+        await prisma.job.deleteMany({
+            where: {
+                property: { clientId: clientId },
+                status: 'PENDING',
+                description: { contains: 'généré automatiquement' }
+            }
+        });
+        console.log(`Auto-deleted prevention jobs for client ${clientId} due to invoice cancellation`);
+    }
+
     revalidatePath(`/clients/${clientId}`);
 }
 
