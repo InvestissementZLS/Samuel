@@ -185,16 +185,12 @@ async function getPreventionData(): Promise<{
       : b.totalCount - a.totalCount
   );
 
-  // Construire la liste de TOUS les techniciens qui apparaissent dans ces jobs
-  const technicianMap = new Map<string, string>();
-  for (const client of preventionClients) {
-    client.technicianIds.forEach((id, i) => {
-      if (!technicianMap.has(id)) {
-        technicianMap.set(id, client.technicianNames[i] ?? "Sans nom");
-      }
-    });
-  }
-  const allTechnicians = Array.from(technicianMap.entries()).map(([id, name]) => ({ id, name }));
+  // Obtenir tous les utilisateurs ADMIN ou TECHNICIAN du système
+  const allUsers = await prisma.user.findMany({
+    where: { role: { in: ["ADMIN", "TECHNICIAN"] }, isActive: true },
+    select: { id: true, name: true }
+  });
+  const allTechnicians = allUsers.map(u => ({ id: u.id, name: u.name ?? "Sans nom" }));
 
   return {
     secteurs: secteurGroups,

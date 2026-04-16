@@ -20,6 +20,7 @@ import {
   Filter,
   Layers,
   UserCheck,
+  Search,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -339,6 +340,7 @@ export function PreventionRoutesView({
   const [filterStatus, setFilterStatus] = useState<"ALL" | "RENOUVELLEMENT_DU" | "GARANTIE_ACTIVE" | "PREMIERE_ANNEE">("ALL");
   const [filterTechnicianId, setFilterTechnicianId] = useState<string>("ALL");
   const [copied, setCopied] = useState(false);
+  const [secteurSearch, setSecteurSearch] = useState(""); // Nouveau champ de recherche
 
   // Dispatcher States
   const [showDispatchModal, setShowDispatchModal] = useState(false);
@@ -346,6 +348,11 @@ export function PreventionRoutesView({
   const [dispatchTechId, setDispatchTechId] = useState<string>("");
   const [dispatchCount, setDispatchCount] = useState<number>(15);
   const [isDispatching, setIsDispatching] = useState(false);
+
+  const filteredSecteurs = useMemo(() => {
+    if (!secteurSearch.trim()) return secteurs;
+    return secteurs.filter(s => s.secteur.toLowerCase().includes(secteurSearch.toLowerCase()));
+  }, [secteurs, secteurSearch]);
 
   const activeGroup = useMemo(
     () => secteurs.find((s) => s.secteur === selectedSecteur),
@@ -474,26 +481,42 @@ export function PreventionRoutesView({
         ) : (
           <div className="flex gap-6">
             {/* ── Left: Secteur List ── */}
-            <aside className="w-64 shrink-0 space-y-2">
-              <div className="flex items-center gap-2 mb-3">
+            <aside className="w-64 shrink-0 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-gray-400" />
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Secteurs ({secteurs.length})
+                  Secteurs ({filteredSecteurs.length})
                 </span>
               </div>
-              {secteurs.map((group) => (
-                <SecteurPanel
-                  key={group.secteur}
-                  group={group}
-                  isSelected={group.secteur === selectedSecteur}
-                  onSelect={() => {
-                    setSelectedSecteur(group.secteur);
-                    setIsRouteOptimized(false);
-                    setFilterStatus("ALL");
-                    setFilterTechnicianId("ALL");
-                  }}
+              
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Chercher un secteur..."
+                  value={secteurSearch}
+                  onChange={(e) => setSecteurSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all bg-white"
                 />
-              ))}
+              </div>
+
+              {/* Scrollable list */}
+              <div className="space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto pr-1 pb-4 custom-scrollbar">
+                {filteredSecteurs.map((group) => (
+                  <SecteurPanel
+                    key={group.secteur}
+                    group={group}
+                    isSelected={group.secteur === selectedSecteur}
+                    onSelect={() => {
+                      setSelectedSecteur(group.secteur);
+                      setIsRouteOptimized(false);
+                      setFilterStatus("ALL");
+                      setFilterTechnicianId("ALL");
+                    }}
+                  />
+                ))}
+              </div>
             </aside>
 
             {/* ── Right: Route Panel ── */}
