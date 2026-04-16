@@ -1,24 +1,47 @@
 'use server';
 
 import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { openai as aiSdkOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
+import OpenAI from 'openai';
 
-export async function parseCallNotes(text: string) {
-    if (!text || text.trim() === '') {
-        throw new Error("Le texte fourni est vide.");
+// Official OpenAI client for Whisper API
+const openaiClient = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function parseCallNotes(text: string, imageBase64?: string) {
+    if (!text && !imageBase64) {
+        throw new Error("Aucun texte ni image fourni.");
     }
 
     try {
+        // Prepare content array (multimodal support)
+        const messages: any[] = [];
+        const content: any[] = [];
+        
+        if (text) {
+            content.push({ type: 'text', text: `Texte ou notes reçus :\n"${text}"\n\nAnalysez ces notes et/ou l'image.` });
+        }
+        
+        if (imageBase64) {
+            content.push({
+                type: 'image',
+                image: imageBase64, // URL-friendly base64 encoding handled by @ai-sdk
+            });
+        }
+
+        messages.push({ role: 'user', content });
+
         const { object } = await generateObject({
-            model: openai('gpt-4o-mini'),
+            model: aiSdkOpenAI('gpt-4o-mini'),
             system: `Tu es l'assistant IA de Praxis ZLS "Action Sur La Route", un logiciel de gestion pour des exterminateurs et gestionnaires immobiliers/industriels au Québec.
-Ton but est d'extraire les informations pertinentes à la volée depuis des notes de téléphone brouillonnes, des mémos vocaux transcrits, ou des SMS.
+Ton but est d'extraire les informations pertinentes à la volée depuis des notes de téléphone brouillonnes, des mémos vocaux transcrits, ou des captures d'écran/photos de cartes d'affaires, courriels, et textos.
 Tu dois absolument retourner un objet JSON propre. Si une information est introuvable, retourne la chaîne vide "" plutôt que null, à moins que ce soit optionnel.
 Identifie également si un Rendez-Vous (Job) doit être créé avec les infos fournies.
 Formate le numéro de téléphone au format nord-américain (ex: 514-555-5555) si possible.
 Les noms de rue doivent être propres.`,
-            prompt: `Texte brut reçu :\n"${text}"\n\nS'il te plaît, analyse ce texte et extrais les informations pour créer un Client et potentiellement un Rendez-vous/Job.`,
+            messages: messages,
             schema: z.object({
                 client: z.object({
                     name: z.string().describe("Le prénom et/ou le nom de famille de la personne ou l'entreprise."),
@@ -40,5 +63,26 @@ Les noms de rue doivent être propres.`,
     } catch (error: any) {
         console.error("AI Parsing Error:", error);
         throw new Error("L'Intelligence Artificielle n'a pas pu décrypter ce message. Vérifiez si la clé OpenAI est bien configurée ou si le message n'est pas trop vague.");
+    }
+}
+
+export async function transcribeAudio(formData: FormData) {
+    try {
+        const file = formData.get('audio') as File;
+        if (!file) {
+            throw new Error("Aucun fichier audio fourni");
+        }
+
+        const response = await openaiClient.audio.transcriptions.create({
+            file,
+            model: 'whisper-1',
+            language: 'fr',
+            prompt: 'Contexte: Gestionnaire immobilier/exterminateur québécois dictant des informations clients ou de prise de rendez-vous.',
+        });
+
+        return response.text;
+    } catch (error: any) {
+        console.error("Audio Transcription Error:", error);
+        throw new Error("L'Intelligence Artificielle n'a pas pu transcrire l'audio.");
     }
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Modal } from "@/components/ui/modal";
 import { toast } from "sonner";
-import { parseCallNotes } from "@/app/actions/ai-actions";
+import { parseCallNotes, transcribeAudio } from "@/app/actions/ai-actions";
 import { createClientAndSendLink, createClient } from "@/app/actions/client-actions";
 import { useRouter } from "next/navigation";
 import { useDivision } from "@/components/providers/division-provider";
-import { Sparkles, Phone, MessageSquare, Briefcase, CalendarClock, Send } from "lucide-react";
+import { Sparkles, Phone, MessageSquare, Briefcase, CalendarClock, Send, Mic, Image as ImageIcon, X } from "lucide-react";
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 
 interface QuickCallDialogProps {
@@ -23,6 +23,12 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
     const [step, setStep] = useState<1 | 2>(1);
     const [rawText, setRawText] = useState("");
     const [loading, setLoading] = useState(false);
+    const [imageBase64, setImageBase64] = useState<string>("");
+    
+    // Audio State
+    const [isRecording, setIsRecording] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<BlobPart[]>([]);
 
     // AI Results
     const [clientData, setClientData] = useState({
@@ -40,15 +46,70 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
         preferredTiming: "",
     });
 
+    const handleRecordToggle = async () => {
+        if (isRecording) {
+            mediaRecorderRef.current?.stop();
+            setIsRecording(false);
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = mediaRecorder;
+                audioChunksRef.current = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        audioChunksRef.current.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    const formData = new FormData();
+                    formData.append("audio", audioBlob, "recording.webm");
+                    
+                    setLoading(true);
+                    try {
+                        const text = await transcribeAudio(formData);
+                        setRawText((prev) => prev + (prev ? " " : "") + text);
+                        toast.success("Audio transcrit avec succès !");
+                    } catch (e) {
+                        toast.error("Échec de la transcription vocale.");
+                    } finally {
+                        setLoading(false);
+                        stream.getTracks().forEach(t => t.stop());
+                    }
+                };
+
+                mediaRecorder.start();
+                setIsRecording(true);
+            } catch (err) {
+                toast.error("Veuillez autoriser l'accès au microphone.");
+            }
+        }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageBase64(reader.result as string);
+                toast.success("Image attachée à l'analyse IA");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleAnalyze = async () => {
-        if (!rawText.trim()) {
-            toast.error("Veuillez entrer du texte ou des notes.");
+        if (!rawText.trim() && !imageBase64) {
+            toast.error("Veuillez entrer du texte, de la voix ou une image.");
             return;
         }
 
         setLoading(true);
         try {
-            const result = await parseCallNotes(rawText);
+            const result = await parseCallNotes(rawText, imageBase64);
             setClientData({
                 name: result.client.name,
                 companyName: result.client.companyName || "",
@@ -171,6 +232,11 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
     const closeReset = () => {
         setStep(1);
         setRawText("");
+        setImageBase64("");
+        if (isRecording) {
+            mediaRecorderRef.current?.stop();
+            setIsRecording(false);
+        }
         router.refresh();
         onClose();
     };
@@ -186,19 +252,60 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
                     <div className="relative">
                         <textarea
                             className="w-full rounded-md border p-4 text-sm min-h-[150px] shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-y"
-                            placeholder="Ex: Jean Tremblay veut une inspection pour des souris au 123 rue des Ormes jeudi matin. Son tel c'est 514-999-1234."
+                            placeholder="Ex: Jean Tremblay veut une inspection pour des souris... Son tel c'est 514-999-1234. Ou bien, parlez au micro !"
                             value={rawText}
                             onChange={(e) => setRawText(e.target.value)}
+                            disabled={isRecording}
                         />
                         <div className="absolute right-3 bottom-3 flex space-x-2">
                            <Sparkles className="text-purple-400 opacity-50" size={20} />
                         </div>
                     </div>
 
+                    {/* Multimodal Actions */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleRecordToggle}
+                            disabled={loading}
+                            className={`flex-1 flex justify-center items-center gap-2 p-2 rounded-md border shadow-sm transition-all text-sm font-medium
+                                ${isRecording 
+                                    ? "bg-red-50 border-red-200 text-red-600 animate-pulse" 
+                                    : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                                }`
+                            }
+                        >
+                            <Mic size={16} />
+                            {isRecording ? "Appuyez pour Stop" : "Dictée vocale"}
+                        </button>
+                        
+                        <label className="flex-1 flex justify-center items-center gap-2 p-2 bg-white rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm transition-all cursor-pointer text-sm font-medium">
+                            <ImageIcon size={16} />
+                            Joindre Image
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleImageUpload}
+                            />
+                        </label>
+                    </div>
+
+                    {imageBase64 && (
+                        <div className="relative inline-block mt-2 border rounded-md p-1 bg-gray-50">
+                            <img src={imageBase64} alt="Attached" className="h-16 w-16 object-cover rounded" />
+                            <button 
+                                onClick={() => setImageBase64("")} 
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow hover:bg-red-600"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    )}
+
                     <button
                         onClick={handleAnalyze}
-                        disabled={loading || !rawText}
-                        className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-3 rounded-lg font-medium shadow transition-all disabled:opacity-50"
+                        disabled={loading || (!rawText && !imageBase64) || isRecording}
+                        className="w-full mt-4 flex justify-center items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white p-3 rounded-lg font-medium shadow transition-all disabled:opacity-50"
                     >
                         {loading ? (
                             <>
