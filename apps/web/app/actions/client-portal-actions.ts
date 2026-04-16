@@ -5,6 +5,18 @@ import { revalidatePath } from 'next/cache';
 import { QuoteStatus, InvoiceStatus, Prisma } from '@prisma/client';
 import { isExteriorPreventionProduct } from '@/lib/constants/prevention-product-keywords';
 
+async function processHiddenCaptureIds(notes: string | undefined) {
+    if (!notes) return notes;
+    const match = notes.match(/\[SYS_CAP_IDS:([^\]]+)\]/);
+    if (match) {
+        const ids = match[1].split(",");
+        const { markCapturesAsBilled } = await import('@/app/actions/capture-actions');
+        await markCapturesAsBilled(ids);
+        return notes.replace(/\[SYS_CAP_IDS:[^\]]+\]/, '').trim();
+    }
+    return notes;
+}
+
 async function autoCreatePreventionJobIfNeeded(clientId: string, productIds: string[]) {
     if (!productIds || productIds.length === 0) return;
 
@@ -328,6 +340,7 @@ export async function createInvoice(data: {
 }) {
     console.log("createInvoice called with:", JSON.stringify(data, null, 2));
     try {
+        data.notes = await processHiddenCaptureIds(data.notes);
         const division = data.division || "EXTERMINATION";
         const number = await generateNextNumber(division, "INVOICE");
         console.log("Generated invoice number:", number);
@@ -391,6 +404,7 @@ export async function updateInvoice(data: {
     terms?: string;
     total: number;
 }) {
+    data.notes = await processHiddenCaptureIds(data.notes);
     await prisma.$transaction(async (tx) => {
         await tx.invoice.update({
             where: { id: data.id },

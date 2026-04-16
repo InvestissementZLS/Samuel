@@ -4,7 +4,7 @@ import { useState, useMemo, memo } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut, Route, Sparkles } from 'lucide-react';
+import { Home, Users, Calendar, Settings, Truck, Package, BarChart, FileText, DollarSign, ChevronLeft, ChevronRight, Search, ShieldCheck, Box, Clock, LogOut, Route, Sparkles, Crosshair, Wrench } from 'lucide-react';
 import { DivisionSwitcher } from './division-switcher';
 import { GlobalSearch } from './global-search';
 import { useLanguage } from '@/components/providers/language-provider';
@@ -32,6 +32,9 @@ export function Sidebar() {
         { name: t.sidebar.technicians, href: '/technicians', icon: Users },
         { name: t.sidebar.products, href: '/products', icon: Package },
         { name: t.sidebar.inventory, href: '/inventory', icon: Box },
+        { name: 'Stock Contenants', href: '/stock', icon: Package, divisionOnly: 'EXTERMINATION' as const },
+        { name: 'Cages & Caméras', href: '/cages', icon: Crosshair, divisionOnly: 'EXTERMINATION' as const },
+        { name: 'Outils (Camions)', href: '/tools', icon: Wrench, divisionOnly: 'EXTERMINATION' as const },
         { name: t.sidebar.recurring, href: '/recurring', icon: ShieldCheck },
         // Routes Prévention — EXTERMINATION seulement
         { name: 'Routes Prévention', href: '/prevention-routes', icon: Route, divisionOnly: 'EXTERMINATION' as const },
@@ -63,6 +66,9 @@ export function Sidebar() {
                     '/invoices', 
                     '/products', 
                     '/inventory', 
+                    '/stock',
+                    '/cages',
+                    '/tools',
                     '/commissions'
                 ];
                 if (!techAllowed.includes(item.href)) {

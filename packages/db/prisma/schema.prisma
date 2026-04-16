@@ -58,6 +58,14 @@ model User {
   language                        Language     @default(FR)
   accesses                        UserDivisionAccess[]
   expenses                        Expense[]
+  // Stock containers
+  containersHeld                  StockContainer[]        @relation("ContainerLocation")
+  transfersSent                   StockTransferRequest[]  @relation("TransferFrom")
+  transfersReceived               StockTransferRequest[]  @relation("TransferTo")
+  
+  // Equipment Assets (cages, pièges)
+  assetsHeld                      EquipmentAsset[]        @relation("AssetUserLocation")
+  assetLogsCreated                EquipmentLog[]
 }
 
 model UserDivisionAccess {
@@ -109,6 +117,12 @@ model Client {
   bookingRequests BookingRequest[]
   isDeleted      Boolean      @default(false)
   deletedAt      DateTime?
+  
+  // Equipment deployed at client location
+  assetsDeployed  EquipmentAsset[] @relation("AssetClientLocation")
+  
+  // Wildlife Capture tracking
+  captures        CaptureLog[]
 }
 
 model Property {
@@ -432,6 +446,10 @@ model Product {
   inventory    InventoryItem[]
   auditItems   InventoryAuditItem[]
   seriesSteps  SeriesStep[]
+  containers   StockContainer[]   // Contenants physiques de ce produit
+  
+  // Cages / Pièges
+  equipmentAssets EquipmentAsset[]
   
   // Smart Inventory Relations
   materialsNeeded ServiceMaterial[] @relation("ServiceToMaterial")
@@ -444,6 +462,9 @@ model Product {
   
   // -- Container Logic --
   containerSize        Float?            // e.g. 500 (ml) or 300 (g). Used to convert UI "Bottles" to stored "Total Units"
+  
+  // -- Equipment Logic --
+  isClientDeployable   Boolean           @default(false)
   
   // -- PDS / Preparation --
   preparationListUrl   String?
@@ -525,6 +546,132 @@ enum ProductType {
   SERVICE
 }
 
+// ── Stock Containers (suivi des contenants physiques) ────────────────────────
+
+model StockContainer {
+  id             String          @id @default(uuid())
+  productId      String
+  product        Product         @relation(fields: [productId], references: [id])
+
+  // Quantité actuelle dans ce contenant (dans l'unité du produit, ex: ml)
+  quantity       Float
+  // Capacité maximale du contenant (ex: 400 pour une bouteille de 400ml)
+  // null = unité sans capacité fixe (bloc, canne, unité…)
+  maxQuantity    Float?
+
+  // Localisation actuelle
+  locationUserId String?         // null = entrepôt
+  locationUser   User?           @relation("ContainerLocation", fields: [locationUserId], references: [id])
+
+  status         ContainerStatus @default(FULL)
+  notes          String?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  transfers      StockTransferRequest[]
+}
+
+model StockTransferRequest {
+  id               String          @id @default(uuid())
+  containerId      String
+  container        StockContainer  @relation(fields: [containerId], references: [id])
+
+  fromUserId       String?         // null = expédié depuis l'entrepôt
+  toUserId         String?         // null = retour à l'entrepôt
+
+  quantitySent     Float           // Quantité déclarée par l'expéditeur
+  quantityReceived Float?          // Quantité confirmée par le récepteur
+
+  status           TransferStatus  @default(PENDING)
+  notes            String?         // Note de l'expéditeur
+  responseNotes    String?         // Note du récepteur (désaccord, etc.)
+
+  requestedAt      DateTime        @default(now())
+  respondedAt      DateTime?
+
+  fromUser         User?           @relation("TransferFrom", fields: [fromUserId], references: [id])
+  toUser           User?           @relation("TransferTo", fields: [toUserId], references: [id])
+}
+
+enum ContainerStatus {
+  FULL     // Plein / neuf
+  PARTIAL  // Partiellement utilisé
+  EMPTY    // Vide
+}
+
+enum TransferStatus {
+  PENDING    // En attente de confirmation du récepteur
+  CONFIRMED  // Récepteur a confirmé la quantité reçue
+  REJECTED   // Récepteur a rejeté (désaccord sur quantité)
+  CANCELLED  // Annulé par l'expéditeur
+}
+
+// ── Actifs Physiques (Cages, Équipements de valeur) ──────────────────────
+
+model EquipmentAsset {
+  id               String         @id @default(uuid())
+  
+  productId        String
+  product          Product        @relation(fields: [productId], references: [id])
+
+  assetTag         String         // Identifiant unique (ex: "CR-01", "CAGE-004")
+
+  status           AssetStatus    @default(AVAILABLE)
+
+  locationUserId   String?        // null = entrepôt ou chez client
+  locationUser     User?          @relation("AssetUserLocation", fields: [locationUserId], references: [id])
+  
+  locationClientId String?        // Si déployée chez un client
+  locationClient   Client?        @relation("AssetClientLocation", fields: [locationClientId], references: [id])
+
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  history          EquipmentLog[]
+}
+
+model EquipmentLog {
+  id               String         @id @default(uuid())
+  assetId          String
+  asset            EquipmentAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  movedByUserId    String
+  movedByUser      User           @relation(fields: [movedByUserId], references: [id])
+
+  action           String         // Ex: "Assigné au technicien", "Déployé chez client"
+  fromLocation     String?        // Où elle était
+  toLocation       String?        // Où elle va
+  
+  createdAt        DateTime       @default(now())
+}
+
+enum AssetStatus {
+  AVAILABLE      // En entrepôt ou technicien (prêt)
+  DEPLOYED       // Chez le client
+  MAINTENANCE    // Réparation
+  LOST           // Perte/vol
+}
+
+// ── Registre des Captures d'Animaux (Faune) ───────────────────────────
+
+model CaptureLog {
+  id              String   @id @default(uuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id])
+  
+  jobId           String?  // Si lié à une visite spécifique
+  animalType      String   // Ex: Raton Laveur, Moufette, Écureuil, Marmotte
+  
+  assetId         String?  // Optionnel: Quelle cage/équipement ?
+  
+  caughtAt        DateTime @default(now())
+  isBilled        Boolean  @default(false)
+  
+  notes           String?
+}
+
 enum AuditStatus {
   PENDING
   REVIEWED
@@ -572,6 +719,7 @@ enum PestType {
   COCKROACHES
   SPIDERS
   WASPS
+  WILDLIFE    // <-- NEW (Animaux Sauvages)
   OTHER
 }
 

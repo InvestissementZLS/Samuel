@@ -74,6 +74,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
     const [availableServices, setAvailableServices] = useState<{ id: string; name: string }[]>([]);
 
     const [containerSize, setContainerSize] = useState<number | undefined>(undefined);
+    const [isClientDeployable, setIsClientDeployable] = useState(false);
 
     // Available Consumables
     const [availableConsumables, setAvailableConsumables] = useState<{ id: string, name: string, unit: string }[]>([]);
@@ -143,6 +144,9 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 // @ts-ignore
                 setContainerSize(product.containerSize || undefined);
 
+                // @ts-ignore
+                setIsClientDeployable(product.isClientDeployable || false);
+
                 // Match backend structure
                 getProductDetails(product.id).then((details: any) => {
                     if (details) {
@@ -209,6 +213,7 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 setIsPackage(false);
                 setIncludedServices([]);
                 setContainerSize(undefined);
+                setIsClientDeployable(false);
             }
         }
     }, [isOpen, product, fixedType]);
@@ -245,7 +250,8 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                 // Package
                 isPackage,
                 includedServices,
-                containerSize: containerSize ? Number(containerSize) : undefined
+                containerSize: containerSize ? Number(containerSize) : undefined,
+                isClientDeployable
             };
 
             if (product) {
@@ -336,6 +342,19 @@ export function ProductDialog({ isOpen, onClose, product, fixedType }: ProductDi
                             <option value="EQUIPMENT">{t.products.equipment}</option>
                             <option value="SERVICE">{t.products.services}</option>
                         </select>
+                    </div>
+                )}
+
+                {type === 'EQUIPMENT' && (
+                    <div className="flex items-center gap-2 bg-indigo-50 p-3 rounded-md border border-indigo-100 mb-4">
+                        <input
+                            type="checkbox"
+                            id="isClientDeployable"
+                            checked={isClientDeployable}
+                            onChange={(e) => setIsClientDeployable(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <label htmlFor="isClientDeployable" className="text-sm font-medium text-indigo-900">Peut être transféré chez un client (Cages, Caméras)</label>
                     </div>
                 )}
 

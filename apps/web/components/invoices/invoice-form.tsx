@@ -6,9 +6,10 @@ import { useUser } from "@/components/providers/user-provider";
 import { useState, useEffect } from "react";
 import { getWarrantyTemplates } from "@/app/actions/warranty-actions";
 import { createQuickService } from "@/app/actions/product-actions";
+import { getUnbilledCaptures, markCapturesAsBilled } from "@/app/actions/capture-actions";
 import { Invoice, Product, InvoiceItem, Client } from "@prisma/client";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Mail, Send, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, MoreHorizontal, FileText, Mail, Send, ChevronDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -132,6 +133,71 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
 
     const [notes, setNotes] = useState(invoice?.notes || "");
     const [terms, setTerms] = useState(invoice?.terms || "");
+
+    // Unbilled captures state
+    const [unbilledCaptures, setUnbilledCaptures] = useState<any[]>([]);
+    const [capturesInjected, setCapturesInjected] = useState(false);
+
+    useEffect(() => {
+        if (!selectedClientId) return;
+        getUnbilledCaptures(selectedClientId).then(captures => {
+            setUnbilledCaptures(captures || []);
+            setCapturesInjected(false);
+        }).catch(console.error);
+    }, [selectedClientId]);
+
+    const handleInjectCaptures = async () => {
+        if (unbilledCaptures.length === 0) return;
+        
+        let newItems: any[] = [];
+        let facturableCount = 0;
+        
+        // Find if they need to be billed an Opening Fee
+        const openingProduct = localProducts.find(p => p.name.toLowerCase().includes("ouverture de dossier"));
+        if (openingProduct) {
+             newItems.push({
+                id: `cap-open-${Date.now()}`,
+                productId: openingProduct.id,
+                description: openingProduct.name,
+                quantity: 1,
+                price: Number(openingProduct.price) || 220,
+                cost: Number(openingProduct.cost) || 0,
+                tax: 0,
+                product: openingProduct
+            });
+        }
+
+        unbilledCaptures.forEach((cap, idx) => {
+            const isBillable = facturableCount < 4;
+            const animalName = `Capture - ${cap.animalType}`;
+            
+            // Try to find an exact product match, otherwise fallback to generic pricing logic
+            let product = localProducts.find(p => p.name.toLowerCase() === animalName.toLowerCase() || p.name.toLowerCase().includes(cap.animalType.toLowerCase()));
+            
+            if (isBillable) facturableCount++;
+
+            newItems.push({
+                id: `cap-${idx}-${Date.now()}`,
+                productId: product?.id || "",
+                description: isBillable ? animalName : `${animalName} (Promotion Famille - Inclus)`,
+                quantity: 1,
+                price: isBillable ? (product ? Number(product.price) : 95) : 0, // Fallback 95 if no product found
+                cost: product ? Number(product.cost) : 0,
+                tax: 0,
+                product: product || null
+            });
+        });
+
+        // Add a hidden note to trigger `markCapturesAsBilled` upon save
+        const captureIdsToBill = unbilledCaptures.map(c => c.id).join(",");
+        setNotes((prev) => prev ? `${prev}\n\n[SYS_CAP_IDS:${captureIdsToBill}]` : `[SYS_CAP_IDS:${captureIdsToBill}]`);
+
+        // Remove the empty first item if it exists
+        const currentItems = items.length === 1 && !items[0].productId && !items[0].description ? [] : items;
+        setItems([...currentItems, ...newItems]);
+        setCapturesInjected(true);
+        toast.success(`${unbilledCaptures.length} captures ajoutées. Max 4 facturées. Prix famille appliqué.`);
+    };
 
     // Calculations — force Number() to prevent Decimal/string concatenation bugs
     const subtotal = items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.price)), 0);
@@ -471,6 +537,26 @@ export function InvoiceForm({ invoice, products, clientId, onSave, onDelete, cli
                         </select>
                     </div>
                 </div>
+
+                {/* Smart Capture Injection Banner */}
+                {unbilledCaptures.length > 0 && !capturesInjected && !invoice && (
+                    <div className="col-span-1 md:col-span-2 bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-3 text-emerald-800">
+                            <span className="text-2xl">🦝</span>
+                            <div>
+                                <h4 className="font-bold">Captures non-facturées trouvées</h4>
+                                <p className="text-sm opacity-90">{unbilledCaptures.length} captures au dossier. Cliquez pour auto-générer les lignes (Max 4 facturables).</p>
+                            </div>
+                        </div>
+                        <Button 
+                            onClick={handleInjectCaptures} 
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                            <Check className="w-4 h-4 mr-2" />
+                            Générer la facture Capture
+                        </Button>
+                    </div>
+                )}
 
                 {/* Invoice Details */}
                 <div className="space-y-4 col-span-2">

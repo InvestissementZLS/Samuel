@@ -64,6 +64,7 @@ interface CreateProductData {
     }[]; // IDs and config of services included
     containerSize?: number;
     preparationListUrl?: string;
+    isClientDeployable?: boolean;
 }
 
 export async function createProduct(data: CreateProductData) {
@@ -110,6 +111,8 @@ export async function createProduct(data: CreateProductData) {
                 containerSize: data.containerSize ? Number(data.containerSize) : null,
                 // @ts-ignore
                 preparationListUrl: data.preparationListUrl || null,
+                // @ts-ignore
+                isClientDeployable: data.isClientDeployable || false,
 
                 ...(materialsToCreate.length > 0 && {
                     materialsNeeded: {
@@ -189,6 +192,8 @@ export async function updateProduct(id: string, data: Partial<CreateProductData>
                     containerSize: data.containerSize !== undefined ? Number(data.containerSize) : undefined,
                     // @ts-ignore
                     preparationListUrl: data.preparationListUrl !== undefined ? data.preparationListUrl : undefined,
+                    // @ts-ignore
+                    isClientDeployable: data.isClientDeployable !== undefined ? data.isClientDeployable : undefined,
                 }
             }),
             // If materials provided (array exists), sync them

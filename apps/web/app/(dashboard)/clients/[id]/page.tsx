@@ -33,6 +33,9 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                     },
                 },
             },
+            captures: {
+                orderBy: { caughtAt: 'desc' }
+            }
         },
     });
 
@@ -74,6 +77,7 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 quotes={client.quotes}
                 invoices={client.invoices}
                 products={products}
+                captures={client.captures}
             />
         </div>
     );

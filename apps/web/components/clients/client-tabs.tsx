@@ -6,6 +6,7 @@ import { PropertyList } from "@/components/properties/property-list";
 import { ClientNotes } from "./client-notes";
 import { ClientQuotes } from "./client-quotes";
 import { ClientInvoices } from "./client-invoices";
+import { ClientCaptures } from "./client-captures";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -20,15 +21,17 @@ interface ClientTabsProps {
     quotes: any[]; // TODO: Type properly with relations
     invoices: any[]; // TODO: Type properly with relations
     products: Product[];
+    captures?: any[];
 }
 
-export function ClientTabs({ client, jobs, notes, quotes, invoices, products }: ClientTabsProps) {
-    const [activeTab, setActiveTab] = useState<"overview" | "jobs" | "notes" | "quotes" | "invoices">("overview");
+export function ClientTabs({ client, jobs, notes, quotes, invoices, products, captures = [] }: ClientTabsProps) {
+    const [activeTab, setActiveTab] = useState<"overview" | "jobs" | "notes" | "quotes" | "invoices" | "captures">("overview");
 
     const tabs = [
         { id: "overview", label: "Overview" },
         { id: "jobs", label: `Jobs (${jobs.length})` },
         { id: "notes", label: `Notes (${notes.length})` },
+        { id: "captures", label: `Trappe/Faune (${captures.length})` },
         { id: "quotes", label: `Quotes (${quotes.length})` },
         { id: "invoices", label: `Invoices (${invoices.length})` },
     ];
@@ -139,6 +142,10 @@ export function ClientTabs({ client, jobs, notes, quotes, invoices, products }: 
 
                 {activeTab === "invoices" && (
                     <ClientInvoices clientId={client.id} client={client} invoices={invoices} products={products} />
+                )}
+
+                {activeTab === "captures" && (
+                    <ClientCaptures clientId={client.id} captures={captures} />
                 )}
             </div>
         </div>
