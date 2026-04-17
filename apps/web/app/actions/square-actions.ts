@@ -2,7 +2,9 @@
 
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
-import { Client } from 'square';
+
+// @ts-ignore - The Square types module sometimes fails to expose Client properly in NextJS
+const { Client } = require('square');
 
 // Initialize Square Client
 // It uses sandbox by default if the token is missing or if we specify SANDBOX.

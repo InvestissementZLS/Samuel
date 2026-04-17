@@ -4,12 +4,13 @@ import { sendGenericEmail } from "@/lib/email";
 import { addDays, startOfDay, endOfDay, format } from "date-fns";
 
 export async function GET(request: NextRequest) {
-    // S-09 FIX: Cron endpoints must be protected by a secret header
-    // Set CRON_SECRET in .env and in Vercel's cron job config
+    // S-09 FIX & SECURITY PATCH: Cron endpoints must be protected strictly.
+    // If CRON_SECRET is empty on production, the route must be blocked.
     const authHeader = request.headers.get('authorization');
     const expectedSecret = process.env.CRON_SECRET;
-    if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
+        return NextResponse.json({ error: 'Unauthorized - Invalid or missing CRON_SECRET' }, { status: 401 });
     }
 
     try {
