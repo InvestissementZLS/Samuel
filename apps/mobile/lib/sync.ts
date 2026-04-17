@@ -104,8 +104,11 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
             console.log("Fetching fresh jobs with Delta Sync...");
             const dateParams = dateIsoString ? `&date=${encodeURIComponent(dateIsoString)}` : '';
             
-            // DELTA SYNC IMPLEMENTATION: Pass updatedSince to fetch partials
-            const lastSync = await AsyncStorage.getItem(`lastSync_${userId}`);
+            // DELTA SYNC IMPLEMENTATION: Use a date-specific sync key so we don't accidentally block loading full data for newly clicked dates!
+            const dateKey = dateIsoString ? dateIsoString.split('T')[0] : 'today';
+            const syncKey = `lastSync_${userId}_${dateKey}`;
+            
+            const lastSync = await AsyncStorage.getItem(syncKey);
             const syncParam = lastSync ? `&updatedSince=${encodeURIComponent(lastSync)}` : '';
 
             const response = await api.get(`/api/technician/jobs?techId=${userId}${dateParams}${syncParam}`);
@@ -125,8 +128,8 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
             const cleanData = validationResult.data;
             saveJobsToLocal(cleanData); // Uses the strictly sanitized data
             
-            // Update Sync Time
-            await AsyncStorage.setItem(`lastSync_${userId}`, new Date().toISOString());
+            // Update Sync Time PER DATE
+            await AsyncStorage.setItem(syncKey, new Date().toISOString());
 
             // REMOVED 'return cleanData': We must let execution fall through so it returns the FULL COMBINED CACHE via getLocalJobs().
         } catch (error: any) {
