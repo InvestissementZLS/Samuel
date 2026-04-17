@@ -8,9 +8,11 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "config": "eas-build-config.js",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EXPO_METRO_WORKSPACE_ROOT": "../.."
       }
     },
     "preview": {
@@ -18,7 +20,8 @@
       "channel": "preview",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EXPO_METRO_WORKSPACE_ROOT": "../.."
       },
       "android": {
         "buildType": "apk"
@@ -29,7 +32,8 @@
       "channel": "production",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EXPO_METRO_WORKSPACE_ROOT": "../.."
       }
     }
   },

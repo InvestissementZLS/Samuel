@@ -1,40 +1,59 @@
-# .easignore dans apps/mobile/
-# EAS est lancé depuis apps/mobile/ donc les chemins sont RELATIFS à apps/mobile/
-# Ce fichier est utilisé quand on lance: eas build depuis apps/mobile/
+# .easignore — dans apps/mobile/
+# EAS CLI est lancé depuis apps/mobile/ MAIS git root est à Antigravity - Folder/
+# EAS uploade tout le repo depuis le git root.
+# Ce fichier DOIT exclure tout ce qui n'est pas dans apps/mobile/
 
-# Jamais inclure node_modules (EAS les réinstalle)
+# ============================================================
+# EXCLURE LES AUTRES APPS DU MONOREPO
+# (chemins relatifs depuis la RACINE du git repo)
+# ============================================================
+apps/web
+packages
+scripts
+tmp
+tmp_vercel
+
+# ============================================================
+# EXCLURE LES ARTEFACTS ET FICHIERS INUTILES
+# ============================================================
 node_modules
+.turbo
+.vercel
+.git
 
-# Artefacts Expo locaux
-.expo
-dist
-
-# Fichiers de débogage et logs
+# Logs et debug
 *.log
 *.txt
-build.json
-build_success.json
-latest_build.json
-build-log.txt
-build_log.txt
-eas_logs.txt
-error.txt
-error4.txt
-error8.txt
-error9.txt
-tsc-errors.txt
-logUrl.txt
-last.json
-last_logs.txt
-latest_build_pretty.json
-latest_build_pretty_utf8.json
-build_utf8.json
-latest_build.json
-build_success.json
-eas-note.txt
-OPTIMIZATION_GUIDE.md
-test-resolve.js
-eas_help.txt
-eas_help_utf8.txt
-expo-config-err.txt
-expo-config-err-utf8.txt
+build_error.log
+build_output*.log
+
+# Tableurs et fichiers divers
+*.xlsx
+*.xls
+test.tar
+
+# Fichiers de config non-mobile
+turbo.json
+vercel.json
+
+# Apps/mobile — fichiers inutiles au build
+apps/mobile/node_modules
+apps/mobile/.expo
+apps/mobile/dist
+apps/mobile/build.json
+apps/mobile/build-log.txt
+apps/mobile/build_log.txt
+apps/mobile/eas_logs.txt
+apps/mobile/error*.txt
+apps/mobile/tsc-errors.txt
+apps/mobile/last*.json
+apps/mobile/latest_build*.json
+apps/mobile/build_success*.json
+apps/mobile/eas_help*.txt
+apps/mobile/expo-config-err*.txt
+apps/mobile/logUrl.txt
+apps/mobile/test-resolve.js
+apps/mobile/eas-note.txt
+apps/mobile/OPTIMIZATION_GUIDE.md
+apps/mobile/build_utf8.json
+apps/mobile/eas-hooks
