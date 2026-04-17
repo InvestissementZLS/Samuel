@@ -1,26 +1,40 @@
-# This file tells EAS which files to EXCLUDE from the build archive
-# The goal: send ONLY the apps/mobile folder content, nothing else
+# .easignore dans apps/mobile/
+# EAS est lancé depuis apps/mobile/ donc les chemins sont RELATIFS à apps/mobile/
+# Ce fichier est utilisé quand on lance: eas build depuis apps/mobile/
 
-# Monorepo neighbors - not needed for the mobile build
-apps/web
-packages
-scripts
-
-# Dev artifacts
-.expo
+# Jamais inclure node_modules (EAS les réinstalle)
 node_modules
-.git
-tmp
-build
+
+# Artefacts Expo locaux
+.expo
 dist
 
-# Temp/debug files
-*.json.bak
+# Fichiers de débogage et logs
+*.log
+*.txt
 build.json
 build_success.json
 latest_build.json
-eas.json
-
-# Logs
-*.log
-*.txt
+build-log.txt
+build_log.txt
+eas_logs.txt
+error.txt
+error4.txt
+error8.txt
+error9.txt
+tsc-errors.txt
+logUrl.txt
+last.json
+last_logs.txt
+latest_build_pretty.json
+latest_build_pretty_utf8.json
+build_utf8.json
+latest_build.json
+build_success.json
+eas-note.txt
+OPTIMIZATION_GUIDE.md
+test-resolve.js
+eas_help.txt
+eas_help_utf8.txt
+expo-config-err.txt
+expo-config-err-utf8.txt

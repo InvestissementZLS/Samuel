@@ -10,16 +10,14 @@
       "distribution": "internal",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "TURBO_TELEMETRY_DISABLED": "1",
         "SKIP_POSTINSTALL": "1"
       }
     },
     "preview": {
-      "node": "20.19.4",
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "TURBO_TELEMETRY_DISABLED": "1",
         "SKIP_POSTINSTALL": "1"
       },
       "android": {
@@ -28,6 +26,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "env": {
         "EXPO_NO_DOCTOR": "true",
         "SKIP_POSTINSTALL": "1"
