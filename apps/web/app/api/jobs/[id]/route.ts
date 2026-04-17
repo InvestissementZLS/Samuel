@@ -20,8 +20,7 @@ export async function GET(
                     include: {
                         client: {
                             include: {
-                                // @ts-ignore — equipmentAssets is in schema (Client → EquipmentAsset[])
-                                equipmentAssets: {
+                                assetsDeployed: {
                                     include: {
                                         product: { select: { name: true, isClientDeployable: true } }
                                     }

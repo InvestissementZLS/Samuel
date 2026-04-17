@@ -190,8 +190,19 @@ export default function JobListScreen() {
         }
     };
 
-    // Filter jobs by division
-    const filteredJobs = jobs.filter(j => j.division === activeDivision);
+    // Filter jobs by division AND selected calendar date (to prevent SQLite offline cache creeping)
+    const filteredJobs = jobs.filter(j => {
+        if (j.division !== activeDivision) return false;
+        
+        try {
+            const jobDate = new Date(j.scheduledAt);
+            return jobDate.getDate() === selectedDate.getDate() && 
+                   jobDate.getMonth() === selectedDate.getMonth() && 
+                   jobDate.getFullYear() === selectedDate.getFullYear();
+        } catch(e) {
+            return false; // Skip invalid dates
+        }
+    });
 
     return (
         // P-03 FIX: SafeAreaView prevents content being cut by notch/Dynamic Island/status bar

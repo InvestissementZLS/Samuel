@@ -95,9 +95,9 @@ export default function JobDetailsScreen() {
             const response = await api.get(`/api/jobs/${jobId}`);
             setJob(response.data);
             
-            // Extract client equipment
-            if (response.data?.property?.client?.equipmentAssets) {
-                setClientEquipment(response.data.property.client.equipmentAssets);
+            // Extract client equipment natively
+            if (response.data?.property?.client?.assetsDeployed) {
+                setClientEquipment(response.data.property.client.assetsDeployed);
             }
             
             // Reset state on refresh
