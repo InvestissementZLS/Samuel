@@ -1,0 +1,42 @@
+# .easignore — racine du repo
+# EAS lit ce fichier depuis la racine du repo (là où git init est)
+# On exclut tout ce qui n'est PAS nécessaire pour builder apps/mobile
+
+# Site web — pas nécessaire pour le build mobile
+apps/web
+
+# Packages partagés (Prisma, DB) — pas nécessaires pour le mobile
+packages
+
+# Scripts de migration / utilitaires
+scripts
+tmp
+tmp_vercel
+
+# Logs et fichiers de debug
+*.log
+*.txt
+build_error.log
+build_output*.log
+web-build-*.txt
+
+# Artefacts de build
+.turbo
+.vercel
+node_modules
+
+# Tableurs et fichiers Office
+*.xlsx
+*.xls
+
+# Fichiers temporaires
+test.tar
+*.bat
+*.js
+protect-db.js
+parse-excel.js
+setup-supabase-storage.mjs
+update_env.js
+test-automation.js
+test-db.js
+update-samuel.ts

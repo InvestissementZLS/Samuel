@@ -47,10 +47,13 @@
       "expo-sqlite"
     ],
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "sdkVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/f83ec387-998e-4e57-a5a7-adf1dee0e63b"
+      "url": "https://u.expo.dev/f83ec387-998e-4e57-a5a7-adf1dee0e63b",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }
