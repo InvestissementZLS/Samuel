@@ -8,21 +8,21 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "projectRoot": "apps/mobile",
       "env": {
         "EXPO_NO_DOCTOR": "true",
         "TURBO_TELEMETRY_DISABLED": "1",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EAS_BUILD_WORKINGDIR": "apps/mobile"
       }
     },
     "preview": {
       "distribution": "internal",
-      "projectRoot": "apps/mobile",
       "channel": "preview",
       "env": {
         "EXPO_NO_DOCTOR": "true",
         "TURBO_TELEMETRY_DISABLED": "1",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EAS_BUILD_WORKINGDIR": "apps/mobile"
       },
       "android": {
         "buildType": "apk"
@@ -30,11 +30,11 @@
     },
     "production": {
       "autoIncrement": true,
-      "projectRoot": "apps/mobile",
       "channel": "production",
       "env": {
         "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1"
+        "SKIP_POSTINSTALL": "1",
+        "EAS_BUILD_WORKINGDIR": "apps/mobile"
       }
     }
   },
