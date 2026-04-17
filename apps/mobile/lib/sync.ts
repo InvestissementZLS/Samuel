@@ -128,7 +128,7 @@ export const syncData = async (userId: string, dateIsoString?: string) => {
             // Update Sync Time
             await AsyncStorage.setItem(`lastSync_${userId}`, new Date().toISOString());
 
-            return cleanData;
+            // REMOVED 'return cleanData': We must let execution fall through so it returns the FULL COMBINED CACHE via getLocalJobs().
         } catch (error: any) {
             console.error("Fetch failed, using cache", error.message);
         }
