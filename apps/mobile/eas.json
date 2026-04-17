@@ -18,7 +18,7 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "config": ".eas/build/preview.yml",
+      "config": "preview.yml",
       "env": {
         "EXPO_NO_DOCTOR": "true",
         "SKIP_POSTINSTALL": "1",

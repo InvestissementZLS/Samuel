@@ -1,0 +1,18 @@
+build:
+  name: Praxis ZLS Android Preview
+  steps:
+    - eas/checkout
+    - run:
+        name: Move to mobile app directory
+        command: |
+          if [ -d "apps/mobile" ]; then
+            echo "Monorepo detected, syncing apps/mobile to working dir..."
+            cp -R apps/mobile/. .
+            echo "Done — files synced"
+            ls -la package.json
+          fi
+    - eas/use_npm_token
+    - eas/install_node_modules
+    - eas/prebuild
+    - eas/resolve_build_configuration
+    - eas/run_gradle
