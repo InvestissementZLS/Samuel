@@ -70,8 +70,6 @@ export function QuickCallDialog({ isOpen, onClose }: QuickCallDialogProps) {
         phone: "",
         email: "",
         billingAddress: "",
-        email: "",
-        billingAddress: "",
         language: "FR" as "FR" | "EN",
     });
 

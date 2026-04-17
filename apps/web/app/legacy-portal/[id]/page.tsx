@@ -3,8 +3,6 @@ import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import Link from 'next/link';
-import { createCheckoutSession } from '@/app/actions/payment-actions';
-import { toast } from 'sonner';
 import { ClientPortalInvoice } from '@/components/clients/client-portal-invoice';
 import { translations, Language } from '@/lib/translations';
 

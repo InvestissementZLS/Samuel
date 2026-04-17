@@ -152,8 +152,37 @@ export async function respondToQuote(token: string, quoteId: string, action: 'AC
 }
 
 export async function signQuote(quoteId: string, signature: string) {
-    console.log("Signing quote", quoteId, signature);
-    return { success: true }; // Placeholder to unblock build
+    if (!quoteId || !signature) {
+        return { success: false, error: 'Quote ID and signature are required.' };
+    }
+
+    const quote = await prisma.quote.findUnique({
+        where: { id: quoteId },
+        include: { items: { select: { productId: true } } }
+    });
+
+    if (!quote) return { success: false, error: 'Quote not found.' };
+    if (quote.status === 'ACCEPTED') return { success: true }; // Idempotent
+
+    await prisma.quote.update({
+        where: { id: quoteId },
+        data: {
+            status: 'ACCEPTED',
+            signature,
+            signedAt: new Date(),
+        }
+    });
+
+    // Trigger prevention job creation via the portal actions (handles the product logic internally)
+    try {
+        const { updateQuoteStatus } = await import('./client-portal-actions');
+        await updateQuoteStatus(quoteId, quote.clientId, 'ACCEPTED');
+    } catch { /* Already updated status above, prevention job creation non-critical */ }
+
+    revalidatePath(`/portal`);
+    revalidatePath(`/clients/${quote.clientId}`);
+
+    return { success: true };
 }
 
 export async function getOrCreateClientPortalToken(clientId: string) {

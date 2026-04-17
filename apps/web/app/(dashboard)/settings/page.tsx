@@ -1,5 +1,5 @@
 import { getTechnicians } from "@/app/actions/technician-actions";
-const getDivisionSettings = async (...args: any) => [];
+import { getDivisionSettings } from "@/app/actions/settings-actions";
 import { SettingsView } from "@/components/settings/settings-view";
 
 export const dynamic = "force-dynamic";

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { addMinutes, format } from 'date-fns';
 import { fr, enCA } from 'date-fns/locale';
-import { getEmailConfig } from '@/lib/email.tsx';
+import { getEmailConfig } from '@/lib/email';
 import { getUserProfile } from './user-actions';
 
 const getAppUrl = () => process.env.NEXT_PUBLIC_APP_URL || 'https://praxiszls.com';

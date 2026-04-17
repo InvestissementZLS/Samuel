@@ -2,6 +2,10 @@ node_modules/
 .expo/
 dist/
 build/
+.eas/
+inspect-output/
+preview.yml
+eas-hooks/
 
 # Debug and temp files created during build troubleshooting
 *.log

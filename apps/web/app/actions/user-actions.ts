@@ -71,3 +71,11 @@ export async function updateUserLanguage(userId: string, language: "EN" | "FR") 
         return { success: false, error: "Update failed" };
     }
 }
+
+export async function setDivisionCookieAction(division: string) {
+    const cookieStore = await cookies();
+    cookieStore.set("division", division, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+    });
+}

@@ -57,8 +57,8 @@ export default function PunchOutScreen({ navigation, route }: any) {
                 lng: longitude,
             });
 
-            Alert.alert('Success', 'Day Ended. Good job!', [
-                { text: 'OK', onPress: () => navigation.replace('Login') } // Or back to a summary screen
+            Alert.alert('✅ Terminé', 'Fin de journée enregistrée avec succès.', [
+                { text: 'OK', onPress: () => navigation.replace('JobList', { userId }) }
             ]);
         } catch (error) {
             console.error(error);

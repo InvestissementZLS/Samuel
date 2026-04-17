@@ -90,3 +90,52 @@ export async function updateJobStatus(
 
     return { success: true, job: updatedJob };
 }
+
+// Complete a job with a service report (notes + signatures)
+export async function completeJobWithReport(
+    jobId: string,
+    data: {
+        reportNotes?: string;
+        internalNotes?: string;
+        technicianSignature?: string;
+        clientSignature?: string;
+    }
+) {
+    if (!jobId) throw new Error("Job ID required");
+
+    const now = new Date();
+
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job) throw new Error("Job not found");
+
+    const startTime = job.startedAt || now;
+    const durationMinutes = startTime ? Math.max(0, (now.getTime() - startTime.getTime()) / 60000) : 0;
+
+    await prisma.job.update({
+        where: { id: jobId },
+        data: {
+            status: 'COMPLETED',
+            completedAt: now,
+            actualDurationMinutes: Math.round(durationMinutes),
+            reportNotes: data.reportNotes || undefined,
+            internalNotes: data.internalNotes || undefined,
+            technicianSignature: data.technicianSignature || undefined,
+            clientSignature: data.clientSignature || undefined,
+        }
+    });
+
+    // Post-completion automation
+    try {
+        const invoice = await ensureJobInvoiceFinalized(jobId);
+        await calculateCommissions(jobId);
+        if (invoice?.id) await sendInvoice(invoice.id);
+    } catch (autoError) {
+        console.error("[Automation] Error in completeJobWithReport flow:", autoError);
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath(`/jobs/${jobId}`);
+
+    return { success: true };
+}
+

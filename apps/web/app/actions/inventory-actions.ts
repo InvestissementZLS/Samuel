@@ -182,8 +182,15 @@ export async function reconcileAudit(auditId: string, action: 'APPROVE' | 'REJEC
             });
 
             for (const item of audit.items) {
-                // Update specific user inventory or warehouse?
-                // Audit belongs to a technician, so update their inventory
+                // Get current value to calculate diff
+                const oldItem = await tx.inventoryItem.findUnique({
+                    where: { productId_userId: { productId: item.productId, userId: audit.technicianId } }
+                });
+                
+                const oldQty = oldItem?.quantity || 0;
+                const diff = item.actualQuantity - oldQty;
+
+                // 1. Update absolute inventory counter
                 await tx.inventoryItem.upsert({
                     where: {
                         productId_userId: {
@@ -198,6 +205,56 @@ export async function reconcileAudit(auditId: string, action: 'APPROVE' | 'REJEC
                         quantity: item.actualQuantity
                     }
                 });
+
+                // 2. Imbalance Adjustment logic on physical containers (if there's a discrepancy)
+                if (diff !== 0) {
+                    const userContainers = await tx.stockContainer.findMany({
+                        where: { productId: item.productId, locationUserId: audit.technicianId },
+                        orderBy: { updatedAt: 'asc' }
+                    });
+                    
+                    if (diff < 0) {
+                        // Deduct from containers (PARTIAL then FULL)
+                        let toRemove = Math.abs(diff);
+                        userContainers.sort((a, b) => {
+                            if (a.status === 'PARTIAL' && b.status !== 'PARTIAL') return -1;
+                            if (b.status === 'PARTIAL' && a.status !== 'PARTIAL') return 1;
+                            return a.quantity - b.quantity;
+                        });
+                        
+                        for (const container of userContainers) {
+                            if (toRemove <= 0) break;
+                            const deduction = Math.min(container.quantity, toRemove);
+                            toRemove -= deduction;
+                            const newQty = container.quantity - deduction;
+                            const newStatus = newQty <= 0 ? 'EMPTY' : (newQty < (container.maxQuantity || Infinity) ? 'PARTIAL' : container.status);
+                            await tx.stockContainer.update({ where: { id: container.id }, data: { quantity: newQty, status: newStatus } });
+                        }
+                    } else if (diff > 0) {
+                        // Add to containers (PARTIAL then EMPTY)
+                        let toAdd = diff;
+                        userContainers.sort((a, b) => {
+                            if (a.status === 'PARTIAL' && b.status !== 'PARTIAL') return -1;
+                            if (b.status === 'PARTIAL' && a.status !== 'PARTIAL') return 1;
+                            const aSpace = (a.maxQuantity || Infinity) - a.quantity;
+                            const bSpace = (b.maxQuantity || Infinity) - b.quantity;
+                            return bSpace - aSpace; 
+                        });
+                        
+                        for (const container of userContainers) {
+                            if (toAdd <= 0) break;
+                            const maxQ = container.maxQuantity || Infinity;
+                            const space = maxQ - container.quantity;
+                            if (space <= 0) continue;
+                            
+                            const addition = Math.min(space, toAdd);
+                            toAdd -= addition;
+                            const newQty = container.quantity + addition;
+                            const newStatus = (container.maxQuantity && newQty >= container.maxQuantity) ? 'FULL' : 'PARTIAL';
+                            await tx.stockContainer.update({ where: { id: container.id }, data: { quantity: newQty, status: newStatus } });
+                        }
+                    }
+                }
             }
         });
 

@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import SignatureCanvas from 'react-signature-canvas';
-const completeJob = async (...args: any) => ({ success: false, error: 'Not implemented' });
+import { completeJobWithReport } from '@/app/actions/job-tracking-actions';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -41,7 +41,7 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
             const techSig = techSigRef.current?.getTrimmedCanvas().toDataURL('image/png');
             const clientSig = clientSigRef.current?.isEmpty() ? undefined : clientSigRef.current?.getTrimmedCanvas().toDataURL('image/png');
 
-            const result = await completeJob(jobId, {
+            const result = await completeJobWithReport(jobId, {
                 reportNotes,
                 internalNotes,
                 technicianSignature: techSig,
@@ -53,7 +53,7 @@ export function CompleteJobDialog({ jobId, isOpen, onClose }: CompleteJobDialogP
                 onClose();
                 router.refresh();
             } else {
-                toast.error(t.jobs.compError + ": " + result.error);
+                toast.error(t.jobs.compError);
             }
         } catch (error) {
             toast.error(t.jobs.unexpectedError);

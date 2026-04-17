@@ -123,6 +123,45 @@ export async function addProductUsed(
                     }
                 });
             }
+
+            // 3. Auto-deduct from physical stock containers (bottles)
+            // Prioritize PARTIAL containers, then FULL.
+            let qtyToDeduct = quantity;
+            const userContainers = await tx.stockContainer.findMany({
+                where: {
+                    productId: productId,
+                    locationUserId: userId,
+                    status: { in: ['FULL', 'PARTIAL'] }
+                }
+            });
+
+            // Sort: PARTIAL first, then FULL
+            userContainers.sort((a, b) => {
+                if (a.status === 'PARTIAL' && b.status !== 'PARTIAL') return -1;
+                if (b.status === 'PARTIAL' && a.status !== 'PARTIAL') return 1;
+                // If same status, take the one with least quantity to empty it first
+                return a.quantity - b.quantity;
+            });
+
+            for (const container of userContainers) {
+                if (qtyToDeduct <= 0) break;
+
+                const deduction = Math.min(container.quantity, qtyToDeduct);
+                qtyToDeduct -= deduction;
+                
+                const newQuantity = container.quantity - deduction;
+                const newStatus = newQuantity <= 0 ? 'EMPTY' : (
+                    newQuantity < (container.maxQuantity || Infinity) ? 'PARTIAL' : container.status
+                );
+
+                await tx.stockContainer.update({
+                    where: { id: container.id },
+                    data: {
+                        quantity: newQuantity,
+                        status: newStatus
+                    }
+                });
+            }
         }
     });
 
@@ -162,8 +201,47 @@ export async function removeProductUsed(id: string, jobId: string) {
                     data: { quantity: { increment: usedProduct.quantity } } // Increment back
                 });
             }
-            // If strictly negative tracking, we might just increment the negative value (effectively reducing debt)
-            // But usually we just increment quantity.
+
+            // Restore into physical stock containers (bottles)
+            let qtyToRestore = usedProduct.quantity;
+            const userContainers = await tx.stockContainer.findMany({
+                where: {
+                    productId: usedProduct.productId,
+                    locationUserId: userId,
+                    status: { in: ['PARTIAL', 'EMPTY'] }  // Exclude FULL
+                }
+            });
+
+            // Sort logic: PARTIAL first (to fill them back up), then EMPTY.
+            userContainers.sort((a, b) => {
+                if (a.status === 'PARTIAL' && b.status !== 'PARTIAL') return -1;
+                if (b.status === 'PARTIAL' && a.status !== 'PARTIAL') return 1;
+                // If both are PARTIAL, fill the one with the most capacity available first
+                const aSpace = (a.maxQuantity || Infinity) - a.quantity;
+                const bSpace = (b.maxQuantity || Infinity) - b.quantity;
+                return bSpace - aSpace; 
+            });
+
+            for (const container of userContainers) {
+                if (qtyToRestore <= 0) break;
+                
+                const spaceAvailable = (container.maxQuantity || Infinity) - container.quantity;
+                if (spaceAvailable <= 0) continue; // safety check
+
+                const addition = Math.min(spaceAvailable, qtyToRestore);
+                qtyToRestore -= addition;
+
+                const newQuantity = container.quantity + addition;
+                const newStatus = (container.maxQuantity && newQuantity >= container.maxQuantity) ? 'FULL' : 'PARTIAL';
+
+                await tx.stockContainer.update({
+                    where: { id: container.id },
+                    data: {
+                        quantity: newQuantity,
+                        status: newStatus
+                    }
+                });
+            }
         }
 
         await tx.usedProduct.delete({

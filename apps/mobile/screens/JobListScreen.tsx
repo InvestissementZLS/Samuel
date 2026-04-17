@@ -123,13 +123,22 @@ export default function JobListScreen() {
         }
     };
 
+    const formatTimeSafe = (dateString: string | Date | undefined) => {
+        if (!dateString) return 'Heure Inconnue';
+        try {
+            return format(new Date(dateString), 'p');
+        } catch(e) {
+            return 'Heure Invalide';
+        }
+    };
+
     const renderItem = ({ item }: { item: DailyRunJob }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => navigation.navigate('JobDetails', { jobId: item.id })}
         >
             <View style={styles.cardHeader}>
-                <Text style={styles.time}>{format(new Date(item.scheduledAt), 'p')}</Text>
+                <Text style={styles.time}>{formatTimeSafe(item.scheduledAt)}</Text>
                 <View style={[styles.badge,
                 item.status === 'IN_PROGRESS' ? styles.badgeActive :
                     item.status === 'COMPLETED' ? styles.badgeCompleted :
@@ -141,8 +150,8 @@ export default function JobListScreen() {
                 </View>
             </View>
 
-            <Text style={styles.clientName}>{item.property.client.name}</Text>
-            <Text style={styles.address}>{item.property.address}</Text>
+            <Text style={styles.clientName}>{item.property?.client?.name || 'Client Inconnu'}</Text>
+            <Text style={styles.address}>{item.property?.address || 'Adresse Inconnue'}</Text>
             <Text style={styles.jobType}>{item.description || 'Aucune description'}</Text>
         </TouchableOpacity>
     );
@@ -311,7 +320,7 @@ export default function JobListScreen() {
                                     styles.divisionTabText,
                                     activeDivision === div && styles.divisionTabTextActive
                                 ]}>
-                                    {div.charAt(0) + div.slice(1).toLowerCase()}
+                                    {String(div).charAt(0).toUpperCase() + String(div).slice(1).toLowerCase()}
                                 </Text>
                             </TouchableOpacity>
                         ))}

@@ -20,6 +20,7 @@ import {
   requestContainerTransfer,
   cancelTransferRequest,
   returnContainerToWarehouse,
+  markContainerEmpty,
 } from "@/app/actions/stock-container-actions";
 import { formatQuantity, isMeasurableUnit } from "@/lib/constants/stock-units";
 import { format } from "date-fns";
@@ -139,6 +140,17 @@ function ContainerCard({
     finally { setLoading(false); }
   };
 
+  const handleMarkEmpty = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir jeter ou vider complètement ce contenant ? Cette action mettra sa quantité à 0.")) return;
+    setLoading(true);
+    try {
+      await markContainerEmpty(container.id, currentUserId, isAdmin);
+      toast.success("Contenant jeté/vidé avec succès.");
+      router.refresh();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setLoading(false); }
+  };
+
   return (
     <div className={`bg-white border rounded-xl p-4 shadow-sm transition-all ${
       hasPendingTransfer ? "border-amber-300 ring-1 ring-amber-200" : "border-gray-200"
@@ -238,6 +250,17 @@ function ContainerCard({
               {showReturn ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
           )}
+
+          {/* Mark as Empty / Throw away */}
+          <button
+            onClick={handleMarkEmpty}
+            disabled={loading}
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg font-medium border border-gray-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50"
+            title="Jeter ou Signaler vide"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Jeter
+          </button>
         </div>
       )}
 

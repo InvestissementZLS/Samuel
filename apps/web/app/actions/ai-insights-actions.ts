@@ -121,11 +121,13 @@ export async function generatePlatformInsights(division?: string): Promise<Platf
             _sum: { total: true }
         }),
 
-        // Recurring services due in next 30 days
-        prisma.recurringService.count({
+        // Upcoming jobs in next 30 days (proxy for recurring services due)
+        prisma.job.count({
             where: {
-                isActive: true,
-                nextServiceDate: { gte: now, lte: addDays(now, 30) }
+                isDeleted: false,
+                scheduledAt: { gte: now, lte: addDays(now, 30) },
+                status: { notIn: ['CANCELLED', 'COMPLETED'] },
+                ...jobDivisionFilter,
             }
         }),
 

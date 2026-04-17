@@ -194,7 +194,7 @@ export default function LoginScreen() {
                 </TouchableOpacity>
             </View>
 
-            <Text style={styles.footer}>ZLS Field Service App © 2026 (UPDATED)</Text>
+            <Text style={styles.footer}>ZLS Field Service App © 2026</Text>
         </KeyboardAvoidingView>
     );
 }

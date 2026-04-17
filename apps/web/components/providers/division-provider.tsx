@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-const setDivisionCookie = async (...args: any) => {};
+import { setDivisionCookieAction } from "@/app/actions/user-actions";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/components/providers/user-provider";
 
@@ -50,7 +50,7 @@ export function DivisionProvider({ children }: { children: React.ReactNode }) {
             // Forcefully set to their first allowed division to prevent getting stuck in restricted context
             setDivisionState(allowedDivisions[0]);
             localStorage.setItem("division", allowedDivisions[0]);
-            setDivisionCookie(allowedDivisions[0]);
+            setDivisionCookieAction(allowedDivisions[0]);
         }
     }, [user]);
 
@@ -59,7 +59,7 @@ export function DivisionProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("division", div);
         
         // Use the Server Action to definitively set the cookie for NextJS App Router
-        await setDivisionCookie(div);
+        await setDivisionCookieAction(div);
         
         // This will forcefully refresh the Server Components with the new cookie
         // and avoid the jarring visual "flash" of window.location.reload()

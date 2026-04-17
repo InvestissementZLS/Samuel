@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { Division, Role, UserDivisionAccess } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 export async function createTechnician(data: {
     name: string;
@@ -24,7 +25,7 @@ export async function createTechnician(data: {
         data: {
             name: data.name,
             email: data.email,
-            password: data.password, // TODO: Hash this in production
+            password: data.password ? await bcrypt.hash(data.password, 12) : undefined, // Hashed securely
             role: 'TECHNICIAN',
             internalHourlyRate: data.internalHourlyRate,
             commissionPercentageSales: data.commissionPercentageSales,
@@ -90,11 +91,8 @@ export async function updateTechnician(id: string, data: {
         isActive: data.isActive !== undefined ? Boolean(data.isActive) : undefined,
     };
 
-    console.log('Updating Technician:', id, 'isActive:', data.isActive, 'updateData.isActive:', updateData.isActive);
-    console.log('Accesses:', JSON.stringify(data.accesses));
-
     if (data.password) {
-        updateData.password = data.password; // TODO: Hash this in production
+        updateData.password = await bcrypt.hash(data.password, 12); // Hashed securely
     }
 
     await prisma.user.update({

@@ -147,7 +147,7 @@ export default function NewClientPage() {
     const [sameAddress, setSameAddress] = useState(true);
     const [billingAddress, setBillingAddress] = useState('');
     const [language, setLanguage] = useState<'FR' | 'EN'>('FR');
-    const [division, setDivision] = useState<'EXTERMINATION' | 'ENTREPRISES' | 'RENOVATION'>('EXTERMINATION');
+    const [divisions, setDivisions] = useState<('EXTERMINATION' | 'ENTREPRISES' | 'RENOVATION')[]>(['EXTERMINATION']);
 
     // Link preferences
     const [sendLink, setSendLink] = useState(false);
@@ -196,12 +196,12 @@ export default function NewClientPage() {
                 phone: phone.trim() || undefined,
                 serviceAddress: serviceAddress || undefined,
                 billingAddress: sameAddress ? (serviceAddress || undefined) : (billingAddress.trim() || undefined),
-                divisions: [division],
+                divisions: divisions,
                 language,
                 sendLink,
                 preferredDays: sendLink ? preferredDays : [],
                 preferredPeriod: sendLink && preferredPeriod !== 'ANY' ? preferredPeriod : undefined,
-                division,
+                division: divisions[0],
             });
 
             if (result.emailSent) {
@@ -337,17 +337,48 @@ export default function NewClientPage() {
                                         ))}
                                     </div>
                                 </Field>
-                                <Field label="Division" icon={Building2} id="division">
-                                    <select
-                                        id="division"
-                                        value={division}
-                                        onChange={e => setDivision(e.target.value as any)}
-                                        className={inputClass}
-                                    >
-                                        <option value="EXTERMINATION">Extermination</option>
-                                        <option value="ENTREPRISES">Entreprises</option>
-                                        <option value="RENOVATION">Rénovation</option>
-                                    </select>
+                                <Field label="Divisions" icon={Building2} id="divisions">
+                                    <div className="flex flex-col gap-2 p-2 border rounded-xl bg-white shadow-sm">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={divisions.includes('EXTERMINATION')}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) setDivisions([...divisions, 'EXTERMINATION']);
+                                                    else if (divisions.length > 1) setDivisions(divisions.filter((d) => d !== 'EXTERMINATION'));
+                                                    else toast.error('Vous devez sélectionner au moins une division');
+                                                }}
+                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-gray-700">Extermination</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={divisions.includes('ENTREPRISES')}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) setDivisions([...divisions, 'ENTREPRISES']);
+                                                    else if (divisions.length > 1) setDivisions(divisions.filter((d) => d !== 'ENTREPRISES'));
+                                                    else toast.error('Vous devez sélectionner au moins une division');
+                                                }}
+                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-gray-700">Entreprises</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={divisions.includes('RENOVATION')}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) setDivisions([...divisions, 'RENOVATION']);
+                                                    else if (divisions.length > 1) setDivisions(divisions.filter((d) => d !== 'RENOVATION'));
+                                                    else toast.error('Vous devez sélectionner au moins une division');
+                                                }}
+                                                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-gray-700">Rénovation</span>
+                                        </label>
+                                    </div>
                                 </Field>
                             </div>
                         </div>

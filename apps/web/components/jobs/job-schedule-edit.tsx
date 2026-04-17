@@ -11,7 +11,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-const updateJob = async (...args: any) => {};
+import { updateCalendarJob } from "@/app/actions/calendar-actions";
 import { toast } from "sonner";
 
 interface JobScheduleEditProps {
@@ -54,7 +54,7 @@ export function JobScheduleEdit({
                 endDateTime = new Date(`${dateStr}T${endTime}:00`);
             }
 
-            await updateJob(jobId, {
+            await updateCalendarJob(jobId, {
                 scheduledAt: startDateTime,
                 scheduledEndAt: endDateTime,
             });

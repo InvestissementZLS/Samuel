@@ -125,11 +125,18 @@ export async function askJarvis(
                 orderBy: { scheduledAt: 'asc' },
                 take: 10,
             }),
-            prisma.recurringService.findMany({
-                where: { isActive: true, nextServiceDate: { gte: now, lte: addDays(now, 30) } },
+            // Upcoming jobs in next 30 days (replaces recurringService which isn't in schema)
+            prisma.job.findMany({
+                where: {
+                    isDeleted: false,
+                    scheduledAt: { gte: now, lte: addDays(now, 30) },
+                    status: { notIn: ['CANCELLED', 'COMPLETED'] },
+                    ...divFilter,
+                },
                 include: {
                     property: { include: { client: { select: { name: true, phone: true } } } },
                 },
+                orderBy: { scheduledAt: 'asc' },
                 take: 10,
             }),
             prisma.invoice.groupBy({
@@ -185,8 +192,8 @@ ${clientsNoJob.length === 0 ? '  Aucun client à risque.' : clientsNoJob.map(c =
 JOBS SANS TECHNICIEN (14 prochains jours):
 ${unassignedJobs.length === 0 ? '  Aucun.' : unassignedJobs.map(j => `  • ${j.description || 'Sans titre'} — ${new Date(j.scheduledAt).toLocaleDateString('fr-CA')}`).join('\n')}
 
-SERVICES RÉCURRENTS DUS (30 prochains jours):
-${recurringDue.length === 0 ? '  Aucun.' : recurringDue.map(r => `  • ${(r.property as any)?.client?.name || 'Client'} — ${new Date(r.nextServiceDate!).toLocaleDateString('fr-CA')} — Tél: ${(r.property as any)?.client?.phone || 'N/A'}`).join('\n')}
+SERVICES / JOBS À VENIR (30 prochains jours):
+${recurringDue.length === 0 ? '  Aucun.' : recurringDue.map((r: any) => `  • ${r.property?.client?.name || 'Client'} — ${new Date(r.scheduledAt).toLocaleDateString('fr-CA')} — ${r.description || 'Service'} — Tél: ${r.property?.client?.phone || 'N/A'}`).join('\n')}
 
 CLIENTS LES PLUS RENTABLES:
 ${topClientsWithNames.map((c, i) => `  ${i + 1}. ${c.name} — $${c.total.toFixed(2)}`).join('\n')}

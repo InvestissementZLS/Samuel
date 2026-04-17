@@ -269,8 +269,86 @@ export async function getProductDetails(id: string) {
 }
 
 export async function deleteProduct(id: string) {
-    await prisma.product.delete({
-        where: { id }
+    // Check if the product is used in irreversible records
+    const product = await prisma.product.findUnique({
+        where: { id },
+        include: {
+            _count: {
+                select: {
+                    invoiceItems: true,
+                    quoteItems: true,
+                    usedIn: true
+                }
+            }
+        }
     });
+
+    if (!product) throw new Error("Product not found");
+
+    if (product._count.invoiceItems > 0 || product._count.quoteItems > 0 || product._count.usedIn > 0) {
+        throw new Error("Ce produit ne peut pas être supprimé car il est déjà utilisé dans des factures, soumissions ou rapports de travail.");
+    }
+
+    // Safely delete cascade relations that don't matter as much for a "new" or unused product
+    await prisma.$transaction([
+        prisma.inventoryItem.deleteMany({ where: { productId: id } }),
+        prisma.stockContainer.deleteMany({ where: { productId: id } }),
+        prisma.equipmentAsset.deleteMany({ where: { productId: id } }),
+        prisma.inventoryAuditItem.deleteMany({ where: { productId: id } }),
+        prisma.serviceMaterial.deleteMany({ where: { materialId: id } }),
+        prisma.serviceMaterial.deleteMany({ where: { serviceId: id } }),
+        // @ts-ignore
+        prisma.includedService.deleteMany({ where: { childProductId: id } }),
+        // @ts-ignore
+        prisma.includedService.deleteMany({ where: { parentProductId: id } }),
+        prisma.product.delete({ where: { id } })
+    ]);
+
     revalidatePath('/products');
+}
+
+// Bulk import/update product costs from a supplier CSV
+export async function updateProductCostsFromSupplier(
+    items: { name: string; cost: number; unit?: string }[]
+): Promise<{ updated: number; created: number; skipped: number; errors: string[] }> {
+    let updated = 0, created = 0, skipped = 0;
+    const errors: string[] = [];
+
+    for (const item of items) {
+        try {
+            if (!item.name || item.cost <= 0) { skipped++; continue; }
+
+            // Try to find by name (case insensitive)
+            const existing = await prisma.product.findFirst({
+                where: { name: { equals: item.name, mode: 'insensitive' } }
+            });
+
+            if (existing) {
+                await prisma.product.update({
+                    where: { id: existing.id },
+                    data: { cost: item.cost }
+                });
+                updated++;
+            } else {
+                await prisma.product.create({
+                    data: {
+                        name: item.name,
+                        cost: item.cost,
+                        price: 0,
+                        stock: 0,
+                        unit: item.unit || 'Pcs',
+                        type: 'CONSUMABLE',
+                        division: 'EXTERMINATION',
+                    }
+                });
+                created++;
+            }
+        } catch (e: any) {
+            errors.push(`${item.name}: ${e.message}`);
+            skipped++;
+        }
+    }
+
+    revalidatePath('/products');
+    return { updated, created, skipped, errors };
 }

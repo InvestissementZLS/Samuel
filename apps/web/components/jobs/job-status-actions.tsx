@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, CheckCircle, Loader2 } from 'lucide-react';
-const startJob = async (...args: any) => ({ success: false, error: 'Not implemented' });
+import { updateJobStatus } from '@/app/actions/job-tracking-actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { CompleteJobDialog } from './complete-job-dialog';
@@ -21,12 +21,12 @@ export function JobStatusActions({ jobId, status }: JobStatusActionsProps) {
     const handleStartJob = async () => {
         setIsLoading(true);
         try {
-            const result = await startJob(jobId);
+            const result = await updateJobStatus(jobId, 'IN_PROGRESS');
             if (result.success) {
-                toast.success("Job started!");
+                toast.success("Job démarré !");
                 router.refresh();
             } else {
-                toast.error("Failed to start job: " + result.error);
+                toast.error("Erreur au démarrage du job");
             }
         } catch (error) {
             toast.error("Error starting job");

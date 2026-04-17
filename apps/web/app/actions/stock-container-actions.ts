@@ -311,3 +311,34 @@ export async function returnContainerToWarehouse(
 ) {
   return requestContainerTransfer(containerId, fromUserId, null, remainingQty, notes);
 }
+
+/**
+ * Manually marks a stock container as EMPTY and sets its quantity to 0.
+ * Used when a bottle is completely and permanently disposed of or fully emptied manually.
+ */
+export async function markContainerEmpty(containerId: string, currentUserId: string | null, isAdmin: boolean) {
+  const container = await prisma.stockContainer.findUnique({
+    where: { id: containerId }
+  });
+
+  if (!container) throw new Error("Contenant introuvable.");
+
+  // Security: You can only empty it if you are the explicit owner, or if it's in the warehouse and you are admin
+  const isOwner = container.locationUserId === currentUserId;
+  const isWarehouseAdmin = !container.locationUserId && isAdmin;
+
+  if (!isOwner && !isWarehouseAdmin) {
+    throw new Error("Non autorisé à vider ce contenant.");
+  }
+
+  await prisma.stockContainer.update({
+    where: { id: containerId },
+    data: {
+      quantity: 0,
+      status: "EMPTY"
+    }
+  });
+
+  revalidatePath("/inventory");
+  revalidatePath("/stock");
+}

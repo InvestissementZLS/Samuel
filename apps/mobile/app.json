@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Praxis ZLS",
-    "slug": "praxis-zls-mobile",
+    "slug": "praxis-zls",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -37,23 +37,32 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "f83ec387-998e-4e57-a5a7-adf1dee0e63b"
-      }
-    },
-    "owner": "exterminationzls",
+    "owner": "samuellesentrepriseszls",
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-camera",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permettre à ZLS d'accéder à votre position pour l'optimisation des routes.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      "expo-notifications"
     ],
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/f83ec387-998e-4e57-a5a7-adf1dee0e63b",
+      "url": "https://u.expo.dev/c2bfb6d4-5004-4146-9e54-bb9e34840384",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c2bfb6d4-5004-4146-9e54-bb9e34840384"
+      }
     }
   }
 }

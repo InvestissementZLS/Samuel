@@ -27,6 +27,7 @@ export const dictionary = {
             client: "Client",
             create: "Create",
             months: "Months",
+            success: "Saved successfully",
         },
         auth: {
             title: "Sign in to your account",
@@ -220,6 +221,7 @@ export const dictionary = {
             importSupplierPrices: "Import Supplier Price List",
             importCostsDesc: "Upload a CSV with purchase costs to auto-calibrate profitability.",
             noItems: "No items found.",
+            add: "Add Item",
         },
         productDialog: {
             editProduct: "Edit Consumable",
@@ -587,6 +589,7 @@ export const dictionary = {
             confirmApprove: "Approve this audit and update stock levels?",
             confirmReject: "Reject this audit?",
         },
+        redirecting: "Redirecting to secure checkout...",
     },
     fr: {
         common: {
@@ -614,6 +617,7 @@ export const dictionary = {
             client: "Client",
             create: "Créer",
             months: "Mois",
+            success: "Sauvegardé avec succès",
         },
         auth: {
             title: "Connectez-vous à votre compte",
@@ -807,6 +811,7 @@ export const dictionary = {
             importSupplierPrices: "Importer Liste de Prix Fournisseur",
             importCostsDesc: "Importez un fichier CSV avec vos coûts d'achat pour calibrer automatiquement la rentabilité.",
             noItems: "Aucun article trouvé.",
+            add: "Ajouter",
         },
         productDialog: {
             editProduct: "Modifier Consommable",
@@ -1173,6 +1178,7 @@ export const dictionary = {
             confirmApprove: "Approuver cet audit et mettre à jour les niveaux de stock ?",
             confirmReject: "Rejeter cet audit ?",
         },
+        redirecting: "Redirection vers le paiement sécurisé...",
     }
 }
 

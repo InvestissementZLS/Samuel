@@ -1,41 +1,20 @@
 {
   "cli": {
-    "version": ">= 18.3.0",
-    "appVersionSource": "remote",
-    "requireCommit": false
+    "version": ">= 18.4.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "config": "eas-build-config.js",
-      "env": {
-        "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1",
-        "EXPO_METRO_WORKSPACE_ROOT": "../.."
-      }
+      "distribution": "internal"
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview",
-      "config": "preview.yml",
-      "env": {
-        "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1",
-        "EXPO_METRO_WORKSPACE_ROOT": "../.."
-      },
-      "android": {
-        "buildType": "apk"
-      }
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production",
-      "env": {
-        "EXPO_NO_DOCTOR": "true",
-        "SKIP_POSTINSTALL": "1",
-        "EXPO_METRO_WORKSPACE_ROOT": "../.."
-      }
+      "channel": "production"
     }
   },
   "submit": {

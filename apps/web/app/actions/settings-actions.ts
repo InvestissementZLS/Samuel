@@ -32,3 +32,7 @@ export async function upsertDivisionSetting(data: {
         return { success: false, error: e.message };
     }
 }
+
+export async function getDivisionSettings() {
+    return prisma.divisionSettings.findMany();
+}

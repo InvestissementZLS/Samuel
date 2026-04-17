@@ -192,12 +192,9 @@ export async function createQuote(data: {
     terms?: string;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    console.log("createQuote called with:", JSON.stringify(data, null, 2));
     try {
         const division = data.division || "EXTERMINATION";
-        console.log("Generating number for division:", division);
         const number = await generateNextNumber(division, "QUOTE");
-        console.log("Generated number:", number);
 
         await prisma.quote.create({
             data: {
@@ -228,7 +225,6 @@ export async function createQuote(data: {
                 }
             },
         });
-        console.log("Quote created successfully");
         revalidatePath(`/clients/${data.clientId}`);
     } catch (error) {
         console.error("Error creating quote:", error);
@@ -250,7 +246,6 @@ export async function updateQuote(data: {
     total: number;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    console.log("updateQuote called with:", JSON.stringify(data, null, 2));
     try {
         await prisma.$transaction(async (tx) => {
             await tx.quote.update({
@@ -288,7 +283,6 @@ export async function updateQuote(data: {
                 });
             }
         });
-        console.log("Quote updated successfully");
         revalidatePath(`/clients/${data.clientId}`);
     } catch (error) {
         console.error("Error updating quote:", error);
@@ -338,12 +332,10 @@ export async function createInvoice(data: {
     terms?: string;
     division?: "EXTERMINATION" | "ENTREPRISES";
 }) {
-    console.log("createInvoice called with:", JSON.stringify(data, null, 2));
     try {
         data.notes = await processHiddenCaptureIds(data.notes);
         const division = data.division || "EXTERMINATION";
         const number = await generateNextNumber(division, "INVOICE");
-        console.log("Generated invoice number:", number);
 
         const invoice = await prisma.invoice.create({
             data: {
@@ -374,8 +366,6 @@ export async function createInvoice(data: {
                 }
             },
         });
-        console.log("Invoice created successfully:", invoice.id);
-
         // Auto trigger prevention job
         if (data.items && data.items.length > 0) {
             const productIds = data.items.map(item => item.productId).filter(id => id !== null) as string[];
@@ -456,7 +446,7 @@ export async function updateInvoiceStatus(id: string, clientId: string, status: 
         data: { status },
     });
 
-    if (status === 'CANCELLED' || status === 'REFUNDED') {
+    if (status === 'CANCELLED') {
         // 🔥 Bulletproof Step 2: Auto cancel jobs if invoice cancelled
         await prisma.job.deleteMany({
             where: {
