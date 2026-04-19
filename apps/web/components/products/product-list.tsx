@@ -170,7 +170,9 @@ export function ProductList({ products }: ProductListProps) {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {/* @ts-ignore */}
-                                        ${(product.cost || 0).toFixed(2)}
+                                        ${(product.containerSize ? ((product.cost || 0) * product.containerSize) : (product.cost || 0)).toFixed(2)}
+                                        {/* @ts-ignore */}
+                                        {product.containerSize && <span className="text-[10px] text-gray-400 block">/ Contenant</span>}
                                     </td>
                                     {activeTab !== 'SERVICES' && (
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
